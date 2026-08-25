@@ -47,12 +47,30 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
 3. **`Global.KanalLabel` wird hardcodiert** auf `"Telefon"` gesetzt — kein
    Bedingungsblock. Wenn der Chat-Kanal in Zukunft hinzukommt, wird die
    Bedingung `Activity.ChannelId = "directline"` → `"Chat"` ergänzt.
+4. **`Global.TelefonnummerGesprochen` neu (2026-08-25, getestet, ✅ erfolgreich)**:
+   SetVariable-Node direkt nach der Telefonnummer-Frage berechnet eine
+   Ziffern-mit-Leerzeichen-Variante der Nummer für die Sprachausgabe.
+   **Root Cause**: Azure-Neural-TTS liest eine zusammenhängende Ziffernfolge ohne
+   Formatierung standardmäßig als Kardinalzahl vor (z. B. „123456789" →
+   „einhundertdreiundzwanzig Millionen..." statt einzelner Ziffern) — bestätigt
+   durch Praxistest per echtem Anruf. Copilot Studios `speak`-Feld-Editor bietet
+   nur die SSML-Tags Audio/Pause/Betonung/Prosodie, **kein** `say-as
+   interpret-as="telephone"` → rohes SSML manuell einfügen ist keine Option.
+   **Fix**: Power-Fx-Formel baut die gesprochene Variante mit Leerzeichen zwischen
+   den Ziffern:
+   ```
+   Concat(Sequence(Len(Global.Telefonnummer)), Mid(Global.Telefonnummer, Value, 1), " ")
+   ```
+   `"123456789"` → `"1 2 3 4 5 6 7 8 9"`. Wird **nur** im `speak`-Feld der
+   Zusammenfassung verwendet (siehe unten); `text`-Feld, Flow-Input und E-Mail
+   bleiben bei der unformatierten `Global.Telefonnummer`.
 
-**YAML-Stand (2026-08-20):**
+**YAML-Stand (2026-08-25):**
 ```yaml
 - Question → Global.Firmenname (StringPrebuiltEntity)
 - Question → init:Global.Ansprechpartner (PersonNamePrebuiltEntity)*
 - Question → Global.Telefonnummer (PhoneNumberPrebuiltEntity)
+- SetVariable: Global.TelefonnummerGesprochen = Concat(Sequence(Len(Global.Telefonnummer)), Mid(Global.Telefonnummer, Value, 1), " ")
 - SetVariable: Global.KanalLabel = "Telefon"
 - BeginDialog → Anlagenerfassung
 ```
@@ -101,11 +119,16 @@ Identisch mit Stufe 1, **einzige Änderung**: letzter Node redirectet zu
    >
    > Ist das so korrekt?
    > ```
-   > **speak**: Ich fasse Ihre Angaben zusammen. Sie rufen für die Firma {Global.Firmenname} an. Ihr Name lautet {Global.Ansprechpartner} und Sie sind unter {Global.Telefonnummer} erreichbar. Ist das so korrekt?
+   > **speak**: Ich fasse Ihre Angaben zusammen. Sie rufen für die Firma {Global.Firmenname} an. Ihr Name lautet {Global.Ansprechpartner} und Sie sind unter {Global.TelefonnummerGesprochen} erreichbar. Ist das so korrekt?
    > → gebunden an `init:Topic.korrekt` (BooleanPrebuiltEntity)
    
    - **Anlage und Anliegen werden nicht vorgelesen** — nur die 3 Kontaktfelder werden bestätigt.
    - **Kein Node 0b / keine 4-Varianten-Condition** — da Inbetriebnahme und Vertrag entfallen.
+   - **`{Global.TelefonnummerGesprochen}` statt `{Global.Telefonnummer}` im `speak`-Feld**
+     (2026-08-25, getestet ✅) — Ziffern mit Leerzeichen getrennt, damit TTS sie
+     einzeln statt als Kardinalzahl vorliest. Siehe „Kundendaten erfassen — Stufe 0",
+     Punkt 4, für Root Cause und Formel. Das `text`-Feld (oben) bleibt bei
+     `{Global.Telefonnummer}`.
 
 2. **Korrekturfeld-Entity auf 3 Optionen reduziert** (Inbetriebnahme + Vertrag entfernt):
    

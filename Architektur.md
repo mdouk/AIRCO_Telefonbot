@@ -127,6 +127,84 @@ Englisch-Unterstützung mit übersetzten Topic-Texten.
 
 ---
 
+## 2a. Voice-Kanal-Einstellungen (Sprachempfindlichkeit, Timeouts, Halten & Fortsetzen)
+
+Ergänzend zur Agent-Ebene (Abschnitt 2) gibt es kanalspezifische Voice-Einstellungen
+im Sprachkanal von Copilot Studio (`Unterhaltungsverhalten` → Karten „Stille",
+„Spracherfassung", „Halten und Fortsetzen"), die unabhängig vom Topic-Design
+das Gesprächsgefühl am Telefon prägen. Ausgelöst durch Testfeedback (siehe
+ToDos.md, Abschnitt „Testing-Feedback"):
+
+| Einstellung | Wert | Begründung |
+|---|---|---|
+| **Sprachempfindlichkeit / Unterbrechungsschwelle** (Karte „Stille") | 0,5 → **0,2** (umgesetzt 2026-08-25) | Feedback #19: Bot hörte sich über lauten Lautsprecher selbst und unterbrach bei kleinen Hintergrundgeräuschen (Barge-in auf Rauschen statt echter Anrufer-Sprache). Niedrigerer Wert = weniger empfindlich gegenüber leisen/kurzen Geräuschen. |
+| **Äußerungsende-Timeout** (Karte „Spracherfassung") | 1500 ms → **2500 ms** (Umsetzung offen, **priorisiert**) | Reduziert das Risiko, dass der Bot Anrufer mitten in einer Denkpause für „fertig gesprochen" hält. **Hochgestuft 2026-08-25** nach Testerbericht (Anlagenbezeichnung): wirkt als einziger Hebel global auf alle Question Nodes und setzt an der Ursache an, nicht am Symptom — siehe „Turn-Taking-Problem" unten. |
+| **Spracherkennungs-Timeout** (Karte „Spracherfassung") | 12000 ms, Option „Spracherkennungs-Timeout" bleibt aktiv (nicht „Kein Erkennungs-Timeout") | Muss aktiv bleiben, da die bestehende `OnSilence`-Logik („Sind Sie noch da?" → `EndConversation`, siehe Abschnitt 7 / ToDos.md Zeile 88) sonst nie auslöst. |
+| **Halten und Fortsetzen** | Trigger-Wörter + Nachrichten zu befüllen (Vorschläge in ToDos.md); Zeitüberschreitung 15000 ms / 2 Wiederholungen (Standardwerte beibehalten) | Deckt das domänentypische Szenario „Kunde muss kurz zum Typenschild/Kompressor laufen, um Seriennummer/Anlagenbezeichnung abzulesen" gezielt ab (Topic „Anlage erfassen", Stufe 0 Slim) — präziser als eine pauschale Anhebung der Timeouts für das ganze Gespräch. |
+
+⚠️ Alle Werte sind Startwerte, kein abgeschlossenes Tuning — nach dem nächsten
+Testlauf prüfen, ob Anrufer eher abgewürgt wirken (Timeouts weiter hoch) oder
+das Gespräch träge wirkt (wieder runter).
+
+### Turn-Taking-Problem (Analyse 2026-08-25)
+
+Testerbericht: „Er hat mich nach der Anlagenbezeichnung gefragt, ich habe 2–3
+Sekunden gezögert, und er hat schon mit der Anliegenfrage angefangen, als ich
+die Anlagenbezeichnung gesagt hatte. Mein Anliegen konnte ich dann gar nicht
+mehr sagen."
+
+**Mechanik:** Der Spracherkennungs-Timeout (12 s) kann das nicht ausgelöst
+haben — bei reiner Stille hätte `OnSilence` („Sind Sie noch da?") gegriffen.
+Wahrscheinlicher: ein Geräusch beim Zögern (Einatmen, „ähm") startet die
+Erkennung, **1500 ms später** gilt die Äußerung als beendet, ein Fragment landet
+in `Global.Anlage`, und der `BeginDialog` zum nächsten Topic feuert sofort.
+Die eigentliche Antwort des Anrufers landet dann im **nächsten** Question Node
+— und weil alle Nodes `StringPrebuiltEntity` (Catch-all) verwenden, wird sie
+dort kommentarlos als gültige Antwort akzeptiert.
+
+**Warum das die gefährlichere Fehlerklasse ist:** Es entsteht kein Fehler, kein
+Fallback, keine Rückfrage. Der Flow läuft grün, die E-Mail geht raus — mit einer
+Typenbezeichnung im Feld „Anliegen" und einem nie erfassten Anliegen. Anders als
+Feedback #17 („kein passendes Thema") merkt das niemand.
+
+**Struktureller Zusammenhang:** Ein Catch-all-Entity kann per Definition nicht
+scheitern — jede Äußerung ist eine gültige Antwort, auch die falsche. Damit
+gibt es keinen Punkt, an dem ein Reprompt oder eine Fehlerbehandlung überhaupt
+auslösen *könnte*. Das ist der Preis der bewussten Entscheidung, wegen
+schlechter Erkennung natürlicher Sprache auf typisierte Entities zu verzichten
+(siehe Topics.md).
+
+**Entschieden (2026-08-25) — Reihenfolge nach Aufwand/Wirkung:**
+
+1. **Äußerungsende-Timeout 1500 → 2500 ms.** Ein Feld, wirkt global auf alle
+   Question Nodes, setzt an der Ursache an. Zuerst umsetzen.
+2. **Wortlaut der Anlagen-Frage bleibt unverändert** („Bitte teilen Sie uns die
+   Anlagenbezeichnung, Seriennummer und das Baujahr mit."). Bewusst so
+   entschieden: Ein Aufteilen in drei Einzelfragen würde das Pausenrisiko
+   senken, aber das Gespräch verlängern — und Gesprächskürze war ausdrückliche
+   Kundenpriorität (Feedback #2). **Bekanntes Restrisiko:** drei Angaben in
+   einer Antwort = zwei natürliche Denkpausen mitten in der Antwort.
+3. **Erst danach messen.** Tritt der Effekt weiterhin auf, einen
+   Plausibilitätscheck (`Len(Trim(...)) < 3` → einmal nachfragen, davor
+   `SetVariable = Blank()`, sonst überspringt sich der Question Node selbst)
+   nachrüsten — dann aber **nur bei `Global.Anliegen`**, dem einzigen
+   geschäftskritisch unverzichtbaren Feld, nicht bei allen Fragen.
+
+**Verworfen:** Blank-/Längen-Check flächendeckend über alle Question Nodes.
+Drei Zusatzknoten pro Frage plus willkürlicher Schwellwert behandeln das
+Symptom, während der Schaden 1500 ms früher entsteht; eine Prüfung kann nicht
+zurückholen, was der Anrufer gesagt hat, während der Bot schon weiterredete.
+
+**Ebenfalls offen (nicht entschieden):** Alle Question Nodes stehen auf
+`allowInterruption: true`. Das öffnet bei jeder Frage die Orchestrator-Prüfung
+auf einen möglichen Themenwechsel — passt die Äußerung zu keinem Thema, führt
+das zu `OnUnknownIntent` (Feedback #17). In einem durchgängig redirect-gesteuerten
+Ablauf ohne alternative Themen ist der Nutzen fraglich; `false` würde diese Tür
+schließen. Vor einer Umstellung ist zu prüfen, ob `allowInterruption` in
+Copilot Studio auch das akustische Barge-in betrifft oder nur den Themenwechsel.
+
+---
+
 ## 3a. Gesprächsfluss Stufe 0 — Slim-Variante (2026-08-18)
 
 ```mermaid
@@ -323,6 +401,7 @@ Einbindung werden mit der Kundenlieferung entschieden (Abschnitt 9).
 | E6 | **Bestätigung / Korrektur** | Bot, Topic „Zusammenfassung & Bestätigung" | Anrufer bestätigt → Flow; widerspricht → Closed-List-Frage nach dem falschen Feld, gezielte Korrektur-Nachfrage direkt im Topic, danach erneutes Vorlesen; max. 2 Korrekturversuche, danach in v2 **kein Transfer** → Flow trotzdem auslösen (mit Hinweis „vom Anrufer nicht final bestätigt") + Gesprächsende | angepasst (v2) |
 | E7 | **KI-Verarbeitung (Zusammenfassung + Kritikalität)** | Power Automate | Ein Structured-Output-Node (GPT-4.1) liefert `zusammenfassung` + `kritikalitaet` (Enum) in einem Aufruf → VarZusammenfassung / VarKritikalitaet. **Kategorie-Klassifizierung A–F** bleibt Stufe-2-Material. | erledigt (2026-07-20) |
 | E8 | **E-Mail-Routing** | Power Automate | Inline-`if()` im Empfänger-Feld einer einzigen E-Mail-Aktion: Kritisch→PostfachA, Hoch→B, Mittel→C, Rest→D. Betreff = `[Kritikalität] - Firma: Firmenname`. Fallback-Node „E-Mail senden 2" bei KI-Ausfall (Configure run after: Failed/TimedOut/Skipped). Postfach-Adressen fehlen noch (wartet auf AIRCO). | erledigt bis auf Postfach-Adressen |
+| E11 | **Fallback / kein Thema erkannt** (Testfeedback #17 „Themenerkennung") | Bot, System-Topic „Fallback" (separat von `OnUnrecognizedSpeech` — greift, wenn die Spracherkennung erfolgreich war, aber kein Topic-Trigger passt) | Entschieden (2026-08-25): keine Rückfrage-Schleife und kein Versuchszähler — kurze Entschuldigung, danach direkter Redirect zu Topic „Anliegen erfassen" (Annahme: Anrufer hat trotzdem ein Servicefall, nur unpassend formuliert). Vorhandenen Escalate-Verweis im Standard-Fallback-Topic entfernen, analog zu den bereits deaktivierten System-Topics (Abschnitt 7 / ToDos.md Zeile 87–92). | entschieden, Umsetzung + Praxistest offen |
 
 Die 4-stufige Kritikalität (Kritisch/Hoch/Mittel/Niedrig) wird in v2 **von der
 KI im Flow** vergeben und steuert das E-Mail-Routing (E7/E8). Sie tritt damit
@@ -576,6 +655,20 @@ Topic Variables    (leben nur im jeweiligen Kategorie-Topic)
 18. **Englisch-Sprecher ohne Transfer** — höflich beenden + Rückruf zusagen?
 19. **Abbruch-/Fehlerfälle ohne Transfer** — 2× unerkannte Eingabe bzw. 2
     erschöpfte Korrekturversuche: Anliegen trotzdem mailen + Gesprächsende?
+
+**Neu aus Testing-Feedback (2026-08-25, siehe ToDos.md „Testing-Feedback"):**
+
+20. **Fallback-Topic Wortlaut & Praxistest (E11)** — genaue Formulierung der
+    Entschuldigungsnachricht; Praxistest, ob der Redirect zu „Anliegen
+    erfassen" aus jedem Gesprächskontext sauber funktioniert (insbesondere:
+    bleiben bereits erfasste `Global.*`-Variablen erhalten, da kein
+    `ClearAllVariables` beteiligt ist?).
+21. **Sicherheitsnetz bei Gesprächsabbruch (Feedback #18)** — zurückgestellt
+    bis nach Retest des Stufe-1-Flow-Timeout-Fixes (siehe ToDos.md Zeile 124,
+    Feedback #15). Tritt das Problem (keine E-Mail bei abgebrochenem
+    Gespräch) danach weiterhin auf, muss ein Konzept für eine Teil-Mail bei
+    Abbruch ausgearbeitet werden (z. B. Trigger im `OnSystemRedirect`/`OnError`
+    mit den bis dahin erfassten Variablen, auch unvollständig).
 
 ### Stufe 1.5 / 1.6
 

@@ -17,7 +17,7 @@ die Roadmap der Ausbaustufen in [Architektur.md](Architektur.md).
 | Baustein | Status |
 |----------|--------|
 | Conversation Start | **erledigt** — identisch mit Stufe 1 (YAML: `YAML/Slim/Start der Unterhaltung.md`) |
-| Kundendaten erfassen | **erledigt** — redirectet zu `Anlagenerfassung`; Caller-ID-Block entfernt (2026-08-20): keine Systemvariable liefert PSTN-Nummer in Teams Phone + Agents & Queues; Telefonnummer immer manuell per `PhoneNumberPrebuiltEntity`; `KanalLabel` hardcodiert `"Telefon"`. ⚠ `PersonNamePrebuiltEntity` für Ansprechpartner: bewusst zunächst so belassen — Praxistest entscheidet; wenn Entity natürliche Sprache nicht erkennt → auf `StringPrebuiltEntity` wechseln (wie Stufe 1). (YAML: `YAML/Slim/Kundendaten_erfassen.md`) |
+| Kundendaten erfassen | **erledigt** — redirectet zu `Anlagenerfassung`; Caller-ID-Block entfernt (2026-08-20): keine Systemvariable liefert PSTN-Nummer in Teams Phone + Agents & Queues; Telefonnummer immer manuell per `PhoneNumberPrebuiltEntity`; `KanalLabel` hardcodiert `"Telefon"`; zusätzlich `Global.TelefonnummerGesprochen` (2026-08-25, getestet) — Ziffern-mit-Leerzeichen-Formel gegen TTS-Kardinalzahl-Bug, siehe F3. ⚠ `PersonNamePrebuiltEntity` für Ansprechpartner: bewusst zunächst so belassen — Praxistest entscheidet; wenn Entity natürliche Sprache nicht erkennt → auf `StringPrebuiltEntity` wechseln (wie Stufe 1). (YAML: `YAML/Slim/Kundendaten_erfassen.md`) |
 | **Anlage erfassen** (NEU) | **erledigt** — neues Topic: eine Frage (StringPrebuiltEntity, `allowInterruption: true`): „Bitte teilen Sie uns die Anlagenbezeichnung, Seriennummer und das Baujahr mit." → `Global.Anlage`; redirectet zu `Anliegenerfassen` (YAML: `YAML/Slim/Anlage erfassen.md`) |
 | Anliegen erfassen | **erledigt** — identisch mit Stufe 1; redirectet zu `Zusammenfassung-Slim` statt `Zusammenfassung` (YAML: `YAML/Slim/Anliegen erfassen.md`) |
 | Zusammenfassung & Bestätigung (Slim) | **erledigt** — vereinfacht: Summary + Frage in einem einzigen Question Node kombiniert; bestätigt nur Kontaktdaten (Anlage + Anliegen unbestätigt); Korrekturfeld-Entity auf 3 Optionen reduziert (Firmenname / Ansprechpartner / Telefonnummer); Fallback bei nicht erkannter Angabe: Zähler inkrementieren + zurück zur Korrekturfeld-Frage (korrigiert 2026-08-18); flowId: `019885f0-e29a-f111-b8db-7ced8d476627` (YAML: `YAML/Slim/Zusammenfassung - slim.md`) |
@@ -104,8 +104,8 @@ Transfer) → **C/D/E** (Flow; D/E brauchen den Kunden-Input aus **F**) → **G*
 - [x] ~~**Zwei-Schritt-KI-Architektur** (Agent-Node + Classify-Node)~~ — **umgestellt (2026-07-20)**: stattdessen **ein Structured-Output-Node** (GPT-4.1) mit JSON-Schema. Ein Modellaufruf statt zwei — schneller, günstiger, Enum erzwingt gültige Werte.
 - [x] **KI-Node „KI-Verarbeitung"** konfiguriert (GPT-4.1, Structured Output): Inputs: `Firmenname` (Rohtext), `Ansprechpartner` (Rohtext), `Telefonnummer` (Rohtext), `Anliegen` (Freitext). Prompt extrahiert 5 Felder: `zusammenfassung`, `kritikalitaet` (Enum), `firmenname`, `ansprechpartner`, `telefonnummer`. Fallback-Text „Anliegen unklar." bei unklarem Anliegen. JSON-Schema-Bug behoben (doppelter `ansprechpartner`-Key → `telefonnummer`). Ausgaben → VarZusammenfassung + VarKritikalitaet + VarFirmenname + VarAnsprechpartner + VarTelefonnummer. **Korrekte Ausdrücke:** `body('KI-Verarbeitung')?['structuredOutput/zusammenfassung']` / `…/kritikalitaet']` / `…/firmenname']` usw. — **nicht** `outputs()` (liefert leer).
 - [x] **Kritikalitäts-Mapping** (2026-07-15/20): Mittel = Wartung/Ersatzteil/Angebot; Niedrig = Rückruf/allgemeine Anfragen; Other = automatischer Fallback.
-- [ ] **Störungsliste** (Knowledge im Agent-Node): Als SharePoint-Datei geplant — wartet auf Kundenlieferung (AIRCO). Blocker für D/E.
-- [ ] **Prompt feintunen + testen** sobald Störungsliste vorliegt.
+- [ ] **Störungsliste** (Knowledge im Agent-Node): Als SharePoint-Datei geplant — wartet auf Kundenlieferung (AIRCO). **Entschieden (2026-08-25): kein Blocker mehr für die laufende Stufe** — Michael stuft das Thema als Material für eine spätere Ausbaustufe ein, nicht für den aktuellen Test von Stufe 0/1.
+- [ ] **Prompt feintunen + testen** sobald Störungsliste vorliegt. (siehe oben — ebenfalls auf eine spätere Stufe verschoben)
 
 ### E. Power Automate — Routing + E-Mail
 - [x] **Betreff-Format**: `[Kritikalität] - Firma: Firmenname` — Zusammenfassung im Body, nicht im Betreff.
@@ -115,15 +115,125 @@ Transfer) → **C/D/E** (Flow; D/E brauchen den Kunden-Input aus **F**) → **G*
 - [x] **Postfach-Adressen (Interim 2026-07-20)**: vorerst alle Kritikalitätsstufen → `Service@airco-systems.de`. Routing auf 4 getrennte Postfächer (Kritisch/Hoch/Mittel/Niedrig) kommt später — dann Adressen von AIRCO einholen.
 
 ### F. Kunden-/AIRCO-Input (Blocker für D/E bzw. Go-Live)
-- [ ] **Störungs-/Anliegenliste** vom Kunden (Grounding für den KI-Schritt)
+- [ ] **Störungs-/Anliegenliste** vom Kunden (Grounding für den KI-Schritt) — **auf spätere Stufe verschoben (2026-08-25)**, siehe oben.
 - [x] **4 Postfach-Adressen** — Interim: alle → `Service@airco-systems.de` (2026-07-20); späteres Routing auf 4 Adressen offen
-- [ ] **Lizenz / Copilot-Guthaben** für AI Builder bzw. Flow-Ausführungen klären (~40 Anrufe/Tag)
+- [x] **Lizenz / Copilot-Guthaben** für AI Builder bzw. Flow-Ausführungen — **erledigt (2026-08-25)**: AIRCO hat den Pay-As-You-Go-Abrechnungsplan eingerichtet, Testbetrieb (~40 Anrufe/Tag) ist möglich.
 
 ### F2. Technische Pflichtprüfungen vor Go-Live (2026-08-10 ergänzt)
-- [ ] **LLM = GPT-4.1 bestätigt**: Copilot Studio → Settings → AI — nur GPT-4.1 von OpenAI unterstützt Sprachkanal (Stand 21.07.2026). Kein anderes Modell wählen.
-- [x] **`Respond to agent` direkt nach Trigger** im Flow: Fix für `FlowActionBadGateway`-Timeout — **umgesetzt im Slim-Flow (2026-08-18)**. Für Stufe-1-Flow noch ausstehend.
-- [ ] **Re-Zusammenfassung `text`-Feld** ergänzen: Im YAML fehlt das text-Feld der Re-Zusammenfassung — Chat-Test zeigt keine Re-Zusammenfassung (nur speak). Nachpflegen oder bewusst akzeptieren.
-- [ ] **Feedback-Tracking**: `Daten\AIRCO Telefonbot Feedback.xlsx` bereit — Tester tragen Bugs / Änderungswünsche mit Beschreibung, E-Mail-Referenz, Name und Datum ein. Spalte „Anmerkung mosaiic" für Rückmeldungen reserviert.
+- [x] **LLM = GPT-4.1**: **Entscheidung (2026-08-25): bewusst nicht erneut geprüft.** Michael möchte die aktuell funktionierende Konfiguration nicht durch eine Kontrolle in den Copilot-Studio-Einstellungen riskieren. Bleibt unverändert, solange alles läuft — bei künftigen Problemen mit der Sprachausgabe als erste Stelle zum Prüfen im Hinterkopf behalten.
+- [x] **`Respond to agent` direkt nach Trigger** im Flow: Fix für `FlowActionBadGateway`-Timeout — umgesetzt im Slim-Flow (2026-08-18) **und im Stufe-1-Flow (2026-08-25)**. Testanruf bestätigt: kein Hänger/Fehlercode mehr, E-Mail kommt zuverlässig an → behebt Testfeedback #15 und #18 (siehe „Testing-Feedback" unten).
+- [ ] **Re-Zusammenfassung `text`-Feld** ergänzen: Im YAML fehlt das text-Feld der Re-Zusammenfassung — Chat-Test zeigt keine Re-Zusammenfassung (nur speak). **Nur Stufe 1 betroffen, für Slim nicht relevant** (Slim hat keinen separaten Re-Zusammenfassung-Node, siehe Topics.md). Nachpflegen oder bewusst akzeptieren.
+- [x] **Feedback-Tracking**: `Daten\Airco_Telefonbot_Feedback_260825.xlsx` (Dateiname am 2026-08-25 aktualisiert/bestätigt) — Tester tragen Bugs / Änderungswünsche mit Beschreibung, E-Mail-Referenz, Name und Datum ein. Spalte „Anmerkung mosaiic" für Rückmeldungen reserviert.
+
+### F3. Testing-Feedback — `Daten\Airco_Telefonbot_Feedback_260825.xlsx` (Stand 2026-08-25)
+
+Alle Einträge mit Status „Umgesetzt" / „Stufe 2.0 ff." / „Prüfen" / „Zurückgestellt"
+sind bereits abgearbeitet bzw. eingeordnet (siehe Datei). Diese vier Einträge
+hatten **keinen Status** und wurden in dieser Session eingeordnet:
+
+- [x] **#15 — Bot hängt bei Korrektur-Nachfrage, liest Fehlercode vor, danach „kein Thema verknüpft"**:
+  bestätigt — war der bekannte `FlowActionBadGateway`-Timeout im Stufe-1-Flow.
+  Fix (`Respond to the agent` direkt nach Trigger) am 2026-08-25 umgesetzt und
+  per Testanruf verifiziert: kein Hänger/Fehlercode mehr. **Zusatzfund beim
+  Review des System-Topics „Fallback"**: dessen Standard-Inhalt leitet nach
+  3 Fehlversuchen per `BeginDialog` an das Topic „Escalate" weiter — das aber
+  deaktiviert ist. Ein `BeginDialog` auf ein deaktiviertes Topic erklärt
+  vermutlich auch die rohe Meldung „kein Thema verknüpft"/„keine Verknüpfung"
+  zusätzlich zum Flow-Timeout. Wird mit #17 mitbehoben (siehe unten).
+- [x] **#18 — Keine E-Mail bei abgebrochener Wartungsanfrage**: durch denselben
+  Flow-Fix behoben — Testanruf bestätigt, E-Mail kommt jetzt zuverlässig an.
+  Kein zusätzliches Sicherheitsnetz-Konzept nötig (Architektur.md Abschnitt 9,
+  Punkt 21 kann geschlossen werden, falls kein erneuter Fall auftritt).
+- [ ] **#17 — „Themenerkennung": Bot sagt „kein Thema verknüpft" bei fachfremden Aussagen**:
+  Ursache bestätigt (siehe #15-Zusatzfund): Standard-Inhalt des System-Topics
+  „Fallback" verweist im `elseActions`-Zweig (`FallbackCount >= 3`) auf das
+  deaktivierte Topic „Escalate". System-Topics „Fallback" und „Bei Fehler"
+  wurden am 2026-08-25 aktiviert (vorher beide „Aus"). **Noch zu tun**: im
+  Fallback-Topic den `ConditionGroup`/`FallbackCount`-Block entfernen (unsere
+  Entscheidung: kein Versuchszähler, immer direkt umleiten) und durch kurze
+  Entschuldigung + Redirect zu „Anliegen erfassen" ersetzen (Ziel-Topic über
+  den Themen-Picker wählen, nicht die Dialog-ID von Hand tippen). Praxistest:
+  bleiben `Global.*`-Variablen beim Redirect erhalten? „Bei Fehler"
+  (OnError)-Standardinhalt wurde geprüft: `speak`-Feld verrät in Produktion
+  keine technischen Details (nur der Testmodus-Zweig zeigt Fehlercode/Convo-ID) —
+  unverändert nutzbar. Offen: was nach `CancelAllDialogs` passieren soll
+  (Gespräch sauber beenden vs. auch zu „Anliegen erfassen" umleiten) — siehe
+  Rückfrage im Chat.
+  **Entschieden (2026-08-25)**: „Bei Fehler" soll das Gespräch nach der
+  Entschuldigung sauber beenden (nicht zu „Anliegen erfassen" umleiten, da ein
+  Redirect bei einem systemischen Fehler denselben Fehler direkt wiederholen
+  könnte). Umsetzung: `speak`-Text im Produktions-Zweig von „Versuchen Sie es
+  noch einmal" auf „Bitte rufen Sie in Kürze erneut an" ändern (widerspricht
+  sich sonst mit dem folgenden Gesprächsende) und nach `CancelAllDialogs` ein
+  `EndConversation` ergänzen.
+  **Fallback-Topic gebaut (2026-08-25)**: `ConditionGroup` mit
+  `FallbackCount`-Zähler und Escalate-Verweis entfernt; stattdessen
+  Nachrichtenknoten („Entschuldigung, das habe ich nicht richtig verstanden.
+  Ich nehme Ihr Anliegen gerne trotzdem auf.") + Redirect zu „Anliegen
+  erfassen". **Test noch offen** — im Testpanel nicht trivial auslösbar: In
+  diesem Bot-Aufbau (durchgehende Redirect-Ketten, überall
+  `StringPrebuiltEntity`-Catch-all) wartet fast immer ein Question Node auf die
+  Antwort und schluckt jede Äußerung, sodass `OnUnknownIntent` gar nicht zum Zug
+  kommt. „Thema testen"-Option existiert für System-Themen nicht.
+  Erkenntnis: Fallback greift v. a. dann, wenn der Bot unerwartet im
+  Root-Zustand landet (nach `CancelAllDialogs` aus OnError/Reset) oder wenn die
+  Orchestrator-Prüfung bei `allowInterruption: true` anschlägt.
+
+- [x] **Turn-Taking — Anrufer wird beim Zögern abgeschnitten** (neuer
+  Testerbericht, nicht in der Excel-Liste): Bot fragt nach der
+  Anlagenbezeichnung, Anrufer zögert 2–3 s, Bot startet bereits die
+  Anliegenfrage; die nachgereichte Anlagenbezeichnung landet in
+  `Global.Anliegen`, das echte Anliegen wird nie erfasst — **ohne jede
+  Fehlermeldung**. Vollständige Analyse in Architektur.md Abschnitt 2a
+  („Turn-Taking-Problem").
+  **Behoben (2026-08-25)** durch zwei Kanaleinstellungen, ohne einen einzigen
+  zusätzlichen Knoten: Sprachempfindlichkeit 0,5 → 0,2 **und**
+  Äußerungsende-Timeout 1500 → 2500 ms. Verifiziert per Testanruf mit
+  provoziertem Zögern (hörbares Einatmen/„ähm") sowie mit Störgeräusch
+  (laut sprechende Person daneben — der härteste Störfall, da menschliche
+  Sprache): Bot wartet, wiederholt die Frage bei Bedarf selbst, Werte landen
+  im richtigen Feld, Gespräch läuft vollständig durch.
+  **Wichtige Nebenerkenntnis:** Der Question Node wiederholt seine Frage bei
+  *No Input* **von sich aus** (Plattformverhalten, steht nicht im Topic-YAML).
+  Kritisch ist deshalb nicht die Stille, sondern der Fall, dass die Erkennung
+  auf ein Geräusch anspringt und ein Fragment als gültige Antwort akzeptiert
+  wird — was die Empfindlichkeit steuert, nicht die Topic-Logik.
+  ⚠ Offen: Gegenprobe in wirklich lauter Industrieumgebung (Kunden rufen aus
+  der Halle an) — bei 0,2 auch die Gegenrichtung prüfen, ob leise sprechende
+  Anrufer noch zuverlässig erkannt werden.
+- [x] **Telefonnummer wird als Kardinalzahl vorgelesen** (neuer Testerbericht,
+  nicht in der Excel-Liste): Testanruf mit Testnummer „123456789" ergab
+  „einhundertdreiundzwanzig Millionen vierhundertsechsundfünfzigtausend...".
+  **Root Cause**: Azure-Neural-TTS normalisiert eine unformatierte Ziffernfolge
+  im `speak`-Feld standardmäßig als Kardinalzahl; Copilot Studios `speak`-Editor
+  bietet nur Audio/Pause/Betonung/Prosodie, kein `say-as
+  interpret-as="telephone"` — rohes SSML manuell einfügen also keine Option.
+  **Behoben (2026-08-25)** durch neue Variable `Global.TelefonnummerGesprochen`
+  (SetVariable direkt nach der Telefonnummer-Frage in „Kundendaten erfassen —
+  Stufe 0"): `Concat(Sequence(Len(Global.Telefonnummer)),
+  Mid(Global.Telefonnummer, Value, 1), " ")` fügt Leerzeichen zwischen die
+  Ziffern ein. Nur im `speak`-Feld der Zusammenfassung (Slim) verwendet;
+  `text`-Feld, Flow-Input und E-Mail bleiben bei der unformatierten Nummer.
+  Verifiziert per Testanruf. Details: [Topics.md](Topics.md), „Kundendaten
+  erfassen — Stufe 0", Punkt 4, und „Zusammenfassung & Bestätigung (Slim)".
+- [x] **Wortlaut-Inkonsistenz „Anlage erfassen"**: `text`-Feld sagte
+  „Serielnummer", `speak`-Feld „Serialnummer" — auf „Seriennummer"
+  vereinheitlicht (2026-08-25), per Testanruf verifiziert.
+- [x] **#19 — Bot hört sich über Lautsprecher selbst, unterbricht bei Hintergrundgeräuschen**:
+  Sprachempfindlichkeit im Sprachkanal (Karte „Stille") von 0,5 auf **0,2**
+  gesenkt (umgesetzt 2026-08-25). Zusätzlich besprochen: Äußerungsende-Timeout
+  1500→2000 ms (Vorschlag, Umsetzung offen), Spracherkennungs-Timeout bei
+  12000 ms belassen (Option „Spracherkennungs-Timeout", nicht „Kein
+  Erkennungs-Timeout" — sonst greift `OnSilence` nie), „Halten und Fortsetzen"
+  mit Trigger-Wörtern befüllt für das Szenario „Kunde muss zum Typenschild
+  laufen". Details siehe Architektur.md Abschnitt 2a.
+  **Retest erfolgt (2026-08-25)**: Testanruf mit einer laut singenden Person
+  direkt neben dem Anrufer (härterer Störfall als reines Hintergrundrauschen,
+  da menschliche Stimme) — Bot unterbrach sich nicht selbst, Anruf lief
+  vollständig durch. Bestätigt: Barge-in-Problem bei 0,2 behoben. ⚠ Weiterhin
+  offen: Gegenrichtung (siehe „Gegenprobe" oben) — ob leise sprechende
+  Anrufer bei 0,2 noch zuverlässig erkannt werden, ist damit noch nicht
+  geprüft.
 
 ### G. Test / Go-Live
 - [~] **End-to-End-Test** (in Bearbeitung, 2026-07-16): Erster Durchlauf im Testpanel — Flow läuft **erfolgreich** durch (KI-Zusammenfassung „Kritisch" korrekt, E-Mail-Branch erreicht), **aber der Bot meldet `FlowActionBadGateway / NoResponse`**. Ursache: der Bot ruft den Flow synchron auf und wartet auf `Respond to the agent`; die KI-Schritte (GPT-4.1 + GPT-4.1 mini + Knowledge) überschreiten das Warte-Zeitlimit → Transport-Timeout, obwohl der Flow-Lauf grün ist.
