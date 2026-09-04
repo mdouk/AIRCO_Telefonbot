@@ -1,0 +1,61 @@
+mcs.metadata:
+  componentName: Korrekturfeld
+  description: Welche Angabe falsch verstanden wurde.
+kind: ClosedListEntity
+smartMatchingEnabled: true
+items:
+  - id: md1vGC
+    displayName: Ansprechpartner
+    synonyms:
+      - der Kontakt
+      - Kontaktperson
+      - der Name
+      - ich heiße
+      - mein Name
+      - Ansprechperson
+      - der Ansprechpartner
+
+  - id: KJwQ9x
+    displayName: Firmenname
+    synonyms:
+      - unser Firmenname
+      - unser Firma
+      - die Firma heißt
+      - wir heißen
+      - Firmenbezeichnung
+      - das Unternehmen
+      - Unternehmen
+      - der Firmenname
+      - die Firma
+      - Firma
+
+  - id: swLyyJ
+    displayName: Telefonnummer
+    synonyms:
+      - Telefon
+      - Rufnummer
+      - Telefonnumer
+      - Nummer
+
+  - id: gjJ4ZJ
+    displayName: Inbetriebnahme
+    synonyms:
+      - das Datum
+      - die 12 Monate
+      - die zwölf Monate
+      - die Installation
+      - aufgestellt
+      - installiert
+      - Inbetriebnahmedatum
+      - in Betrieb
+      - in Betrieb genommen
+      - die Inbetriebnahme
+
+  - id: YvfEJQ
+    displayName: Wartungsvertrag
+    synonyms:
+      - Wartungsvereinbarung
+      - der Service
+      - die Wartung
+      - Servicevertrag
+      - der Vertrag

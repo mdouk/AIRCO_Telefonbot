@@ -65,18 +65,19 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
    Zusammenfassung verwendet (siehe unten); `text`-Feld, Flow-Input und E-Mail
    bleiben bei der unformatierten `Global.Telefonnummer`.
 
-**YAML-Stand (2026-08-25):**
+**YAML-Stand (2026-09-02):**
 ```yaml
-- Question → Global.Firmenname (StringPrebuiltEntity)
-- Question → init:Global.Ansprechpartner (PersonNamePrebuiltEntity)*
-- Question → Global.Telefonnummer (PhoneNumberPrebuiltEntity)
-- SetVariable: Global.TelefonnummerGesprochen = Concat(Sequence(Len(Global.Telefonnummer)), Mid(Global.Telefonnummer, Value, 1), " ")
+- Question → Global.Firmenname (StringPrebuiltEntity, allowBargeIn: false)
+- Question → init:Global.Ansprechpartner (StringPrebuiltEntity, allowBargeIn: false)
+- Question → Global.Telefonnummer (StringPrebuiltEntity, allowBargeIn: false)
 - SetVariable: Global.KanalLabel = "Telefon"
 - BeginDialog → Anlagenerfassung
 ```
-*⚠ Achtung: Stufe-1-Praxistest (2026-07-21) zeigte, dass `PersonNamePrebuiltEntity`
-an natürlicher Sprache scheitert → in Stufe 1 auf `StringPrebuiltEntity` umgestellt.
-Für Stufe 0 noch zu verifizieren ob das Verhalten identisch ist; ggf. angleichen.
+**Änderungen 2026-09-02:**
+- `PersonNamePrebuiltEntity` → `StringPrebuiltEntity`: Entity übersetzte Namen ins Englische („Ich bin der Detlef" → „I am Detlef").
+- `PhoneNumberPrebuiltEntity` → `StringPrebuiltEntity`: Entity lehnte ausländische/dialektale Formate ab → Telefonnummer blieb leer → Flow schlug fehl.
+- `Global.TelefonnummerGesprochen` + SetVariable-Node **entfernt**: speak-Feld der Zusammenfassung nutzt jetzt `{Global.Telefonnummer}` direkt; TTS liest den Rohtext korrekt vor, da er bereits als gesprochen gespeichert ist.
+- `allowBargeIn: false` in allen prompt-Feldern ergänzt.
 
 ### Topic: Anlage erfassen — Stufe 0 (NEU)
 
@@ -119,16 +120,12 @@ Identisch mit Stufe 1, **einzige Änderung**: letzter Node redirectet zu
    >
    > Ist das so korrekt?
    > ```
-   > **speak**: Ich fasse Ihre Angaben zusammen. Sie rufen für die Firma {Global.Firmenname} an. Ihr Name lautet {Global.Ansprechpartner} und Sie sind unter {Global.TelefonnummerGesprochen} erreichbar. Ist das so korrekt?
+   > **speak**: Ich fasse Ihre Angaben zusammen. Sie rufen für die Firma {Global.Firmenname} an. Ihr Name lautet {Global.Ansprechpartner} und Sie sind unter {Global.Telefonnummer} erreichbar. Ist das so korrekt?
    > → gebunden an `init:Topic.korrekt` (BooleanPrebuiltEntity)
    
    - **Anlage und Anliegen werden nicht vorgelesen** — nur die 3 Kontaktfelder werden bestätigt.
    - **Kein Node 0b / keine 4-Varianten-Condition** — da Inbetriebnahme und Vertrag entfallen.
-   - **`{Global.TelefonnummerGesprochen}` statt `{Global.Telefonnummer}` im `speak`-Feld**
-     (2026-08-25, getestet ✅) — Ziffern mit Leerzeichen getrennt, damit TTS sie
-     einzeln statt als Kardinalzahl vorliest. Siehe „Kundendaten erfassen — Stufe 0",
-     Punkt 4, für Root Cause und Formel. Das `text`-Feld (oben) bleibt bei
-     `{Global.Telefonnummer}`.
+   - **`{Global.Telefonnummer}` direkt im `speak`-Feld** (2026-09-02 geändert): Da die Telefonnummer jetzt als `StringPrebuiltEntity` (Rohtext, so wie gesprochen) gespeichert wird, liest TTS sie korrekt vor — `{Global.TelefonnummerGesprochen}` ist damit hinfällig und wurde entfernt.
 
 2. **Korrekturfeld-Entity auf 3 Optionen reduziert** (Inbetriebnahme + Vertrag entfernt):
    
@@ -166,13 +163,14 @@ Identisch mit Stufe 1, **einzige Änderung**: letzter Node redirectet zu
 **Flow-Bindings (beide InvokeFlowAction-Nodes — Bestätigung und Fallback nach 3 Versuchen):**
 
 ```yaml
-text:   =Global.Firmenname
-text_1: =Global.Ansprechpartner
-text_2: =Global.Telefonnummer
+text:   =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
+text_1: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
+text_2: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
 text_3: =Global.Anliegen
 text_4: =Global.KanalLabel
 text_5: =Global.Anlage
 ```
+**Änderung 2026-09-02:** Null-Checks für die 3 Kontaktfelder — verhindert Flow-Fehler wenn eine Variable leer geblieben ist (z.B. weil Anrufer die Telefonnummer nicht nennen konnte).
 
 **Abschluss-Verhalten nach 3 erschöpften Korrekturversuchen** (identisch mit Stufe 1):
 SendActivity + InvokeFlowAction + BeginDialog → EndofConversation.
@@ -670,6 +668,51 @@ SendActivity + InvokeFlowAction + BeginDialog → EndofConversation.
 
 - **Stufe-2-Ausbau**: Muss dann kategoriespezifische Felder vorlesen (z. B.
   Priorität nur bei Störung) — siehe zurückgestellte Fragen unten.
+
+---
+
+## System-Topics — Sicherheitsnetz bei Gesprächsabbruch (2026-09-02)
+
+Gilt für **Stufe 0 und Stufe 1**. Slim-Flow-ID: `019885f0-e29a-f111-b8db-7ced8d476627`.
+
+### Globale Variable: `Global.FlowAufgerufen` (Boolean)
+
+Wird direkt **vor** jedem `InvokeFlowAction`-Node in „Zusammenfassung & Bestätigung
+(Slim)" auf `true` gesetzt. Kein Initialwert nötig — ungesetzt gilt als `false`.
+Verhindert Doppel-Mail durch das Sicherheitsnetz.
+
+### System-Topic: Ende der Unterhaltung
+
+- **Trigger**: `OnSystemRedirect` — feuert bei Caller-Hang-Up (Channel-Signal),
+  bei `BeginDialog → EndofConversation` aus anderen Topics, und nach
+  Laufzeitfehlern (System-Topic „Bei Fehler" leitet hierher)
+- **`startBehavior`**: `CancelOtherTopics`
+
+**Node 1 — ConditionGroup** (Sicherheitsnetz):
+
+Bedingung: `Not(IsBlank(Global.Telefonnummer)) && Not(Global.FlowAufgerufen)`
+
+- **TRUE** → `InvokeFlowAction`:
+
+  | Binding | Wert |
+  |---|---|
+  | `text` | `=If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)` |
+  | `text_1` | `=If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)` |
+  | `text_2` | `=If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)` |
+  | `text_3` | `=If(IsBlank(Global.Anliegen), "Gespräch vorzeitig beendet – Anliegen nicht erfasst", Global.Anliegen)` |
+  | `text_4` | `=If(IsBlank(Global.KanalLabel), "Telefon", Global.KanalLabel)` |
+  | `text_5` | `=If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)` |
+
+- **FALSE** → kein Flow-Aufruf
+
+**Node 2 — `EndConversation`**: außerhalb der Condition, feuert immer.
+
+Partial-Mails landen in Postfach D (`Other`/`Sonstiges`-Kritikalität).
+
+### System-Topic: Stille-Erkennung
+
+- **Node 1**: Frage „Sind Sie noch da?" (unverändert)
+- **Node 2**: ~~`EndDialog`~~ → `BeginDialog → EndofConversation`
 
 ---
 

@@ -1,0 +1,9 @@
+﻿connectionReferences:
+  - connectionReferenceLogicalName: new_sharedagentnode_58832b99
+    connectorId: /providers/Microsoft.PowerApps/apis/shared_agentnode
+  - connectionReferenceLogicalName: new_sharedoffice365_e245c893
+    connectorId: /providers/Microsoft.PowerApps/apis/shared_office365
+  - connectionReferenceLogicalName: new_sharedoffice365_e7809d43
+    connectorId: /providers/Microsoft.PowerApps/apis/shared_office365
+  - connectionReferenceLogicalName: new_sharedsharepointonline_d27fe
+    connectorId: /providers/Microsoft.PowerApps/apis/shared_sharepointonline

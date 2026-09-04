@@ -1,0 +1,34 @@
+﻿jsonFileName: workflows/Anliegenweiterleiten-slim-019885f0-e29a-f111-b8db-7ced8d476627/workflow.json
+workflowId: 019885f0-e29a-f111-b8db-7ced8d476627
+name: Anliegen weiterleiten - slim
+type: 1
+description: 
+subprocess: false
+category: 5
+mode: 0
+scope: 4
+onDemand: false
+triggerOnCreate: false
+triggerOnDelete: false
+asyncAutodelete: false
+syncWorkflowLogOnFailure: false
+stateCode: 1
+statusCode: 2
+runAs: 1
+isTransacted: true
+introducedVersion: 1.2.0.5
+isCustomizable:
+  value: true
+  canBeChanged: true
+  managedPropertyLogicalName: iscustomizableanddeletable
+businessProcessType: 0
+isCustomProcessingStepAllowedForOtherPublishers:
+  value: true
+  canBeChanged: true
+  managedPropertyLogicalName: canbedeleted
+modernFlowType: 0
+primaryEntity: none
+connectionReferences:
+- new_sharedagentnode_58832b99
+- new_sharedoffice365_e245c893
+- new_sharedsharepointonline_d27fe

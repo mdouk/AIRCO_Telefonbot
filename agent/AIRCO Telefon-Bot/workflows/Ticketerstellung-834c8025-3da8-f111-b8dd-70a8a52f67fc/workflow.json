@@ -1,0 +1,404 @@
+﻿{
+  "properties": {
+    "connectionReferences": {
+      "shared_agentnode": {
+        "api": {
+          "name": "shared_agentnode"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedagentnode_58832b99"
+        },
+        "runtimeSource": "embedded"
+      },
+      "shared_office365": {
+        "api": {
+          "name": "shared_office365"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_e7809d43"
+        },
+        "runtimeSource": "embedded"
+      },
+      "shared_sharepointonline": {
+        "api": {
+          "name": "shared_sharepointonline"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_d27fe"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "metadata": {
+        "defaultToEmbeddedConnections": true
+      },
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Skills",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Firmenname",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_1": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Ansprechpartner",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_2": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Telefonnummer",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_3": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Anliegen",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_4": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "KanalLabel",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_5": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Anlage",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_6": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Anrufgrund",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_7": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "ConversationId",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "required": [
+                "text",
+                "text_1",
+                "text_2",
+                "text_3",
+                "text_4",
+                "text_5",
+                "text_6",
+                "text_7"
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "b8f61c18-7224-4f8a-9c5f-72fbce5df764",
+            "flowSystemMetadata": {
+              "flowKind": "Stateful"
+            }
+          }
+        }
+      },
+      "actions": {
+        "Respond_to_Copilot": {
+          "type": "Response",
+          "kind": "Skills",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {}
+            },
+            "statusCode": 200,
+            "body": {}
+          },
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "81c94f73-dd52-465c-ad3b-a4686da63cc3"
+          }
+        },
+        "KI-Verarbeitung": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "body/message": "Du bist ein technischer Service-Assistent f\u00FCr Industriekompressoren, Stickstoffanlagen, und Druckluftaufbereitung.\n\u00A0\nAnalysiere dieses Anliegen: @{triggerBody()?[\u0027text_3\u0027]}\nund bef\u00FClle die Felder:\n\u00A0\nzusammenfassung: Sachlich, Deutsch, max. 3 S\u00E4tze - betroffene Anlage, Problem, Auswirkung auf Betrieb. Falls unklar: \u0022Anliegen unklar. Bitte direkt beim Anrufer nachfragen.\u0022\n\u00A0\nkritikalitaet:\n- Kritisch: Produktionsstillstand; Anlage vollst\u00E4ndig ausgefallen; Anlage knallt ab und zu\n- Hoch: Anlage eingeschr\u00E4nkt; Produktion l\u00E4uft noch.\n- Mittel: Ich komme nicht auf die Anlage; VPN Token leer; Problem ohne Produktionseinfluss; Wartungs-/Angebotsanfrage.\n- Niedrig: Ersatzteilbestellung; Anlage sp\u00FClt seit mehreren Stunden; Sporadisches Problem; R\u00FCckrufbitte; allgemeine Fragen.\n- Other: Nicht klassifizierbar.\n\u00A0\nAnalysiere @{triggerBody()?[\u0027text\u0027]}, @{triggerBody()?[\u0027text_1\u0027]}, @{triggerBody()?[\u0027text_2\u0027]}und @{triggerBody()?[\u0027text_6\u0027]} und bef\u00FClle die Felder:\nfirmenname: Extraktion des Fimennamens aus @{triggerBody()?[\u0027text\u0027]}. Dieser Name ist vom Anrufer erfasst worden. Ignoriere alle anderen Firmennamen im Kontext (inkl. \u0022AIRCO Systems GmbH\u0022).\nansprechpartner: Extraktion des Namens des Ansprechpartners aus @{triggerBody()?[\u0027text_1\u0027]}\ntelefonnummer: Extraktion der Telefonnummer aus @{triggerBody()?[\u0027text_2\u0027]}. Wenn die Nummer mit einer L\u00E4ndervorwahl ohne Plus-Zeichen beginnt (z.B. \u002249\u0022, \u002241\u0022, \u002243\u0022, \u002233\u0022), f\u00FCge \u0022\u002B\u0022 voran (z.B. \u002249 123 456789\u0022 umwandeln in \u0022\u002B49 123 456789\u0022). Andernfalls \u00FCbernimm die Nummer unver\u00E4ndert.\nanrufgrund: Extraktion des Anrufgrundes aus @{triggerBody()?[\u0027text_6\u0027]}",
+              "body/locale": "de-DE",
+              "body/botDefinition": "{\u0022model\u0022:\u0022GPT5Chat\u0022,\u0022tools\u0022:[],\u0022outputFormat\u0022:\u0022JsonSchema\u0022,\u0022structuredOutputSchema\u0022:\u0022{\\\u0022type\\\u0022:\\\u0022object\\\u0022,\\\u0022properties\\\u0022:{\\\u0022zusammenfassung\\\u0022:{\\\u0022type\\\u0022:\\\u0022string\\\u0022,\\\u0022description\\\u0022:\\\u0022Sachliche Zusammenfassung des Anliegens, max. 3 S\u00E4tze.\\\u0022},\\\u0022kritikalitaet\\\u0022:{\\\u0022type\\\u0022:\\\u0022string\\\u0022,\\\u0022enum\\\u0022:[\\\u0022Kritisch\\\u0022,\\\u0022Hoch\\\u0022,\\\u0022Mittel\\\u0022,\\\u0022Niedrig\\\u0022,\\\u0022Other\\\u0022]},\\\u0022firmenname\\\u0022:{\\\u0022type\\\u0022:\\\u0022string\\\u0022,\\\u0022description\\\u0022:\\\u0022Der Name der Firma.\\\u0022},\\\u0022ansprechpartner\\\u0022:{\\\u0022type\\\u0022:\\\u0022string\\\u0022,\\\u0022description\\\u0022:\\\u0022Der Name des Ansprechpartners.\\\u0022},\\\u0022telefonnummer\\\u0022:{\\\u0022type\\\u0022:\\\u0022string\\\u0022,\\\u0022description\\\u0022:\\\u0022Die Telefonnummer des Ansprechpartners oder der Firma.\\\u0022},\\\u0022anrufgrund\\\u0022:{\\\u0022type\\\u0022:\\\u0022string\\\u0022,\\\u0022description\\\u0022:\\\u0022Der Anrufgrund (Stoerung, Wartung, Ersatzteil, Rueckruf oder Sonstiges).\\\u0022}},\\\u0022required\\\u0022:[\\\u0022zusammenfassung\\\u0022,\\\u0022kritikalitaet\\\u0022,\\\u0022firmenname\\\u0022,\\\u0022ansprechpartner\\\u0022,\\\u0022telefonnummer\\\u0022,\\\u0022anrufgrund\\\u0022]}\u0022}\n"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_agentnode",
+              "operationId": "InvokeDefinition",
+              "connectionName": "shared_agentnode"
+            }
+          },
+          "runAfter": {
+            "Respond_to_Copilot": [
+              "Succeeded"
+            ]
+          }
+        },
+        "E-Mail_senden_bei_KI_fehlgeschlagen": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "emailMessage/To": "service@airco-systems.de;michael.doukas@mosaiic.de",
+              "emailMessage/Subject": "[UNBEKANNT - KI-Fehler] - Firma: @{triggerBody()?[\u0027text\u0027]}",
+              "emailMessage/Body": "\u003Cp class=\u0022editor-paragraph\u0022\u003E\u0026lt;div\u0026gt;KI-Klassifizierung fehlgeschlagen - bitte manuell pr\u00FCfen.\u003Cbr\u003E\u0026lt;/div\u0026gt;\u0026lt;div\u0026gt;\u0026lt;br\u0026gt;\u003Cbr\u003E\u0026lt;/div\u0026gt;\u0026lt;div\u0026gt;Firmenname:\u0026amp;nbsp; @{triggerBody()?[\u0027text\u0027]}\u003Cbr\u003E\u0026lt;/div\u0026gt;\u0026lt;div\u0026gt;Ansprechpartner:\u0026amp;nbsp; @{triggerBody()?[\u0027text_1\u0027]}\u003Cbr\u003E\u0026lt;/div\u0026gt;\u0026lt;div\u0026gt;Telefon:\u0026amp;nbsp; @{triggerBody()?[\u0027text_2\u0027]}\u003Cbr\u003E\u0026lt;/div\u0026gt;\u0026lt;div\u0026gt;Kanal:\u0026amp;nbsp; @{triggerBody()?[\u0027text_4\u0027]}\u003Cbr\u003E\u0026lt;/div\u0026gt;\u0026lt;div\u0026gt;Anrufgrund:\u0026amp;nbsp; @{triggerBody()?[\u0027text_6\u0027]}\u0026lt;/div\u0026gt;\u003C/p\u003E\u003Cbr\u003E",
+              "emailMessage/Importance": "Normal"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+              "operationId": "SendEmailV2",
+              "connectionName": "shared_office365"
+            }
+          },
+          "runAfter": {
+            "KI-Verarbeitung": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          }
+        },
+        "VarZusammenfassung": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VarZusammenfassung",
+                "type": "string",
+                "value": "@body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/zusammenfassung\u0027]"
+              }
+            ]
+          },
+          "runAfter": {
+            "KI-Verarbeitung": [
+              "Succeeded"
+            ]
+          }
+        },
+        "VarFirmenname": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VarFirmenname",
+                "type": "string",
+                "value": "@body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/firmenname\u0027]"
+              }
+            ]
+          },
+          "runAfter": {
+            "VarKritikalitaet": [
+              "Succeeded"
+            ]
+          }
+        },
+        "VarAnsprechpartner": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VarAnsprechpartner",
+                "type": "string",
+                "value": "@body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/ansprechpartner\u0027]"
+              }
+            ]
+          },
+          "runAfter": {
+            "VarFirmenname": [
+              "Succeeded"
+            ]
+          }
+        },
+        "VarTelefonnummer": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VarTelefonnummer",
+                "type": "string",
+                "value": "@body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/telefonnummer\u0027]"
+              }
+            ]
+          },
+          "runAfter": {
+            "VarAnsprechpartner": [
+              "Succeeded"
+            ]
+          }
+        },
+        "E-Mail_senden_bei_Erfolg": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "emailMessage/To": "service@airco-systems.de;michael.doukas@mosaiic.com",
+              "emailMessage/Subject": "[@{variables(\u0027VarKritikalitaet\u0027)}] Ticket - Firma: [@{variables(\u0027VarFirmenname\u0027)}]",
+              "emailMessage/Body": "\u003Ctable id=\u0022table_0_0_0_0_0\u0022 style=\u0022box-sizing: border-box; border-collapse: collapse; border-spacing: 0px;\u0022\u003E\n  \u003Ctbody\u003E\n    \u003Ctr\u003E\n      \u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EFirmenname\u003C/b\u003E\u003C/div\u003E\n      \u003C/td\u003E\n      \u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarFirmenname\u0027)}\u003C/span\u003E\n      \u003C/td\u003E\n    \u003C/tr\u003E\n    \u003Ctr\u003E\n      \u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EAnsprechpartner\u003C/b\u003E\u003C/div\u003E\n      \u003C/td\u003E\n      \u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarAnsprechpartner\u0027)}\u003C/span\u003E\n      \u003C/td\u003E\n    \u003C/tr\u003E\n    \u003Ctr\u003E\n      \u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003ETelefonnummer\u003C/b\u003E\u003C/div\u003E\n      \u003C/td\u003E\n      \u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarTelefonnummer\u0027)}\u003C/span\u003E\n      \u003C/td\u003E\n    \u003C/tr\u003E\n    \u003Ctr\u003E\n      \u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EAnrufgrund\u003C/b\u003E\u003C/div\u003E\n      \u003C/td\u003E\n      \u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/anrufgrund\u0027]}\u003C/span\u003E\n      \u003C/td\u003E\n    \u003C/tr\u003E\n    \u003Ctr\u003E\n      \u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EAnlage\u003C/b\u003E\u003C/div\u003E\n      \u003C/td\u003E\n      \u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{triggerBody()?[\u0027text_5\u0027]}\u003C/span\u003E\n      \u003C/td\u003E\n    \u003C/tr\u003E\n    \u003Ctr\u003E\n      \u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EKritikalit\u00E4t\u003C/b\u003E\u003C/div\u003E\n      \u003C/td\u003E\n      \u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;\u0022\u003E\n        \u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003E@{variables(\u0027VarKritikalitaet\u0027)}\u003C/b\u003E\u003C/span\u003E\n      \u003C/td\u003E\n    \u003C/tr\u003E\n  \u003C/tbody\u003E\n\u003C/table\u003E\n\n\u003Cp style=\u0022margin-top: 16px;\u0022\u003E\u003Cb\u003EKI-Zusammenfassung\u003C/b\u003E\u003C/p\u003E\n\u003Cp style=\u0022margin-top: 8px; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarZusammenfassung\u0027)}\u003C/p\u003E\n\n\u003Cp style=\u0022margin-top: 16px; font-family: Calibri, sans-serif; font-size: 12px;\u0022\u003E\n  Eingang:\u0026nbsp;@{formatDateTime(convertTimeZone(utcNow(), \u0027UTC\u0027, \u0027W. Europe Standard Time\u0027), \u0027dd.MM.yyyy HH:mm\u0027)}\n  \u0026nbsp;|\u0026nbsp; Kanal:\u0026nbsp;@{triggerBody()?[\u0027text_4\u0027]}\n  \u0026nbsp;|\u0026nbsp; Vorgang:\u0026nbsp;@{triggerBody()?[\u0027text_7\u0027]}\n\u003C/p\u003E\n\n\u003Chr style=\u0022margin: 20px 0px; border-top: 1px solid rgb(204, 204, 204);\u0022\u003E\n\n\u003Cp style=\u0022font-family: Calibri, sans-serif; font-size: 12px;\u0022\u003E\n  \u003Ci\u003ERohtext Anliegen \u2014 Originalaussage des Anrufers\u003C/i\u003E\u003Cbr\u003E\n  \u0026nbsp;@{triggerBody()?[\u0027text_3\u0027]}\n\u003C/p\u003E\n",
+              "emailMessage/Importance": "@if(equals(variables(\u0027VarKritikalitaet\u0027), \u0027Kritisch\u0027), \u0027High\u0027,\r\nif(or(equals(variables(\u0027VarKritikalitaet\u0027), \u0027Hoch\u0027), equals(variables(\u0027VarKritikalitaet\u0027), \u0027Mittel\u0027)), \u0027Normal\u0027, \u0027Low\u0027))"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+              "operationId": "SendEmailV2",
+              "connectionName": "shared_office365"
+            }
+          },
+          "runAfter": {
+            "VarTelefonnummer": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Elemente_abrufen": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "dataset": "https://aircodruckluft.sharepoint.com/sites/SharePoint",
+              "table": "0a9a1605-27d5-4eaa-854f-cef85c234756",
+              "$filter": "Title eq \u0027@{triggerBody()?[\u0027text_7\u0027]}\u0027",
+              "$top": 1
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "operationId": "GetItems",
+              "connectionName": "shared_sharepointonline"
+            }
+          },
+          "runAfter": {
+            "E-Mail_senden_bei_Erfolg": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Elemente_abrufen_1": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "dataset": "https://aircodruckluft.sharepoint.com/sites/SharePoint",
+              "table": "0a9a1605-27d5-4eaa-854f-cef85c234756",
+              "$filter": "Title eq \u0027@{triggerBody()?[\u0027text_7\u0027]}\u0027",
+              "$top": 1
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "operationId": "GetItems",
+              "connectionName": "shared_sharepointonline"
+            }
+          },
+          "runAfter": {
+            "E-Mail_senden_bei_KI_fehlgeschlagen": [
+              "Succeeded"
+            ]
+          }
+        },
+        "VarKritikalitaet": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VarKritikalitaet",
+                "type": "string",
+                "value": "@body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/kritikalitaet\u0027]"
+              }
+            ]
+          },
+          "runAfter": {
+            "VarZusammenfassung": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Auf_alle_anwenden": {
+          "type": "Foreach",
+          "foreach": "@outputs(\u0027Elemente_abrufen\u0027)?[\u0027body/value\u0027]",
+          "actions": {
+            "Element_aktualisieren": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://aircodruckluft.sharepoint.com/sites/SharePoint",
+                  "table": "0a9a1605-27d5-4eaa-854f-cef85c234756",
+                  "id": "@items(\u0027Auf_alle_anwenden\u0027)?[\u0027ID\u0027]",
+                  "item/Status/Value": "gesendet",
+                  "item/Anrufgrund/Value": "vollstaendig"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "PatchItem",
+                  "connectionName": "shared_sharepointonline"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Elemente_abrufen": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Auf_alle_anwenden_1": {
+          "type": "Foreach",
+          "foreach": "@outputs(\u0027Elemente_abrufen_1\u0027)?[\u0027body/value\u0027]",
+          "actions": {
+            "Element_aktualisieren_1": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "https://aircodruckluft.sharepoint.com/sites/SharePoint",
+                  "table": "0a9a1605-27d5-4eaa-854f-cef85c234756",
+                  "id": "@items(\u0027Auf_alle_anwenden_1\u0027)?[\u0027ID\u0027]",
+                  "item/Status/Value": "gesendet",
+                  "item/Anrufgrund/Value": "vollstaendig"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "PatchItem",
+                  "connectionName": "shared_sharepointonline"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Elemente_abrufen_1": [
+              "Succeeded"
+            ]
+          }
+        }
+      },
+      "outputs": {},
+      "description": "Run a flow from Copilot and send back a response. Flow author\u0027s connection will be used for new connections."
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,1422 @@
+﻿{
+  "properties": {
+    "connectionReferences": {
+      "shared_agentnode": {
+        "api": {
+          "name": "shared_agentnode"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedagentnode_58832b99"
+        },
+        "runtimeSource": "embedded",
+        "connectionName": "shared-agentnode-b57348a9-59b7-4f26-8b57-82dcc6782793"
+      },
+      "shared_office365": {
+        "api": {
+          "name": "shared_office365"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_e245c893"
+        },
+        "runtimeSource": "embedded",
+        "connectionName": "shared-office365-9c5820d9-a7ba-4ac3-a4c4-9a4b44c01b83"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Skills",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "Firmenname",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input"
+                },
+                "text_1": {
+                  "title": "Ansprechpartner",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input"
+                },
+                "text_2": {
+                  "title": "Telefonnummer",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input"
+                },
+                "text_3": {
+                  "title": "Anliegen",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input"
+                },
+                "text_4": {
+                  "title": "KanalLabel",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input"
+                },
+                "boolean": {
+                  "title": "VertragVorhanden",
+                  "type": "boolean",
+                  "x-ms-content-hint": "BOOLEAN",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please select yes or no"
+                },
+                "boolean_1": {
+                  "title": "Inbetriebnahme",
+                  "type": "boolean",
+                  "x-ms-content-hint": "BOOLEAN",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please select yes or no"
+                }
+              },
+              "required": [
+                "text",
+                "text_1",
+                "text_2",
+                "text_3",
+                "text_4",
+                "boolean",
+                "boolean_1"
+              ]
+            }
+          },
+          "metadata": {
+            "associatedData": {
+              "graph": {
+                "name": "Anliegen weiterleiten",
+                "nodes": [
+                  {
+                    "id": "start-beabd7a4-8d78-4f9b-a412-30952478ef54",
+                    "name": "Wenn ein Agent den Flow aufruft",
+                    "type": "start",
+                    "version": 1,
+                    "position": {
+                      "x": 160,
+                      "y": 300
+                    },
+                    "data": {
+                      "config": {
+                        "triggerType": "connector",
+                        "connector": {
+                          "apiName": "Skills",
+                          "operationName": "SkillsButton",
+                          "inputs": {
+                            "schema": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "title": "Firmenname",
+                                  "type": "string",
+                                  "x-ms-content-hint": "TEXT",
+                                  "x-ms-dynamically-added": true,
+                                  "description": "Please enter your input"
+                                },
+                                "text_1": {
+                                  "title": "Ansprechpartner",
+                                  "type": "string",
+                                  "x-ms-content-hint": "TEXT",
+                                  "x-ms-dynamically-added": true,
+                                  "description": "Please enter your input"
+                                },
+                                "text_2": {
+                                  "title": "Telefonnummer",
+                                  "type": "string",
+                                  "x-ms-content-hint": "TEXT",
+                                  "x-ms-dynamically-added": true,
+                                  "description": "Please enter your input"
+                                },
+                                "text_3": {
+                                  "title": "Anliegen",
+                                  "type": "string",
+                                  "x-ms-content-hint": "TEXT",
+                                  "x-ms-dynamically-added": true,
+                                  "description": "Please enter your input"
+                                },
+                                "text_4": {
+                                  "title": "KanalLabel",
+                                  "type": "string",
+                                  "x-ms-content-hint": "TEXT",
+                                  "x-ms-dynamically-added": true,
+                                  "description": "Please enter your input"
+                                },
+                                "boolean": {
+                                  "title": "VertragVorhanden",
+                                  "type": "boolean",
+                                  "x-ms-content-hint": "BOOLEAN",
+                                  "x-ms-dynamically-added": true,
+                                  "description": "Please select yes or no"
+                                },
+                                "boolean_1": {
+                                  "title": "Inbetriebnahme",
+                                  "type": "boolean",
+                                  "x-ms-content-hint": "BOOLEAN",
+                                  "x-ms-dynamically-added": true,
+                                  "description": "Please select yes or no"
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "text_1",
+                                "text_2",
+                                "text_3",
+                                "text_4",
+                                "boolean",
+                                "boolean_1"
+                              ]
+                            }
+                          },
+                          "displayName": "Wenn ein Agent den Flow aufruft",
+                          "iconUri": "https://content.powerapps.com/resource/makerx/static/pauto/images/designeroperations/mcs3.0d285cd0.svg",
+                          "brandColor": "#E5F2FE",
+                          "operationType": "Request",
+                          "kind": "Skills"
+                        }
+                      },
+                      "outcomes": [
+                        {
+                          "id": "default",
+                          "label": "Default",
+                          "outcomeSchema": {
+                            "type": "object"
+                          }
+                        }
+                      ]
+                    },
+                    "measured": {
+                      "width": 289,
+                      "height": 66
+                    },
+                    "dragging": false,
+                    "selected": false
+                  },
+                  {
+                    "id": "agent-83200be2-ef12-476d-adc6-43a34d188937",
+                    "name": "KI-Verarbeitung",
+                    "type": "agent",
+                    "version": 1,
+                    "position": {
+                      "x": 184.5,
+                      "y": 398
+                    },
+                    "data": {
+                      "config": {
+                        "mode": "inline",
+                        "instructions": "",
+                        "botSchemaName": "",
+                        "isHitlEscalationEnabled": false,
+                        "webSearchEnabled": false,
+                        "inlineInstructions": "Du bist ein technischer Service-Assistent f\u00FCr Industriekompressoren, Stickstoffanlagen, und Druckluftaufbereitung.\n\u00A0\nAnalysiere dieses Anliegen: {triggerBody()?[\u0027text_3\u0027]}\nund bef\u00FClle die Felder:\n\u00A0\nzusammenfassung: Sachlich, Deutsch, max. 3 S\u00E4tze - betroffene Anlage, Problem, Auswirkung auf Betrieb. Falls unklar: \u0022Anliegen unklar. Bitte direkt beim Anrufer nachfragen.\u0022\n\u00A0\nkritikalitaet:\n- Kritisch: Produktionsstillstand, Anlage vollst\u00E4ndig ausgefallen.\n- Hoch: Anlage eingeschr\u00E4nkt, Produktion l\u00E4uft noch.\n- Mittel: Problem ohne Produktionseinfluss; Wartungs-/Ersatzteil-/Angebotsanfrage.\n- Niedrig: Sporadisches Problem, R\u00FCckrufbitte, allgemeine Fragen.\n- Other: Nicht klassifizierbar.\n\u00A0\nAnalysiere {triggerBody()?[\u0027text\u0027]}, {triggerBody()?[\u0027text_1\u0027]} und {triggerBody()?[\u0027text_2\u0027]} \nund bef\u00FClle die Felder:\nfirmenname: Extraktion des Fimennamens aus {triggerBody()?[\u0027text\u0027]}. Dieser Name ist vom Anrufer erfasst worden. Ignoriere alle anderen\n  Firmennamen im Kontext (inkl. \u0022AIRCO Systems GmbH\u0022).\nansprechpartner: Extraktion des Namens des Ansprechpartners aus {triggerBody()?[\u0027text_1\u0027]}\ntelefonnummer: Extraktion der Telefonnummer aus {triggerBody()?[\u0027text_2\u0027]}\u200B\u200C",
+                        "outputMode": "structured",
+                        "inlineModel": "GPT5Chat",
+                        "connectionName": "shared_agentnode",
+                        "jsonSchemaText": "{\n    \u0022type\u0022: \u0022object\u0022,\n    \u0022properties\u0022: {\n      \u0022zusammenfassung\u0022: {\n        \u0022type\u0022: \u0022string\u0022,\n        \u0022description\u0022: \u0022Sachliche Zusammenfassung des Anliegens, max. 3 S\u00E4tze.\u0022\n      },\n      \u0022kritikalitaet\u0022: {\n        \u0022type\u0022: \u0022string\u0022,\n        \u0022enum\u0022: [\u0022Kritisch\u0022, \u0022Hoch\u0022, \u0022Mittel\u0022, \u0022Niedrig\u0022, \u0022Other\u0022]\n      },\n\t  \u0022firmenname\u0022: {\n        \u0022type\u0022: \u0022string\u0022,\n        \u0022description\u0022: \u0022Der Name der Firma.\u0022\n      },\n\t  \u0022ansprechpartner\u0022: {\n        \u0022type\u0022: \u0022string\u0022,\n        \u0022description\u0022: \u0022Der Name des Ansprechpartners.\u0022\n      },\n\t  \u0022telefonnummer\u0022: {\n        \u0022type\u0022: \u0022string\u0022,\n        \u0022description\u0022: \u0022Die Telefonnummer des Ansprechpartners oder der Firma.\u0022\n      }\n    },\n    \u0022required\u0022: [\u0022zusammenfassung\u0022, \u0022kritikalitaet\u0022, \u0022firmenname\u0022, \u0022ansprechpartner\u0022, \u0022telefonnummer\u0022]\n  }",
+                        "jsonSchema": {
+                          "type": "object",
+                          "properties": {
+                            "zusammenfassung": {
+                              "type": "string",
+                              "description": "Sachliche Zusammenfassung des Anliegens, max. 3 S\u00E4tze."
+                            },
+                            "kritikalitaet": {
+                              "type": "string",
+                              "enum": [
+                                "Kritisch",
+                                "Hoch",
+                                "Mittel",
+                                "Niedrig",
+                                "Other"
+                              ]
+                            },
+                            "firmenname": {
+                              "type": "string",
+                              "description": "Der Name der Firma."
+                            },
+                            "ansprechpartner": {
+                              "type": "string",
+                              "description": "Der Name des Ansprechpartners."
+                            },
+                            "telefonnummer": {
+                              "type": "string",
+                              "description": "Die Telefonnummer des Ansprechpartners oder der Firma."
+                            }
+                          },
+                          "required": [
+                            "zusammenfassung",
+                            "kritikalitaet",
+                            "firmenname",
+                            "ansprechpartner",
+                            "telefonnummer"
+                          ]
+                        }
+                      },
+                      "outcomes": [
+                        {
+                          "id": "default",
+                          "label": "Default",
+                          "outcomeSchema": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string",
+                                "title": "Agent Response",
+                                "description": "Aggregated message text emitted before the structured output (may be null)"
+                              },
+                              "activities": {
+                                "type": "array",
+                                "description": "Bot response activities (typing, message, and event types)"
+                              },
+                              "structuredOutput": {
+                                "type": "object",
+                                "properties": {
+                                  "zusammenfassung": {
+                                    "type": "string",
+                                    "description": "Sachliche Zusammenfassung des Anliegens, max. 3 S\u00E4tze."
+                                  },
+                                  "kritikalitaet": {
+                                    "type": "string",
+                                    "enum": [
+                                      "Kritisch",
+                                      "Hoch",
+                                      "Mittel",
+                                      "Niedrig",
+                                      "Other"
+                                    ]
+                                  },
+                                  "firmenname": {
+                                    "type": "string",
+                                    "description": "Der Name der Firma."
+                                  },
+                                  "ansprechpartner": {
+                                    "type": "string",
+                                    "description": "Der Name des Ansprechpartners."
+                                  },
+                                  "telefonnummer": {
+                                    "type": "string",
+                                    "description": "Die Telefonnummer des Ansprechpartners oder der Firma."
+                                  }
+                                },
+                                "required": [
+                                  "zusammenfassung",
+                                  "kritikalitaet",
+                                  "firmenname",
+                                  "ansprechpartner",
+                                  "telefonnummer"
+                                ],
+                                "title": ""
+                              }
+                            },
+                            "required": [
+                              "activities",
+                              "structuredOutput"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "measured": {
+                      "width": 240,
+                      "height": 66
+                    },
+                    "selected": false,
+                    "dragging": false
+                  },
+                  {
+                    "id": "variable-02d0dced-14ee-45a2-8baf-6db80736b046",
+                    "name": "VarZusamenfassung",
+                    "type": "variable",
+                    "version": 1,
+                    "position": {
+                      "x": 467,
+                      "y": 496
+                    },
+                    "data": {
+                      "config": {
+                        "assignments": [
+                          {
+                            "id": "deb78c78-f05c-4bbb-ada3-fce2f3d82422",
+                            "variableName": "VarZusammenfassung",
+                            "mode": "initialize",
+                            "type": "string",
+                            "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/zusammenfassung\u0027]}",
+                            "valueRich": {
+                              "segments": [
+                                {
+                                  "type": "token",
+                                  "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/zusammenfassung\u0027]}",
+                                  "tokenRef": {
+                                    "type": "step",
+                                    "stepId": "KI-Verarbeitung",
+                                    "stepName": "KI-Verarbeitung",
+                                    "outputName": "structuredOutput/zusammenfassung",
+                                    "outputType": "string",
+                                    "outputDisplayName": "Zusammenfassung"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "outcomes": [
+                        {
+                          "id": "default",
+                          "label": "Default",
+                          "outcomeSchema": {
+                            "type": "object",
+                            "properties": {},
+                            "description": "Variables set by this node"
+                          }
+                        }
+                      ]
+                    },
+                    "measured": {
+                      "width": 240,
+                      "height": 66
+                    },
+                    "selected": false,
+                    "dragging": false
+                  },
+                  {
+                    "id": "variable-597aa8d2-2274-4e0a-a1ab-6780614ae751",
+                    "name": "VarKritikalitaet",
+                    "type": "variable",
+                    "version": 1,
+                    "position": {
+                      "x": 467,
+                      "y": 594
+                    },
+                    "data": {
+                      "config": {
+                        "assignments": [
+                          {
+                            "id": "1041db83-2bcd-48b2-928b-781edf64c3a5",
+                            "variableName": "VarKritikalitaet",
+                            "mode": "initialize",
+                            "type": "string",
+                            "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/kritikalitaet\u0027]}",
+                            "valueRich": {
+                              "segments": [
+                                {
+                                  "type": "token",
+                                  "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/kritikalitaet\u0027]}",
+                                  "tokenRef": {
+                                    "type": "step",
+                                    "stepId": "KI-Verarbeitung",
+                                    "stepName": "KI-Verarbeitung",
+                                    "outputName": "structuredOutput/kritikalitaet",
+                                    "outputType": "string",
+                                    "outputDisplayName": "Kritikalitaet"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "outcomes": [
+                        {
+                          "id": "default",
+                          "label": "Default",
+                          "outcomeSchema": {
+                            "type": "object",
+                            "properties": {},
+                            "description": "Variables set by this node"
+                          }
+                        }
+                      ]
+                    },
+                    "measured": {
+                      "width": 240,
+                      "height": 66
+                    },
+                    "dragging": false,
+                    "selected": false
+                  },
+                  {
+                    "id": "connector-571b60ab-13a2-4b69-9270-bd121c09b5f0",
+                    "name": "E-Mail senden",
+                    "type": "connector",
+                    "version": 1,
+                    "position": {
+                      "x": 467,
+                      "y": 986
+                    },
+                    "data": {
+                      "config": {
+                        "apiName": "shared_office365",
+                        "displayName": "Office 365 Outlook",
+                        "iconUri": "https://static.powerapps.com/resource/ppcr/releases/v1.0.1819/1.0.1819.4795/office365/icon.png",
+                        "brandColor": "#0078D4",
+                        "operationName": "SendEmailV2",
+                        "operationType": "OpenApiConnection",
+                        "parametersSchema": {
+                          "type": "object",
+                          "properties": {
+                            "emailMessage": {
+                              "type": "object",
+                              "title": "E-Mail",
+                              "properties": {
+                                "To": {
+                                  "type": "string",
+                                  "title": "An",
+                                  "x-ms-dynamic-list": {
+                                    "builtInOperation": "AadGraph.GetUsers",
+                                    "parameters": {},
+                                    "itemValuePath": "mail"
+                                  },
+                                  "format": "email",
+                                  "description": "Geben Sie die E-Mail-Adressen getrennt durch ein Semikolon an. Beispiel: jemand@contoso.com",
+                                  "x-ms-property-name-alias": "emailMessage/To"
+                                },
+                                "Subject": {
+                                  "type": "string",
+                                  "title": "Betreff",
+                                  "description": "Geben Sie den Betreff der E-Mail an.",
+                                  "x-ms-property-name-alias": "emailMessage/Subject"
+                                },
+                                "Body": {
+                                  "type": "string",
+                                  "title": "Text",
+                                  "format": "html",
+                                  "description": "Geben Sie den Text der E-Mail an.",
+                                  "x-ms-property-name-alias": "emailMessage/Body"
+                                },
+                                "From": {
+                                  "type": "string",
+                                  "title": "Von (Senden als)",
+                                  "format": "email",
+                                  "description": "Die E-Mail-Adresse, von der E-Mails gesendet werden sollen (erfordert die Berechtigung \u201ESenden als\u201C oder \u201ESenden im Auftrag von\u201C f\u00FCr dieses Postfach). Weitere Informationen zum Erteilen von Berechtigungen finden Sie unter https://docs.microsoft.com/office365/admin/manage/send-email-as-distribution-list",
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/From"
+                                },
+                                "Cc": {
+                                  "type": "string",
+                                  "title": "Cc",
+                                  "x-ms-dynamic-list": {
+                                    "builtInOperation": "AadGraph.GetUsers",
+                                    "parameters": {},
+                                    "itemValuePath": "mail"
+                                  },
+                                  "format": "email",
+                                  "description": "Geben Sie die E-Mail-Adressen getrennt durch ein Semikolon an. Beispiel: jemand@contoso.com",
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/Cc"
+                                },
+                                "Bcc": {
+                                  "type": "string",
+                                  "title": "BCC",
+                                  "x-ms-dynamic-list": {
+                                    "builtInOperation": "AadGraph.GetUsers",
+                                    "parameters": {},
+                                    "itemValuePath": "mail"
+                                  },
+                                  "format": "email",
+                                  "description": "Geben Sie die E-Mail-Adressen getrennt durch ein Semikolon an. Beispiel: jemand@contoso.com",
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/Bcc"
+                                },
+                                "Attachments": {
+                                  "type": "array",
+                                  "title": "Anlagen",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "Name": {
+                                        "type": "string",
+                                        "title": "Name",
+                                        "description": "Anlagenname",
+                                        "x-ms-property-name-alias": "Name"
+                                      },
+                                      "ContentBytes": {
+                                        "type": "string",
+                                        "title": "Inhalt",
+                                        "format": "byte",
+                                        "description": "Anlageninhalt",
+                                        "x-ms-property-name-alias": "ContentBytes"
+                                      }
+                                    },
+                                    "required": [
+                                      "ContentBytes",
+                                      "Name"
+                                    ],
+                                    "description": "Anlage"
+                                  },
+                                  "description": "Anlagen",
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/Attachments"
+                                },
+                                "Sensitivity": {
+                                  "type": "string",
+                                  "title": "Vertraulichkeit",
+                                  "x-ms-dynamic-list": {
+                                    "operationId": "GetSensitivityLabels",
+                                    "parameters": {},
+                                    "itemValuePath": "Id",
+                                    "itemTitlePath": "DisplayName"
+                                  },
+                                  "description": "Vertraulichkeit",
+                                  "x-ms-visibility": "important",
+                                  "x-ms-property-name-alias": "emailMessage/Sensitivity"
+                                },
+                                "ReplyTo": {
+                                  "type": "string",
+                                  "title": "Antwort an",
+                                  "format": "email",
+                                  "description": "Die f\u00FCr die Antwort zu verwendenden E-Mail-Adressen",
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/ReplyTo"
+                                },
+                                "Importance": {
+                                  "type": "string",
+                                  "title": "Priorit\u00E4t",
+                                  "description": "Priorit\u00E4t",
+                                  "default": "Normal",
+                                  "enum": [
+                                    "Low",
+                                    "Normal",
+                                    "High"
+                                  ],
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/Importance"
+                                }
+                              },
+                              "required": [
+                                "Body",
+                                "Subject",
+                                "To"
+                              ],
+                              "description": "E-Mail.",
+                              "x-ms-property-name-alias": "emailMessage"
+                            }
+                          },
+                          "required": [
+                            "emailMessage"
+                          ]
+                        },
+                        "parameters": {
+                          "emailMessage/Importance": "@{if(equals(variables(\u0027VarKritikalitaet\u0027), \u0027Kritisch\u0027), \u0027High\u0027,\r\nif(or(equals(variables(\u0027VarKritikalitaet\u0027), \u0027Hoch\u0027), equals(variables(\u0027VarKritikalitaet\u0027), \u0027Mittel\u0027)), \u0027Normal\u0027, \u0027Low\u0027))}",
+                          "emailMessage/To": "service@airco-systems.de",
+                          "emailMessage/Body": "\u003Ctable id=\u0022table_0\u0022 style=\u0022box-sizing: border-box; border-collapse: collapse; border-spacing: 0px;\u0022\u003E\u003Ctbody\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EFirmenname\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarFirmenname\u0027)}\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EAnsprechpartner\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarAnsprechpartner\u0027)}\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003ETelefonnummer\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarTelefonnummer\u0027)}\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EInbetriebnahme (letzte 12\n  Monate)\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{if(triggerBody()?[\u0027boolean_1\u0027], \u0027Ja\u0027, \u0027Nein\u0027)}\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EWartungsvertrag\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{if(triggerBody()?[\u0027boolean\u0027], \u0027Ja\u0027, \u0027Nein\u0027)}\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EKritikalit\u00E4t\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003E@{variables(\u0027VarKritikalitaet\u0027)}\u003C/b\u003E\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003C/tbody\u003E\u003C/table\u003E\u003Cp style=\u0022margin-top: 16px;\u0022\u003E\u003Cb\u003EKI-Zusammenfassung\u003C/b\u003E\u003C/p\u003E\u003Cp style=\u0022margin-top: 8px; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarZusammenfassung\u0027)}\u003C/p\u003E\u003Cp style=\u0022margin-top: 16px; font-family: Calibri, sans-serif; font-size: 12px;\u0022\u003E\n      Eingang:\u0026nbsp;@{formatDateTime(convertTimeZone(utcNow(), \u0027UTC\u0027, \u0027W. Europe Standard Time\u0027), \u0027dd.MM.yyyy HH:mm\u0027)}\n      \u0026nbsp;|\u0026nbsp; Kanal:\u0026nbsp;@{triggerBody()?[\u0027text_4\u0027]}\n\u003C/p\u003E\u003Chr style=\u0022margin: 20px 0px; border-top: 1px solid rgb(204, 204, 204);\u0022\u003E\u003Cp style=\u0022font-family: Calibri, sans-serif; font-size: 12px;\u0022\u003E\u003Ci\u003ERohtext \u2014 Originalaussage des Anrufers (Testperiode)\u003C/i\u003E\u003Cbr\u003E\n      \u0026nbsp;@{triggerBody()?[\u0027text_3\u0027]}\n\u003C/p\u003E",
+                          "emailMessage/Subject": "[@{variables(\u0027VarKritikalitaet\u0027)}] Ticket - Firma: [@{variables(\u0027VarFirmenname\u0027)}]"
+                        },
+                        "connectionName": "shared_office365"
+                      },
+                      "outcomes": [
+                        {
+                          "id": "default",
+                          "label": "Default",
+                          "outcomeSchema": {
+                            "type": "object",
+                            "properties": {}
+                          }
+                        }
+                      ]
+                    },
+                    "measured": {
+                      "width": 240,
+                      "height": 66
+                    },
+                    "dragging": false,
+                    "selected": true
+                  },
+                  {
+                    "id": "builtinFunction-68d44e76-5373-47b4-9f69-2ab4d0b1536d",
+                    "name": "Respond to the agent",
+                    "type": "builtinFunction",
+                    "version": 1,
+                    "position": {
+                      "x": 467,
+                      "y": 1084
+                    },
+                    "data": {
+                      "config": {
+                        "operationId": "response",
+                        "operationName": "response",
+                        "displayName": "Respond to the agent",
+                        "category": "request",
+                        "categoryDisplayName": "Request",
+                        "iconUri": "",
+                        "brandColor": "",
+                        "parameters": {
+                          "schema": {
+                            "type": "object",
+                            "properties": {},
+                            "required": []
+                          }
+                        },
+                        "description": "Respond to the calling agent with typed outputs.",
+                        "kind": "Skills"
+                      },
+                      "outcomes": [
+                        {
+                          "id": "default",
+                          "label": "Default",
+                          "outcomeSchema": {
+                            "type": "object",
+                            "description": "Function output"
+                          }
+                        }
+                      ]
+                    },
+                    "measured": {
+                      "width": 240,
+                      "height": 66
+                    },
+                    "dragging": false,
+                    "selected": false
+                  },
+                  {
+                    "id": "connector-577b5cfc-ff3f-4c64-a775-af9b6f59c475",
+                    "name": "E-Mail senden bei KI fehlgeschlagen",
+                    "type": "connector",
+                    "version": 1,
+                    "position": {
+                      "x": 100,
+                      "y": 496
+                    },
+                    "data": {
+                      "config": {
+                        "apiName": "shared_office365",
+                        "displayName": "Office 365 Outlook",
+                        "iconUri": "https://static.powerapps.com/resource/ppcr/releases/v1.0.1819/1.0.1819.4795/office365/icon.png",
+                        "brandColor": "#0078D4",
+                        "operationName": "SendEmailV2",
+                        "operationType": "OpenApiConnection",
+                        "parametersSchema": {
+                          "type": "object",
+                          "properties": {
+                            "emailMessage": {
+                              "type": "object",
+                              "title": "E-Mail",
+                              "properties": {
+                                "To": {
+                                  "type": "string",
+                                  "title": "An",
+                                  "x-ms-dynamic-list": {
+                                    "builtInOperation": "AadGraph.GetUsers",
+                                    "parameters": {},
+                                    "itemValuePath": "mail"
+                                  },
+                                  "format": "email",
+                                  "description": "Geben Sie die E-Mail-Adressen getrennt durch ein Semikolon an. Beispiel: jemand@contoso.com",
+                                  "x-ms-property-name-alias": "emailMessage/To"
+                                },
+                                "Subject": {
+                                  "type": "string",
+                                  "title": "Betreff",
+                                  "description": "Geben Sie den Betreff der E-Mail an.",
+                                  "x-ms-property-name-alias": "emailMessage/Subject"
+                                },
+                                "Body": {
+                                  "type": "string",
+                                  "title": "Text",
+                                  "format": "html",
+                                  "description": "Geben Sie den Text der E-Mail an.",
+                                  "x-ms-property-name-alias": "emailMessage/Body"
+                                },
+                                "From": {
+                                  "type": "string",
+                                  "title": "Von (Senden als)",
+                                  "format": "email",
+                                  "description": "Die E-Mail-Adresse, von der E-Mails gesendet werden sollen (erfordert die Berechtigung \u201ESenden als\u201C oder \u201ESenden im Auftrag von\u201C f\u00FCr dieses Postfach). Weitere Informationen zum Erteilen von Berechtigungen finden Sie unter https://docs.microsoft.com/office365/admin/manage/send-email-as-distribution-list",
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/From"
+                                },
+                                "Cc": {
+                                  "type": "string",
+                                  "title": "Cc",
+                                  "x-ms-dynamic-list": {
+                                    "builtInOperation": "AadGraph.GetUsers",
+                                    "parameters": {},
+                                    "itemValuePath": "mail"
+                                  },
+                                  "format": "email",
+                                  "description": "Geben Sie die E-Mail-Adressen getrennt durch ein Semikolon an. Beispiel: jemand@contoso.com",
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/Cc"
+                                },
+                                "Bcc": {
+                                  "type": "string",
+                                  "title": "BCC",
+                                  "x-ms-dynamic-list": {
+                                    "builtInOperation": "AadGraph.GetUsers",
+                                    "parameters": {},
+                                    "itemValuePath": "mail"
+                                  },
+                                  "format": "email",
+                                  "description": "Geben Sie die E-Mail-Adressen getrennt durch ein Semikolon an. Beispiel: jemand@contoso.com",
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/Bcc"
+                                },
+                                "Attachments": {
+                                  "type": "array",
+                                  "title": "Anlagen",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "Name": {
+                                        "type": "string",
+                                        "title": "Name",
+                                        "description": "Anlagenname",
+                                        "x-ms-property-name-alias": "Name"
+                                      },
+                                      "ContentBytes": {
+                                        "type": "string",
+                                        "title": "Inhalt",
+                                        "format": "byte",
+                                        "description": "Anlageninhalt",
+                                        "x-ms-property-name-alias": "ContentBytes"
+                                      }
+                                    },
+                                    "required": [
+                                      "ContentBytes",
+                                      "Name"
+                                    ],
+                                    "description": "Anlage"
+                                  },
+                                  "description": "Anlagen",
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/Attachments"
+                                },
+                                "Sensitivity": {
+                                  "type": "string",
+                                  "title": "Vertraulichkeit",
+                                  "x-ms-dynamic-list": {
+                                    "operationId": "GetSensitivityLabels",
+                                    "parameters": {},
+                                    "itemValuePath": "Id",
+                                    "itemTitlePath": "DisplayName"
+                                  },
+                                  "description": "Vertraulichkeit",
+                                  "x-ms-visibility": "important",
+                                  "x-ms-property-name-alias": "emailMessage/Sensitivity"
+                                },
+                                "ReplyTo": {
+                                  "type": "string",
+                                  "title": "Antwort an",
+                                  "format": "email",
+                                  "description": "Die f\u00FCr die Antwort zu verwendenden E-Mail-Adressen",
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/ReplyTo"
+                                },
+                                "Importance": {
+                                  "type": "string",
+                                  "title": "Priorit\u00E4t",
+                                  "description": "Priorit\u00E4t",
+                                  "default": "Normal",
+                                  "enum": [
+                                    "Low",
+                                    "Normal",
+                                    "High"
+                                  ],
+                                  "x-ms-visibility": "advanced",
+                                  "x-ms-property-name-alias": "emailMessage/Importance"
+                                }
+                              },
+                              "required": [
+                                "Body",
+                                "Subject",
+                                "To"
+                              ],
+                              "description": "E-Mail.",
+                              "x-ms-property-name-alias": "emailMessage"
+                            }
+                          },
+                          "required": [
+                            "emailMessage"
+                          ]
+                        },
+                        "parameters": {
+                          "emailMessage/Importance": "Normal",
+                          "emailMessage/Body": "\u003Cdiv\u003EKI-Klassifizierung fehlgeschlagen - bitte manuell pr\u00FCfen.\n\u003C/div\u003E\u003Cdiv\u003E\u003Cbr\u003E\n\u003C/div\u003E\u003Cdiv\u003EFirmenname:\u0026nbsp;@{triggerBody()?[\u0027text\u0027]}\n\u003C/div\u003E\u003Cdiv\u003EAnsprechpartner:\u0026nbsp;@{triggerBody()?[\u0027text_1\u0027]}\n\u003C/div\u003E\u003Cdiv\u003ETelefon:\u0026nbsp;@{triggerBody()?[\u0027text_2\u0027]}\n\u003C/div\u003E\u003Cdiv\u003EVertrag:\u0026nbsp;@{if(triggerBody()?[\u0027boolean\u0027], \u0027Ja\u0027, \u0027Nein\u0027)}\n\u003C/div\u003E\u003Cdiv\u003EInbetriebnahme:\u0026nbsp;@{if(triggerBody()?[\u0027boolean_1\u0027], \u0027Ja\u0027, \u0027Nein\u0027)}\n\u003C/div\u003E\u003Cdiv\u003EKanal:\u0026nbsp;@{triggerBody()?[\u0027text_4\u0027]}\n\u003C/div\u003E\u003Cdiv\u003ERohtext Anliegen:\u0026nbsp;@{triggerBody()?[\u0027text_3\u0027]}\u003C/div\u003E",
+                          "emailMessage/To": "service@airco-systems.de",
+                          "emailMessage/Subject": "[UNBEKANNT \u2013 KI-Fehler] - Firma: @{triggerBody()?[\u0027text\u0027]}"
+                        },
+                        "connectionName": "shared_office365"
+                      },
+                      "outcomes": [
+                        {
+                          "id": "default",
+                          "label": "Default",
+                          "outcomeSchema": {
+                            "type": "object",
+                            "properties": {}
+                          }
+                        }
+                      ],
+                      "settings": {
+                        "runAfter": {
+                          "agent-83200be2-ef12-476d-adc6-43a34d188937": [
+                            "Failed",
+                            "TimedOut",
+                            "Skipped"
+                          ]
+                        }
+                      }
+                    },
+                    "measured": {
+                      "width": 307,
+                      "height": 66
+                    },
+                    "dragging": false,
+                    "selected": false
+                  },
+                  {
+                    "id": "variable-62f2b4ff-65ed-4e81-aa80-9fee921a7ed3",
+                    "name": "VarFirmenname",
+                    "type": "variable",
+                    "version": 1,
+                    "position": {
+                      "x": 467,
+                      "y": 692
+                    },
+                    "data": {
+                      "config": {
+                        "assignments": [
+                          {
+                            "id": "55a2f963-4d12-4504-89dc-35d97e4e5729",
+                            "variableName": "VarFirmenname",
+                            "mode": "initialize",
+                            "type": "string",
+                            "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/firmenname\u0027]}",
+                            "valueRich": {
+                              "segments": [
+                                {
+                                  "type": "static",
+                                  "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/firmenname\u0027]}"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "outcomes": [
+                        {
+                          "id": "default",
+                          "label": "Default",
+                          "outcomeSchema": {
+                            "type": "object",
+                            "properties": {},
+                            "description": "Variables set by this node"
+                          }
+                        }
+                      ]
+                    },
+                    "measured": {
+                      "width": 240,
+                      "height": 66
+                    },
+                    "selected": false,
+                    "dragging": false
+                  },
+                  {
+                    "id": "variable-99dd119c-304e-4215-afc0-a17ebcb10fae",
+                    "name": "VarAnsprechpartner",
+                    "type": "variable",
+                    "version": 1,
+                    "position": {
+                      "x": 467,
+                      "y": 790
+                    },
+                    "data": {
+                      "config": {
+                        "assignments": [
+                          {
+                            "id": "55a2f963-4d12-4504-89dc-35d97e4e5729",
+                            "variableName": "VarAnsprechpartner",
+                            "mode": "initialize",
+                            "type": "string",
+                            "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/ansprechpartner\u0027]}",
+                            "valueRich": {
+                              "segments": [
+                                {
+                                  "type": "static",
+                                  "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/ansprechpartner\u0027]}"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "outcomes": [
+                        {
+                          "id": "default",
+                          "label": "Default",
+                          "outcomeSchema": {
+                            "type": "object",
+                            "properties": {},
+                            "description": "Variables set by this node"
+                          }
+                        }
+                      ]
+                    },
+                    "measured": {
+                      "width": 240,
+                      "height": 66
+                    },
+                    "selected": false,
+                    "dragging": false
+                  },
+                  {
+                    "id": "variable-55ac80de-1601-473a-977d-83bbbf6ed3e2",
+                    "name": "VarTelefonnummer",
+                    "type": "variable",
+                    "version": 1,
+                    "position": {
+                      "x": 467,
+                      "y": 888
+                    },
+                    "data": {
+                      "config": {
+                        "assignments": [
+                          {
+                            "id": "2cde9930-ac57-4c0a-8bf6-f10a14485b02",
+                            "variableName": "VarTelefonnummer",
+                            "mode": "initialize",
+                            "type": "string",
+                            "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/telefonnummer\u0027]}",
+                            "valueRich": {
+                              "segments": [
+                                {
+                                  "type": "static",
+                                  "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/telefonnummer\u0027]}"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "outcomes": [
+                        {
+                          "id": "default",
+                          "label": "Default",
+                          "outcomeSchema": {
+                            "type": "object",
+                            "properties": {},
+                            "description": "Variables set by this node"
+                          }
+                        }
+                      ]
+                    },
+                    "measured": {
+                      "width": 240,
+                      "height": 66
+                    },
+                    "selected": false
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "edge-start-beabd7a4-8d78-4f9b-a412-30952478ef54-output-agent-83200be2-ef12-476d-adc6-43a34d188937-input",
+                    "source": "start-beabd7a4-8d78-4f9b-a412-30952478ef54",
+                    "target": "agent-83200be2-ef12-476d-adc6-43a34d188937",
+                    "sourceHandle": "output",
+                    "targetHandle": "input"
+                  },
+                  {
+                    "id": "edge-connector-571b60ab-13a2-4b69-9270-bd121c09b5f0-builtinFunction-68d44e76-5373-47b4-9f69-2ab4d0b1536d",
+                    "source": "connector-571b60ab-13a2-4b69-9270-bd121c09b5f0",
+                    "target": "builtinFunction-68d44e76-5373-47b4-9f69-2ab4d0b1536d"
+                  },
+                  {
+                    "id": "edge-variable-02d0dced-14ee-45a2-8baf-6db80736b046-output-variable-597aa8d2-2274-4e0a-a1ab-6780614ae751-input",
+                    "source": "variable-02d0dced-14ee-45a2-8baf-6db80736b046",
+                    "target": "variable-597aa8d2-2274-4e0a-a1ab-6780614ae751",
+                    "sourceHandle": "output",
+                    "targetHandle": "input"
+                  },
+                  {
+                    "id": "edge-agent-83200be2-ef12-476d-adc6-43a34d188937-connector-577b5cfc-ff3f-4c64-a775-af9b6f59c475",
+                    "source": "agent-83200be2-ef12-476d-adc6-43a34d188937",
+                    "target": "connector-577b5cfc-ff3f-4c64-a775-af9b6f59c475"
+                  },
+                  {
+                    "id": "edge-agent-83200be2-ef12-476d-adc6-43a34d188937-output-variable-02d0dced-14ee-45a2-8baf-6db80736b046-input",
+                    "source": "agent-83200be2-ef12-476d-adc6-43a34d188937",
+                    "target": "variable-02d0dced-14ee-45a2-8baf-6db80736b046",
+                    "sourceHandle": "output",
+                    "targetHandle": "input"
+                  },
+                  {
+                    "id": "edge-variable-597aa8d2-2274-4e0a-a1ab-6780614ae751-variable-62f2b4ff-65ed-4e81-aa80-9fee921a7ed3",
+                    "source": "variable-597aa8d2-2274-4e0a-a1ab-6780614ae751",
+                    "target": "variable-62f2b4ff-65ed-4e81-aa80-9fee921a7ed3"
+                  },
+                  {
+                    "id": "edge-variable-62f2b4ff-65ed-4e81-aa80-9fee921a7ed3-output-variable-99dd119c-304e-4215-afc0-a17ebcb10fae-input",
+                    "source": "variable-62f2b4ff-65ed-4e81-aa80-9fee921a7ed3",
+                    "target": "variable-99dd119c-304e-4215-afc0-a17ebcb10fae",
+                    "sourceHandle": "output",
+                    "targetHandle": "input"
+                  },
+                  {
+                    "id": "edge-variable-99dd119c-304e-4215-afc0-a17ebcb10fae-variable-55ac80de-1601-473a-977d-83bbbf6ed3e2",
+                    "source": "variable-99dd119c-304e-4215-afc0-a17ebcb10fae",
+                    "target": "variable-55ac80de-1601-473a-977d-83bbbf6ed3e2"
+                  },
+                  {
+                    "id": "edge-variable-55ac80de-1601-473a-977d-83bbbf6ed3e2-output-connector-571b60ab-13a2-4b69-9270-bd121c09b5f0-input",
+                    "source": "variable-55ac80de-1601-473a-977d-83bbbf6ed3e2",
+                    "target": "connector-571b60ab-13a2-4b69-9270-bd121c09b5f0",
+                    "sourceHandle": "output",
+                    "targetHandle": "input"
+                  }
+                ],
+                "connectionReferences": {
+                  "shared_agentnode": {
+                    "api": {
+                      "name": "shared_agentnode"
+                    },
+                    "connection": {
+                      "connectionReferenceLogicalName": "new_sharedagentnode_58832b99"
+                    },
+                    "runtimeSource": "embedded",
+                    "connectionName": "shared-agentnode-b57348a9-59b7-4f26-8b57-82dcc6782793"
+                  },
+                  "shared_office365": {
+                    "api": {
+                      "name": "shared_office365"
+                    },
+                    "connection": {
+                      "connectionReferenceLogicalName": "new_sharedoffice365_e245c893"
+                    },
+                    "runtimeSource": "embedded",
+                    "connectionName": "shared-office365-9c5820d9-a7ba-4ac3-a4c4-9a4b44c01b83"
+                  }
+                }
+              },
+              "nodeActionMapping": {
+                "agent-83200be2-ef12-476d-adc6-43a34d188937": [
+                  "KI-Verarbeitung"
+                ],
+                "connector-577b5cfc-ff3f-4c64-a775-af9b6f59c475": [
+                  "E-Mail_senden_bei_KI_fehlgeschlagen"
+                ],
+                "variable-02d0dced-14ee-45a2-8baf-6db80736b046": [
+                  "VarZusamenfassung"
+                ],
+                "variable-597aa8d2-2274-4e0a-a1ab-6780614ae751": [
+                  "VarKritikalitaet"
+                ],
+                "variable-62f2b4ff-65ed-4e81-aa80-9fee921a7ed3": [
+                  "VarFirmenname"
+                ],
+                "variable-99dd119c-304e-4215-afc0-a17ebcb10fae": [
+                  "VarAnsprechpartner"
+                ],
+                "variable-55ac80de-1601-473a-977d-83bbbf6ed3e2": [
+                  "VarTelefonnummer"
+                ],
+                "connector-571b60ab-13a2-4b69-9270-bd121c09b5f0": [
+                  "E-Mail_senden"
+                ],
+                "builtinFunction-68d44e76-5373-47b4-9f69-2ab4d0b1536d": [
+                  "Respond_to_the_agent"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "KI-Verarbeitung": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "body/definition": {
+                "components": [],
+                "environmentVariables": [],
+                "flows": [],
+                "dataverseTableSearchs": [],
+                "dataverseTableSearchGlossaryConfigurations": [],
+                "dataverseTableSearchEntityConfigurations": [],
+                "dataverseTableSearchEntityColumnSynonyms": [],
+                "connectionReferences": [],
+                "connectorDefinitions": [],
+                "aIModelDefinitions": [],
+                "aIPluginOperations": [],
+                "connectedAgentDefinitions": [],
+                "componentCollections": [],
+                "connectedBots": [],
+                "diagnostics": [],
+                "entity": {
+                  "authorizedSecurityGroupIds": [],
+                  "supportedLanguages": [],
+                  "diagnostics": [],
+                  "schemaName": "workflow_agentnode",
+                  "language": 1033,
+                  "accessControlPolicy": "Any",
+                  "authenticationMode": "Integrated",
+                  "authenticationTrigger": "Always",
+                  "synchronizationStatus": {
+                    "graphDriveItems": [],
+                    "diagnostics": [],
+                    "lastPublishedDetails": {
+                      "diagnosticDetails": [],
+                      "diagnostics": [],
+                      "authenticationMode": "Integrated",
+                      "$kind": "SuccessfulPublishResultDetails"
+                    },
+                    "$kind": "BotSynchronizationDetails"
+                  },
+                  "configuration": {
+                    "categories": [],
+                    "channels": [],
+                    "settings": {},
+                    "diagnostics": [],
+                    "recognizer": {
+                      "diagnostics": [],
+                      "$kind": "CLICopilotRecognizer"
+                    },
+                    "agentSettings": {
+                      "conversationStarters": [],
+                      "diagnostics": [],
+                      "model": {
+                        "diagnostics": [],
+                        "series": "GPT5Chat",
+                        "$kind": "ModelConfig"
+                      },
+                      "instructions": {
+                        "segments": [],
+                        "diagnostics": [],
+                        "$kind": "Instructions"
+                      },
+                      "output": {
+                        "diagnostics": [],
+                        "schema": "{\u0022type\u0022:\u0022object\u0022,\u0022properties\u0022:{\u0022zusammenfassung\u0022:{\u0022type\u0022:\u0022string\u0022,\u0022description\u0022:\u0022Sachliche Zusammenfassung des Anliegens, max. 3 S\u00E4tze.\u0022},\u0022kritikalitaet\u0022:{\u0022type\u0022:\u0022string\u0022,\u0022enum\u0022:[\u0022Kritisch\u0022,\u0022Hoch\u0022,\u0022Mittel\u0022,\u0022Niedrig\u0022,\u0022Other\u0022]},\u0022firmenname\u0022:{\u0022type\u0022:\u0022string\u0022,\u0022description\u0022:\u0022Der Name der Firma.\u0022},\u0022ansprechpartner\u0022:{\u0022type\u0022:\u0022string\u0022,\u0022description\u0022:\u0022Der Name des Ansprechpartners.\u0022},\u0022telefonnummer\u0022:{\u0022type\u0022:\u0022string\u0022,\u0022description\u0022:\u0022Die Telefonnummer des Ansprechpartners oder der Firma.\u0022}},\u0022required\u0022:[\u0022zusammenfassung\u0022,\u0022kritikalitaet\u0022,\u0022firmenname\u0022,\u0022ansprechpartner\u0022,\u0022telefonnummer\u0022]}",
+                        "$kind": "StructuredAgentOutput"
+                      },
+                      "$kind": "AgentSettings"
+                    },
+                    "$kind": "BotConfiguration"
+                  },
+                  "$kind": "BotEntity"
+                },
+                "$kind": "BotDefinition"
+              },
+              "body/message": "Du bist ein technischer Service-Assistent f\u00FCr Industriekompressoren, Stickstoffanlagen, und Druckluftaufbereitung.\n\u00A0\nAnalysiere dieses Anliegen: @{triggerBody()?[\u0027text_3\u0027]}\nund bef\u00FClle die Felder:\n\u00A0\nzusammenfassung: Sachlich, Deutsch, max. 3 S\u00E4tze - betroffene Anlage, Problem, Auswirkung auf Betrieb. Falls unklar: \u0022Anliegen unklar. Bitte direkt beim Anrufer nachfragen.\u0022\n\u00A0\nkritikalitaet:\n- Kritisch: Produktionsstillstand, Anlage vollst\u00E4ndig ausgefallen.\n- Hoch: Anlage eingeschr\u00E4nkt, Produktion l\u00E4uft noch.\n- Mittel: Problem ohne Produktionseinfluss; Wartungs-/Ersatzteil-/Angebotsanfrage.\n- Niedrig: Sporadisches Problem, R\u00FCckrufbitte, allgemeine Fragen.\n- Other: Nicht klassifizierbar.\n\u00A0\nAnalysiere @{triggerBody()?[\u0027text\u0027]}, @{triggerBody()?[\u0027text_1\u0027]} und @{triggerBody()?[\u0027text_2\u0027]} \nund bef\u00FClle die Felder:\nfirmenname: Extraktion des Fimennamens aus @{triggerBody()?[\u0027text\u0027]}. Dieser Name ist vom Anrufer erfasst worden. Ignoriere alle anderen\n  Firmennamen im Kontext (inkl. \u0022AIRCO Systems GmbH\u0022).\nansprechpartner: Extraktion des Namens des Ansprechpartners aus @{triggerBody()?[\u0027text_1\u0027]}\ntelefonnummer: Extraktion der Telefonnummer aus @{triggerBody()?[\u0027text_2\u0027]}\u200B\u200C"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_agentnode",
+              "connectionName": "shared_agentnode",
+              "operationId": "InvokeDefinition"
+            }
+          },
+          "metadata": {
+            "description": "KI-Verarbeitung",
+            "nodeId": "agent-83200be2-ef12-476d-adc6-43a34d188937"
+          }
+        },
+        "E-Mail_senden_bei_KI_fehlgeschlagen": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "emailMessage/Importance": "Normal",
+              "emailMessage/Body": "\u003Cdiv\u003EKI-Klassifizierung fehlgeschlagen - bitte manuell pr\u00FCfen.\n\u003C/div\u003E\u003Cdiv\u003E\u003Cbr\u003E\n\u003C/div\u003E\u003Cdiv\u003EFirmenname:\u0026nbsp;@{triggerBody()?[\u0027text\u0027]}\n\u003C/div\u003E\u003Cdiv\u003EAnsprechpartner:\u0026nbsp;@{triggerBody()?[\u0027text_1\u0027]}\n\u003C/div\u003E\u003Cdiv\u003ETelefon:\u0026nbsp;@{triggerBody()?[\u0027text_2\u0027]}\n\u003C/div\u003E\u003Cdiv\u003EVertrag:\u0026nbsp;@{if(triggerBody()?[\u0027boolean\u0027], \u0027Ja\u0027, \u0027Nein\u0027)}\n\u003C/div\u003E\u003Cdiv\u003EInbetriebnahme:\u0026nbsp;@{if(triggerBody()?[\u0027boolean_1\u0027], \u0027Ja\u0027, \u0027Nein\u0027)}\n\u003C/div\u003E\u003Cdiv\u003EKanal:\u0026nbsp;@{triggerBody()?[\u0027text_4\u0027]}\n\u003C/div\u003E\u003Cdiv\u003ERohtext Anliegen:\u0026nbsp;@{triggerBody()?[\u0027text_3\u0027]}\u003C/div\u003E",
+              "emailMessage/To": "service@airco-systems.de",
+              "emailMessage/Subject": "[UNBEKANNT \u2013 KI-Fehler] - Firma: @{triggerBody()?[\u0027text\u0027]}"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+              "connectionName": "shared_office365",
+              "operationId": "SendEmailV2"
+            }
+          },
+          "runAfter": {
+            "KI-Verarbeitung": [
+              "Failed",
+              "TimedOut",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "description": "E-Mail senden bei KI fehlgeschlagen",
+            "nodeId": "connector-577b5cfc-ff3f-4c64-a775-af9b6f59c475"
+          }
+        },
+        "VarZusamenfassung": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VarZusammenfassung",
+                "type": "String",
+                "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/zusammenfassung\u0027]}"
+              }
+            ]
+          },
+          "runAfter": {
+            "KI-Verarbeitung": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "description": "VarZusamenfassung",
+            "nodeId": "variable-02d0dced-14ee-45a2-8baf-6db80736b046"
+          }
+        },
+        "VarKritikalitaet": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VarKritikalitaet",
+                "type": "String",
+                "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/kritikalitaet\u0027]}"
+              }
+            ]
+          },
+          "runAfter": {
+            "VarZusamenfassung": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "description": "VarKritikalitaet",
+            "nodeId": "variable-597aa8d2-2274-4e0a-a1ab-6780614ae751"
+          }
+        },
+        "VarFirmenname": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VarFirmenname",
+                "type": "String",
+                "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/firmenname\u0027]}"
+              }
+            ]
+          },
+          "runAfter": {
+            "VarKritikalitaet": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "description": "VarFirmenname",
+            "nodeId": "variable-62f2b4ff-65ed-4e81-aa80-9fee921a7ed3"
+          }
+        },
+        "VarAnsprechpartner": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VarAnsprechpartner",
+                "type": "String",
+                "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/ansprechpartner\u0027]}"
+              }
+            ]
+          },
+          "runAfter": {
+            "VarFirmenname": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "description": "VarAnsprechpartner",
+            "nodeId": "variable-99dd119c-304e-4215-afc0-a17ebcb10fae"
+          }
+        },
+        "VarTelefonnummer": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VarTelefonnummer",
+                "type": "String",
+                "value": "@{body(\u0027KI-Verarbeitung\u0027)?[\u0027structuredOutput/telefonnummer\u0027]}"
+              }
+            ]
+          },
+          "runAfter": {
+            "VarAnsprechpartner": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "description": "VarTelefonnummer",
+            "nodeId": "variable-55ac80de-1601-473a-977d-83bbbf6ed3e2"
+          }
+        },
+        "E-Mail_senden": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "emailMessage/Importance": "@{if(equals(variables(\u0027VarKritikalitaet\u0027), \u0027Kritisch\u0027), \u0027High\u0027,\r\nif(or(equals(variables(\u0027VarKritikalitaet\u0027), \u0027Hoch\u0027), equals(variables(\u0027VarKritikalitaet\u0027), \u0027Mittel\u0027)), \u0027Normal\u0027, \u0027Low\u0027))}",
+              "emailMessage/To": "service@airco-systems.de",
+              "emailMessage/Body": "\u003Ctable id=\u0022table_0\u0022 style=\u0022box-sizing: border-box; border-collapse: collapse; border-spacing: 0px;\u0022\u003E\u003Ctbody\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EFirmenname\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarFirmenname\u0027)}\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EAnsprechpartner\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarAnsprechpartner\u0027)}\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003ETelefonnummer\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarTelefonnummer\u0027)}\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EInbetriebnahme (letzte 12\n  Monate)\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{if(triggerBody()?[\u0027boolean_1\u0027], \u0027Ja\u0027, \u0027Nein\u0027)}\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EWartungsvertrag\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{if(triggerBody()?[\u0027boolean\u0027], \u0027Ja\u0027, \u0027Nein\u0027)}\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003Ctr\u003E\u003Ctd style=\u0022white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px;\u0022\u003E\u003Cdiv style=\u0022white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003EKritikalit\u00E4t\u003C/b\u003E\u003C/div\u003E\u003C/td\u003E\u003Ctd style=\u0022padding-top: 4px; padding-bottom: 4px;\u0022\u003E\u003Cspan style=\u0022font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E\u003Cb\u003E@{variables(\u0027VarKritikalitaet\u0027)}\u003C/b\u003E\u003C/span\u003E\n\u003C/td\u003E\u003C/tr\u003E\u003C/tbody\u003E\u003C/table\u003E\u003Cp style=\u0022margin-top: 16px;\u0022\u003E\u003Cb\u003EKI-Zusammenfassung\u003C/b\u003E\u003C/p\u003E\u003Cp style=\u0022margin-top: 8px; font-family: Calibri, sans-serif; font-size: 14px;\u0022\u003E@{variables(\u0027VarZusammenfassung\u0027)}\u003C/p\u003E\u003Cp style=\u0022margin-top: 16px; font-family: Calibri, sans-serif; font-size: 12px;\u0022\u003E\n      Eingang:\u0026nbsp;@{formatDateTime(convertTimeZone(utcNow(), \u0027UTC\u0027, \u0027W. Europe Standard Time\u0027), \u0027dd.MM.yyyy HH:mm\u0027)}\n      \u0026nbsp;|\u0026nbsp; Kanal:\u0026nbsp;@{triggerBody()?[\u0027text_4\u0027]}\n\u003C/p\u003E\u003Chr style=\u0022margin: 20px 0px; border-top: 1px solid rgb(204, 204, 204);\u0022\u003E\u003Cp style=\u0022font-family: Calibri, sans-serif; font-size: 12px;\u0022\u003E\u003Ci\u003ERohtext \u2014 Originalaussage des Anrufers (Testperiode)\u003C/i\u003E\u003Cbr\u003E\n      \u0026nbsp;@{triggerBody()?[\u0027text_3\u0027]}\n\u003C/p\u003E",
+              "emailMessage/Subject": "[@{variables(\u0027VarKritikalitaet\u0027)}] Ticket - Firma: [@{variables(\u0027VarFirmenname\u0027)}]"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+              "connectionName": "shared_office365",
+              "operationId": "SendEmailV2"
+            }
+          },
+          "runAfter": {
+            "VarTelefonnummer": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "description": "E-Mail senden",
+            "nodeId": "connector-571b60ab-13a2-4b69-9270-bd121c09b5f0"
+          }
+        },
+        "Respond_to_the_agent": {
+          "type": "Response",
+          "kind": "Skills",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "statusCode": 200
+          },
+          "runAfter": {
+            "E-Mail_senden": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "description": "Respond to the agent",
+            "nodeId": "builtinFunction-68d44e76-5373-47b4-9f69-2ab4d0b1536d"
+          }
+        }
+      },
+      "outputs": {},
+      "metadata": {
+        "telemetryMetadata": {
+          "modifiedSources": "WorkflowDesigner"
+        }
+      }
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}

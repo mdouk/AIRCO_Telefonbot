@@ -1,0 +1,83 @@
+<!--
+  E-Mail-Body: "E-Mail senden bei Erfolg"  (Flow: Ticketerstellung, 834c8025)
+  Betreff dazu: [@{variables('VarKritikalitaet')}] Ticket - Firma: [@{variables('VarFirmenname')}]
+
+  Quelle je Feld (Entscheidung 2026-09-04: KI-Ausgaben werden bewusst beibehalten):
+    Firmenname, Ansprechpartner, Telefonnummer, Anrufgrund,
+    Kritikalitaet, Zusammenfassung  -> KI-Node (structuredOutput)
+    Anlage, Kanal, Vorgang, Rohtext -> triggerBody (kein KI-Pendant im JSON-Schema)
+
+  Flow-Trigger-Mapping:
+    text   = Firmenname       text_4 = KanalLabel
+    text_1 = Ansprechpartner  text_5 = Anlage
+    text_2 = Telefonnummer    text_6 = Anrufgrund
+    text_3 = Anliegen         text_7 = ConversationId
+-->
+<table id="table_0_0_0_0_0" style="box-sizing: border-box; border-collapse: collapse; border-spacing: 0px;">
+  <tbody>
+    <tr>
+      <td style="white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;">
+        <div style="white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;"><b>Firmenname</b></div>
+      </td>
+      <td style="padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;">
+        <span style="font-family: Calibri, sans-serif; font-size: 14px;">@{variables('VarFirmenname')}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;">
+        <div style="white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;"><b>Ansprechpartner</b></div>
+      </td>
+      <td style="padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;">
+        <span style="font-family: Calibri, sans-serif; font-size: 14px;">@{variables('VarAnsprechpartner')}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;">
+        <div style="white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;"><b>Telefonnummer</b></div>
+      </td>
+      <td style="padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;">
+        <span style="font-family: Calibri, sans-serif; font-size: 14px;">@{variables('VarTelefonnummer')}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;">
+        <div style="white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;"><b>Anrufgrund</b></div>
+      </td>
+      <td style="padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;">
+        <span style="font-family: Calibri, sans-serif; font-size: 14px;">@{body('KI-Verarbeitung')?['structuredOutput/anrufgrund']}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;">
+        <div style="white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;"><b>Anlage</b></div>
+      </td>
+      <td style="padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;">
+        <span style="font-family: Calibri, sans-serif; font-size: 14px;">@{triggerBody()?['text_5']}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="white-space: nowrap; padding-top: 4px; padding-right: 16px; padding-bottom: 4px; width: 115.125px; height: 29.3333px; box-sizing: border-box;">
+        <div style="white-space: nowrap; font-family: Calibri, sans-serif; font-size: 14px;"><b>Kritikalit&auml;t</b></div>
+      </td>
+      <td style="padding-top: 4px; padding-bottom: 4px; width: 198.427px; height: 29.3333px; box-sizing: border-box;">
+        <span style="font-family: Calibri, sans-serif; font-size: 14px;"><b>@{variables('VarKritikalitaet')}</b></span>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="margin-top: 16px;"><b>KI-Zusammenfassung</b></p>
+<p style="margin-top: 8px; font-family: Calibri, sans-serif; font-size: 14px;">@{variables('VarZusammenfassung')}</p>
+
+<p style="margin-top: 16px; font-family: Calibri, sans-serif; font-size: 12px;">
+  Eingang:&nbsp;@{formatDateTime(convertTimeZone(utcNow(), 'UTC', 'W. Europe Standard Time'), 'dd.MM.yyyy HH:mm')}
+  &nbsp;|&nbsp; Kanal:&nbsp;@{triggerBody()?['text_4']}
+  &nbsp;|&nbsp; Vorgang:&nbsp;@{triggerBody()?['text_7']}
+</p>
+
+<hr style="margin: 20px 0px; border-top: 1px solid rgb(204, 204, 204);">
+
+<p style="font-family: Calibri, sans-serif; font-size: 12px;">
+  <i>Rohtext Anliegen &mdash; Originalaussage des Anrufers</i><br>
+  &nbsp;@{triggerBody()?['text_3']}
+</p>

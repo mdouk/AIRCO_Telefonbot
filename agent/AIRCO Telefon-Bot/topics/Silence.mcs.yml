@@ -1,0 +1,29 @@
+mcs.metadata:
+  componentName: Stille-Erkennung
+  description: Wird ausgelöst, wenn eine gewisse Zeit keine Sprach- oder MFV-Eingabe vom Benutzer erfolgt ist. Um diesen Trigger zu verwenden, muss die Stille-Erkennung in den Bot-Einstellungen aktiviert sein.
+kind: AdaptiveDialog
+beginDialog:
+  kind: OnSilence
+  id: main
+  actions:
+    - kind: Question
+      id: question_mFD1X1
+      interruptionPolicy:
+        allowInterruption: true
+
+      variable: init:Topic.Var1
+      prompt:
+        text:
+          - Sind Sie noch da?
+        speak:
+          - Sind Sie noch da?
+
+      entity: StringPrebuiltEntity
+      voiceInputSettings:
+        inputTimeoutResponse:
+          speak:
+            - Wir erkennen keine Aktivitäten von Ihnen. Bitte rufen Sie uns zurück, wenn es Ihnen passt.
+
+    - kind: BeginDialog
+      id: Rgrh4i
+      dialog: mosaiic_AIRCOTelefonBot.topic.EndofConversation

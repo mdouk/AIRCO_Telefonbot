@@ -1,0 +1,13 @@
+mcs.metadata:
+  componentName: Unbenannt
+kind: TaskDialog
+modelDisplayName: Staging schreiben
+action:
+  kind: InvokeFlowTaskAction
+  flowId: a0a99959-80a7-f111-b8de-7ced8d476627
+  connectionProperties:
+    $kind: ConnectionProperties
+    diagnostics:
+    mode: Maker
+
+outputMode: All

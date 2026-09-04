@@ -1,0 +1,11 @@
+mcs.metadata:
+  componentName: Unbekannte Wähltastatureingabe
+  description: Wird ausgelöst, wenn die Wähltastatureingaben eines Benutzers mit keinen vorhandenen Wähltastatureinstellungen übereinstimmen. Vor dem Auslösen dieses Triggers werden globale MFV-Wähltastaturkonfigurationen berücksichtigt.
+kind: AdaptiveDialog
+beginDialog:
+  kind: OnUnknownDtmfKey
+  id: main
+  actions:
+    - kind: SendActivity
+      id: sendActivity_26sT88
+      activity: Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?

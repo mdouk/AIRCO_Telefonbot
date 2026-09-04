@@ -1,0 +1,33 @@
+mcs.metadata:
+  componentName: Anliegen erfassen
+kind: AdaptiveDialog
+beginDialog:
+  kind: OnRedirect
+  id: main
+  actions:
+    - kind: Question
+      id: question_RZHeKB
+      interruptionPolicy:
+        allowInterruption: false
+
+      variable: init:Global.Anliegen
+      prompt:
+        text:
+          - Bitte beschreiben Sie nun Ihr Anliegen.
+        speak:
+          - Bitte beschreiben Sie nun Ihr Anliegen.
+        allowBargeIn: false
+
+      entity: StringPrebuiltEntity
+      voiceInputSettings:
+        fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+        defaultValueMissingAction: GoToDialog
+
+      fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+    - kind: BeginDialog
+      id: uFP7SX
+      dialog: mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim
+
+inputType: {}
+outputType: {}

@@ -1,0 +1,19 @@
+mcs.metadata:
+  componentName: Fallback
+  description: Dieses Systemthema wird ausgelöst, wenn die Äußerung des Benutzers mit keinem vorhandenen Thema übereinstimmt.
+kind: AdaptiveDialog
+beginDialog:
+  kind: OnUnknownIntent
+  id: main
+  actions:
+    - kind: SendActivity
+      id: sendActivity_edXoXa
+      activity:
+        text:
+          - Entschuldigung, das habe ich nicht richtig verstanden. Ich nehme Ihr Anliegen gerne trotzdem auf.
+        speak:
+          - Entschuldigung, das habe ich nicht richtig verstanden. Ich nehme Ihr Anliegen gerne trotzdem auf.
+
+    - kind: BeginDialog
+      id: GqSwCg
+      dialog: mosaiic_AIRCOTelefonBot.topic.Anliegenerfassen

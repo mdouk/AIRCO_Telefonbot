@@ -1,0 +1,235 @@
+﻿{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "api": {
+          "name": "shared_sharepointonline"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_d27fe"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "metadata": {
+        "defaultToEmbeddedConnections": true
+      },
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "type": "Request",
+          "kind": "Skills",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "ConversationId",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_1": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Firmenname",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_2": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Ansprechpartner",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_3": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Telefonnummer",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_4": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Anrufgrund",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_5": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Anlage",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_6": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "Anliegen",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                },
+                "text_7": {
+                  "description": "Geben Sie Ihre Eingabe ein.",
+                  "title": "KanalLabel",
+                  "type": "string",
+                  "x-ms-content-hint": "TEXT",
+                  "x-ms-dynamically-added": true
+                }
+              },
+              "required": [
+                "text",
+                "text_1",
+                "text_2",
+                "text_3",
+                "text_4",
+                "text_5",
+                "text_6",
+                "text_7"
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "b8f61c18-7224-4f8a-9c5f-72fbce5df764",
+            "flowSystemMetadata": {
+              "flowKind": "Stateful"
+            }
+          }
+        }
+      },
+      "actions": {
+        "Elemente_abrufen": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "dataset": "https://aircodruckluft.sharepoint.com/sites/SharePoint",
+              "table": "0a9a1605-27d5-4eaa-854f-cef85c234756",
+              "$filter": "Title eq \u0027@{triggerBody()?[\u0027text\u0027]}\u0027",
+              "$top": 1
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "operationId": "GetItems",
+              "connectionName": "shared_sharepointonline"
+            }
+          },
+          "runAfter": {
+            "Respond_to_Copilot": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Bedingung": {
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "greater": [
+                  "@length(outputs(\u0027Elemente_abrufen\u0027)?[\u0027body/value\u0027])",
+                  0
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "For_each": {
+              "type": "Foreach",
+              "foreach": "@outputs(\u0027Elemente_abrufen\u0027)?[\u0027body/value\u0027]",
+              "actions": {
+                "Element_aktualisieren": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "https://aircodruckluft.sharepoint.com/sites/SharePoint",
+                      "table": "0a9a1605-27d5-4eaa-854f-cef85c234756",
+                      "id": "@item()?[\u0027ID\u0027]",
+                      "item/Firmenname": "@triggerBody()?[\u0027text_1\u0027]",
+                      "item/Ansprechpartner": "@triggerBody()?[\u0027text_2\u0027]",
+                      "item/Telefonnummer": "@triggerBody()?[\u0027text_3\u0027]",
+                      "item/Anrufgrund0": "@if(or(empty(triggerBody()?[\u0027text_4\u0027]), equals(triggerBody()?[\u0027text_4\u0027],\u0027nicht angegeben\u0027)), coalesce(item()?[\u0027Anrufgrund0\u0027],\u0027nicht angegeben\u0027), triggerBody()?[\u0027text_4\u0027])",
+                      "item/Anliegen": "@if(or(empty(triggerBody()?[\u0027text_6\u0027]), equals(triggerBody()?[\u0027text_6\u0027],\u0027nicht erfasst\u0027)), coalesce(item()?[\u0027Anliegen\u0027],\u0027nicht erfasst\u0027), triggerBody()?[\u0027text_6\u0027])",
+                      "item/Anlage": "@if(or(empty(triggerBody()?[\u0027text_5\u0027]), equals(triggerBody()?[\u0027text_5\u0027],\u0027nicht erfasst\u0027)), coalesce(item()?[\u0027Anlage\u0027],\u0027nicht erfasst\u0027), triggerBody()?[\u0027text_5\u0027])",
+                      "item/KanalLabel": "@triggerBody()?[\u0027text_7\u0027]"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "PatchItem",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Element_erstellen": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "parameters": {
+                    "dataset": "https://aircodruckluft.sharepoint.com/sites/SharePoint",
+                    "table": "0a9a1605-27d5-4eaa-854f-cef85c234756",
+                    "item/Title": "@triggerBody()?[\u0027text\u0027]",
+                    "item/Firmenname": "@triggerBody()?[\u0027text_1\u0027]",
+                    "item/Ansprechpartner": "@triggerBody()?[\u0027text_2\u0027]",
+                    "item/Telefonnummer": "@triggerBody()?[\u0027text_3\u0027]",
+                    "item/Anrufgrund0": "@triggerBody()?[\u0027text_4\u0027]",
+                    "item/Anliegen": "@triggerBody()?[\u0027text_6\u0027]",
+                    "item/Anlage": "@triggerBody()?[\u0027text_5\u0027]",
+                    "item/Status/Value": "offen",
+                    "item/Anrufgrund/Value": "abgebrochen",
+                    "item/KanalLabel": "@triggerBody()?[\u0027text_7\u0027]"
+                  },
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                    "operationId": "PostItem",
+                    "connectionName": "shared_sharepointonline"
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Elemente_abrufen": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Respond_to_Copilot": {
+          "type": "Response",
+          "kind": "Skills",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {}
+            },
+            "statusCode": 200,
+            "body": {}
+          },
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "81c94f73-dd52-465c-ad3b-a4686da63cc3"
+          }
+        }
+      },
+      "outputs": {}
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}

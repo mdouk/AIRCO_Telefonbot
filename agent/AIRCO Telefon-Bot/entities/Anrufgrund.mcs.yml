@@ -1,0 +1,56 @@
+mcs.metadata:
+  componentName: Anrufgrund
+  description: Warum hat der Kunde angerufen?
+kind: ClosedListEntity
+items:
+  - id: u9xatS
+    displayName: stoerung
+    synonyms:
+      - 1
+      - eins
+      - defekt
+      - kaputt
+      - Fehler
+      - Ausfall
+      - Problem
+      - Störung
+
+  - id: gShHbV
+    displayName: wartung
+    synonyms:
+      - Wartungstermin
+      - Servicetermin
+      - 2
+      - zwei
+      - Termin
+      - Service
+
+  - id: pcaRDr
+    displayName: ersatzteil
+    synonyms:
+      - Ersatzteile
+      - Ersatzteilbestellung
+      - 3
+      - drei
+      - Öl
+      - Material
+      - Teile
+      - bestellen
+      - Bestellung
+
+  - id: jMUZBn
+    displayName: rueckruf
+    synonyms:
+      - 4
+      - vier
+      - Rückrufbitte
+      - zurückrufen
+      - Rückruf
+
+  - id: qa3pK2
+    displayName: sonstiges
+    synonyms:
+      - 5
+      - fünf
+      - anderes Thema
+      - allgemeine Frage

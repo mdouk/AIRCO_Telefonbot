@@ -1,0 +1,40 @@
+mcs.metadata:
+  componentName: Anlage erfassen
+kind: AdaptiveDialog
+beginDialog:
+  kind: OnRedirect
+  id: main
+  actions:
+    - kind: Question
+      id: question_Xnm8Nm
+      interruptionPolicy:
+        allowInterruption: false
+
+      variable: Global.Anlage
+      prompt:
+        text:
+          - Bitte teilen Sie uns die Anlagenbezeichnung, Serialnummer und das Baujahr mit.
+        speak:
+          - Bitte teilen Sie uns die Anlagenbezeichnung, Serialnummer und das Baujahr mit.
+        allowBargeIn: false
+
+      entity:
+        kind: StringPrebuiltEntity
+        sensitivityLevel: None
+
+      voiceInputSettings:
+        fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+        defaultValueMissingAction: GoToDialog
+
+      holdSettings:
+        kind: UserRequestedHoldSettings
+        holdPrompts:
+
+      fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+    - kind: BeginDialog
+      id: k1uiUZ
+      dialog: mosaiic_AIRCOTelefonBot.topic.Anliegenerfassen
+
+inputType: {}
+outputType: {}

@@ -1,0 +1,15 @@
+mcs.metadata:
+  componentName: Spracheingabe nicht erkannt
+  description: Wird ausgelöst, wenn die Spracheingaben des Benutzers nicht erkannt werden können.
+kind: AdaptiveDialog
+beginDialog:
+  kind: OnUnrecognizedSpeech
+  id: main
+  actions:
+    - kind: SendActivity
+      id: sendActivity_26sT9O
+      activity:
+        text:
+          - Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?
+        speak:
+          - Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?

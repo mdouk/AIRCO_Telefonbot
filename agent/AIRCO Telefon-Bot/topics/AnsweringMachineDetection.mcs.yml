@@ -1,0 +1,18 @@
+mcs.metadata:
+  componentName: Erkennung von Anrufbeantwortern
+  description: Dies wird ausgelöst, wenn der Agent erkennt, dass er mit einem Anrufbeantworter interagiert.
+kind: AdaptiveDialog
+beginDialog:
+  kind: OnAnsweringMachineDetected
+  id: main
+  actions:
+    - kind: SendActivity
+      id: sendActivity_C8pKOo
+      activity:
+        text:
+          - Hallo, {System.Bot.Name} versucht, Sie zu erreichen.
+        speak:
+          - Hallo, {System.Bot.Name} versucht, Sie zu erreichen.
+
+    - kind: EndConversation
+      id: Rgrz4i

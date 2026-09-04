@@ -1,0 +1,12 @@
+mcs.metadata:
+  componentName: Ticketerstellung
+kind: TaskDialog
+action:
+  kind: InvokeFlowTaskAction
+  flowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
+  connectionProperties:
+    $kind: ConnectionProperties
+    diagnostics:
+    mode: Maker
+
+outputMode: All

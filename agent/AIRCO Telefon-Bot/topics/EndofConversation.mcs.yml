@@ -1,0 +1,48 @@
+mcs.metadata:
+  componentName: Ende der Unterhaltung
+  description: |-
+    Dieses Systemthema wird nur durch eine Umleitungsaktion ausgelöst
+    und führt den Benutzer durch die Bewertung seiner Unterhaltung mit dem Agent.
+kind: AdaptiveDialog
+startBehavior: CancelOtherTopics
+beginDialog:
+  kind: OnSystemRedirect
+  id: main
+  actions:
+    - kind: ConditionGroup
+      id: conditionGroup_safetyNet
+      conditions:
+        - id: conditionItem_hasPhone
+          condition: =Not(IsBlank(Global.Telefonnummer)) && Not(Global.FlowAufgerufen)
+          actions:
+            - kind: SetVariable
+              id: setVariable_vZO64V
+              variable: Global.FlowAufgerufen
+              value: =true
+
+            - kind: InvokeFlowAction
+              id: invokeFlowAction_OjfUQO
+              input:
+                binding:
+                  text: =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
+                  text_1: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
+                  text_2: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
+                  text_3: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
+                  text_4: =If(IsBlank(Global.KanalLabel), "Telefon", Global.KanalLabel)
+                  text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
+                  text_6: =If(IsBlank(Global.Anrufgrund), "nicht angegeben", Text(Global.Anrufgrund))
+                  text_7: =System.Conversation.Id
+
+              output: {}
+              flowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
+
+            - kind: SendActivity
+              id: BsLiWe
+              activity:
+                text:
+                  - Vielen Dank, ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
+                speak:
+                  - Vielen Dank, ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
+
+    - kind: EndConversation
+      id: endConversation_1

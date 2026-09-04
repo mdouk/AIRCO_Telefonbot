@@ -1,0 +1,26 @@
+mcs.metadata:
+  componentName: Ivr
+kind: IvrBotSettings
+holdSettings:
+  holdWords:
+    - Moment
+    - einen Moment bitte
+    - Warten Sie
+    - Warte
+    - Einen Moment
+    - Ich muss nachschauen
+    - Ich muss kurz nachschauen
+  holdMessage: Kein Problem, ich warte. Sagen Sie einfach Bescheid, wenn Sie so weit sind.
+  resumeWords:
+    - So
+    - Fertig
+    - Ich bin wieder da
+    - Wieder da
+    - ich hab's
+  holdTimeoutMessage: Entschuldigung, ich habe Sie eine Weile nicht mehr gehört. Sind Sie noch dran?
+  resumeResponse: Danke, machen wir weiter.
+
+latencySettings:
+  latencyMessage: Einen Moment bitte. Ich muss kurz darüber nachdenken.
+
+voiceFont: {}

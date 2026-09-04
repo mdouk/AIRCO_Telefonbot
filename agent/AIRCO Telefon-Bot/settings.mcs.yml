@@ -1,0 +1,49 @@
+displayName: AIRCO Telefon-Bot
+schemaName: mosaiic_AIRCOTelefonBot
+accessControlPolicy: Any
+authenticationMode: None
+authenticationTrigger: AsNeeded
+configuration:
+  channels:
+    - id: Telephony
+      channelId: Telephony
+
+    - channelId: MsTeamsPhone
+
+    - channelId: MsTeams
+
+  settings:
+    GenerativeActionsEnabled: false
+    TelephonyInitialized: true
+
+  isTelephonyEnabled: true
+  isAgentConnectable: true
+  voiceProcessingMode:
+    kind: ClassicVoiceProcessingMode
+
+  botSpeechSettings:
+    silenceDetectionTimeoutInMilliseconds: 10000
+    utteranceEndTimeoutInMilliseconds: 2500
+    speechRecognitionTimeoutInMilliseconds: 15000
+    isDomainLanguageModelEnabled: false
+    speechRecognitionSensitivity: 0.3
+
+  publishOnImport: true
+  gPTSettings:
+    defaultSchemaName: mosaiic_AIRCOTelefonBot.gpt.default
+
+  isLightweightBot: false
+  aISettings:
+    useModelKnowledge: true
+    isFileAnalysisEnabled: false
+    isSemanticSearchEnabled: false
+    contentModeration: Low
+    optInUseLatestModels: false
+
+  deferredProvisioning: false
+  memoryParameters:
+
+authenticationConfiguration: {}
+publishedOn: 2026-09-04T14:39:01.0000000Z
+template: default-2.1.0
+language: 1031

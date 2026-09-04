@@ -53,7 +53,7 @@ der ursprünglichen Konzeption ist Stufe-2-Material (siehe Abschnitt 8,
 |---|-----------|-------------------|-------|--------|
 | 1 | **Microsoft Teams Phone** | Nimmt Anrufe auf der AIRCO-Festnetznummer entgegen (via **Operator Connect** portiert) und leitet sie über **Agents & Queues** (kein Auto Attendant) direkt an den Voice-Agenten weiter. | 1 | in Einrichtung (Resource Account ✅, Portierung + App-Upload offen) |
 | 2 | **Microsoft Copilot Studio** | Voice-fähiger Agent (**LLM = GPT-4.1**, einziges Modell mit Sprachunterstützung Stand 21.07.2026). Umgebung muss **EMEA-Region + Dataverse + Pay-As-You-Go** haben. Deployment: Lösung nicht verwaltet exportieren → Teams App `.zip` → Teams Admin Center hochladen. Führt das Gespräch: Begrüßung, Kundendaten, Inbetriebnahme, Vertragsfrage, Freitext-Anliegen, Zusammenfassung. Enthält die gesamte **Gesprächslogik**. Kein Prio-Filter, kein Transfer (v2). | 1 | implementiert (Teams-Phone-Verbindung ausstehend) |
-| 3 | **Power Automate** | Flow „Anliegen weiterleiten (KI)": empfängt die Variablen vom Bot, **verarbeitet das Anliegen per KI** (Zusammenfassung + Kritikalität anhand der Störungsliste) und routet die E-Mail je Kritikalität an eines von vier Postfächern. Enthält die gesamte **Geschäftslogik** (KI-Priorisierung + Routing). | 1 | erledigt (Postfach-Adressen + Störungsliste ausstehend) |
+| 3 | **Power Automate** | Flow „Anliegen weiterleiten (KI)": empfängt die Variablen vom Bot, **verarbeitet das Anliegen per KI** (Zusammenfassung + Kritikalität anhand der Störungsliste) und sendet die E-Mail an eine feste Mailbox (`service@airco-systems.de`, seit 2026-09-04 endgültig — kein Routing auf mehrere Postfächer mehr). Enthält die gesamte **Geschäftslogik** (KI-Priorisierung, aktuell ohne Postfach-Differenzierung). | 1 | erledigt (Störungsliste ausstehend, auf spätere Stufe verschoben) |
 | 4b | **Structured-Output-Node (GPT-4.1, in Power Automate)** | Ein KI-Node mit JSON-Schema-Structured-Output liefert `zusammenfassung` + `kritikalitaet` (Enum) in einem Modellaufruf. Ersetzt den ursprünglich geplanten Zwei-Schritt-Ansatz (Agent-Node + Classify-Node). | 1 | erledigt (2026-07-20) |
 | 4 | **E-Mail (Exchange/Outlook)** | Benachrichtigung der Verantwortlichen gemäß Routing. | 1 | vorhanden |
 | 5 | **Planner / SharePoint-Liste** | Ticketablage ohne ERP. | 1.5 | offen |
@@ -362,12 +362,14 @@ nicht ob der Pfad zur Laufzeit einen Wert liefert.
 Die Rohtexte (`text`, `text_1`, `text_2`) werden **nicht** direkt in der E-Mail verwendet —
 nur im Rohtext-Abschnitt (text_3 = Anliegen) und im Fallback-Node.
 
-**Routing:** `VarKritikalitaet` steuert den Empfänger über ein **inline `if()`** im
-„E-Mail senden"-Node — eine einzige E-Mail-Aktion, kein Switch:
-Kritisch → Postfach A, Hoch → Postfach B, Mittel → C, Rest (Niedrig + Other) → D.
-Betreff-Präfix und E-Mail-Priorität (High/Normal/Low) werden ebenfalls inline per `if()`
-aus `VarKritikalitaet` gesetzt. Konkrete Postfach-Adressen noch offen
-(Platzhalter `postfach-a…d@airco-systems.de`, siehe Abschnitt 9).
+**Routing (⚠ Entscheidung 2026-09-04):** Das ursprüngliche 4-Postfächer-Konzept
+wurde **verworfen** — es bleibt dauerhaft bei **einer** Ziel-Mailbox
+`service@airco-systems.de` für alle Kritikalitätsstufen. Die inline-`if()`-Logik
+im „E-Mail senden"-Node (Kritisch→A, Hoch→B, Mittel→C, Rest→D) ist damit nur
+noch technisch vorhanden, alle vier Branches zeigen auf dieselbe Adresse;
+Betreff-Präfix und E-Mail-Priorität (High/Normal/Low) bleiben weiterhin
+`VarKritikalitaet`-abhängig. Vereinfachung des `if()` auf eine feste Adresse
+ist optional (kein funktionaler Unterschied mehr).
 
 **Fallback-Node „E-Mail senden 2":** Feuert nur bei KI-Ausfall
 (`Configure run after: Failed / TimedOut / Skipped` auf dem KI-Node). Sendet
@@ -640,8 +642,7 @@ Topic Variables    (leben nur im jeweiligen Kategorie-Topic)
 
 **Neu in v2 (2026-07-14):**
 
-13. **Postfach-Adressen je Kritikalität** — welche vier E-Mail-Postfächer für
-    Kritisch / Hoch / Mittel / Niedrig?
+13. ~~**Postfach-Adressen je Kritikalität**~~ — **entschieden (2026-09-04)**: verworfen, dauerhaft eine Mailbox `service@airco-systems.de` für alle Stufen.
 14. **Bereitstellung der Störungs-/Anliegenliste** — Format und Einbindung in
     den KI-Schritt (Prompt-Text vs. Datei/Tabelle im Flow vs. Wissensquelle);
     der Kunde liefert die Liste noch.
@@ -663,12 +664,22 @@ Topic Variables    (leben nur im jeweiligen Kategorie-Topic)
     erfassen" aus jedem Gesprächskontext sauber funktioniert (insbesondere:
     bleiben bereits erfasste `Global.*`-Variablen erhalten, da kein
     `ClearAllVariables` beteiligt ist?).
-21. **Sicherheitsnetz bei Gesprächsabbruch (Feedback #18)** — zurückgestellt
-    bis nach Retest des Stufe-1-Flow-Timeout-Fixes (siehe ToDos.md Zeile 124,
-    Feedback #15). Tritt das Problem (keine E-Mail bei abgebrochenem
-    Gespräch) danach weiterhin auf, muss ein Konzept für eine Teil-Mail bei
-    Abbruch ausgearbeitet werden (z. B. Trigger im `OnSystemRedirect`/`OnError`
-    mit den bis dahin erfassten Variablen, auch unvollständig).
+21. **Sicherheitsnetz bei Gesprächsabbruch** — **erledigt (2026-09-02).**
+    Implementierung in drei Teilen:
+    - **`Global.FlowAufgerufen`** (Boolean): wird in „Zusammenfassung & Bestätigung
+      (Slim)" direkt vor jedem `InvokeFlowAction`-Node auf `true` gesetzt.
+    - **„Ende der Unterhaltung"** (`OnSystemRedirect`, `CancelOtherTopics`):
+      ConditionGroup vor `EndConversation` — Bedingung
+      `Not(IsBlank(Global.Telefonnummer)) && Not(Global.FlowAufgerufen)` → Flow
+      mit `If(IsBlank(...))` Wrappern für alle 6 Felder aufrufen. Feuert bei
+      Caller-Hang-Up (Channel sendet `EndOfConversation`), nach normalem Abschluss
+      (via `BeginDialog → EndofConversation`) und nach Laufzeitfehlern (System-Topic
+      „Bei Fehler" leitet ebenfalls hierher).
+    - **„Stille-Erkennung"**: `EndDialog` → `BeginDialog → EndofConversation`
+      ersetzt — lautlose Abbrüche durchlaufen das Sicherheitsnetz.
+    Ergebnis: Sobald `Global.Telefonnummer` gesetzt ist, kommt in jedem Abbruch-Szenario
+    eine Partial-Mail in Postfach D. Vollständige Anrufe erhalten genau eine Mail
+    (kein Doppelversand durch das Flag).
 
 ### Stufe 1.5 / 1.6
 
