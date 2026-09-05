@@ -301,7 +301,7 @@ Fehler aufgetreten" ab. E-Mail kam trotzdem an (Sicherheitsnetz griff).
   Michael veraltet und nicht mehr erreichbar) — dort bleiben 14 Bindungen
   ungeschützt.
 
-- [ ] **OFFEN — Reihenfolge-Anomalie**: Nach „Störung" wird **„Anliegen" vor
+- [x] **GELÖST (2026-09-04) — Reihenfolge-Anomalie**: Nach „Störung" wird **„Anliegen" vor
   „Anlage"** gefragt, statt Anrufgrund → Anlage → Anliegen. Reproduziert im
   **Testpanel** (`Tests/Test 3`) *und* am Telefon — also **kein**
   Sprachkanal-Problem. Der Topic-Graph ist nachweislich korrekt (alle drei
@@ -346,6 +346,61 @@ Fehler aufgetreten" ab. E-Mail kam trotzdem an (Sicherheitsnetz griff).
   hat den Knoten lediglich umbenannt (`invokeFlowAction_stgAnr` → `2FRjW9`),
   er existiert mit identischen Bindungen weiter. Vor dem Nachtest per Pull
   verifizieren, dass die Löschung wirklich im Draft angekommen ist.
+
+  ### ✅ Auflösung (2026-09-04, per Pull verifiziert)
+
+  **Bestätigte Ursache**: die `InvokeFlowAction`-Aufrufe des Staging-Flows
+  **im Frageablauf**. Michael hat sie in `Kundendaten erfassen`,
+  `Anrufgrund erfassen`, `Anlage erfassen` und `Anliegen erfassen` entfernt und
+  nur die in `Zusammenfassung - slim` und `Ende der Unterhaltung` belassen —
+  **danach lief die Reihenfolge korrekt, im Chat-Test *und* am Telefon.**
+
+  **Widerlegte Zwischenschritte** (nicht erneut verfolgen):
+  - *Position des Knotens im Topic*: Verschieben an den Topic-Anfang half
+    nicht, sondern verschob den Fehler nur — die Anrufgrund-Frage kam danach
+    **doppelt** (echter Pfad kehrt zurück, `init:Global.Anrufgrund` setzt
+    zurück, Frage wird erneut gestellt).
+  - *`Respond_to_Copilot` als erste Aktion*: **kein** Unterscheidungsmerkmal —
+    `Staging schreiben` **und** `Ticketerstellung` machen das beide, nur einer
+    forkte.
+  - *`flowKind: Stateless`*: im Export stehen **beide** Flows auf `Stateful`.
+    Die entsprechende Notiz im Konzeptdokument ist veraltet.
+
+  **Beweisführung für den `else`-Ast**: Die Anliegen-Frage ist nur über drei
+  Wege erreichbar — `Fallback` (ausgeschlossen, würde „Entschuldigung…" ausgeben),
+  `Anlage erfassen` (ausgeschlossen, Anlagenfrage kam nie) und den
+  `elseActions`-Zweig von `Anrufgrund erfassen`. Damit war belegt, dass
+  `Global.Anrufgrund` zum Auswertungszeitpunkt leer war.
+
+  **Offene Hypothese für die Rückkehr des Stagings**: In
+  `Zusammenfassung - slim` steht der Staging-Flow an der strukturell
+  **identischen** Stelle (Flow → Question → ConditionGroup) und funktioniert.
+  Einziger Unterschied: die Bedingung liest `Topic.korrekt`, nicht
+  `Global.Anrufgrund`. Vermutung: **Global-Variablen werden über die
+  Flow-Grenze hinweg nicht rechtzeitig persistiert, Topic-Variablen schon.**
+  → Testbar, indem in `Anrufgrund erfassen` nach der Frage
+  `SetVariable Topic.Grund = Global.Anrufgrund` gesetzt und die
+  `ConditionGroup` auf `Topic.Grund` umgestellt wird; danach den Staging-Flow
+  wieder an den Topic-Anfang setzen.
+
+- [ ] **NEU/OFFEN (2026-09-04) — Fall 3 ist durch den Fix aktuell nicht mehr
+  abgedeckt.** Es gibt nur noch **zwei** Staging-Aufrufpunkte
+  (`Zusammenfassung - slim` Pos. 2 und das Safety-Net in
+  `Ende der Unterhaltung`) statt der im Konzept beschriebenen fünf. Legt ein
+  Anrufer während `Anrufgrund` / `Anlage` / `Anliegen` auf, existiert **kein
+  SharePoint-Datensatz** → der Sweep findet nichts → **der Anruf geht
+  verloren**. Das verletzt die Kundenforderung („sobald Firmenname,
+  Ansprechpartner und Telefonnummer genannt sind, muss garantiert eine E-Mail
+  raus"). Bei 5–10 Min Gesprächsdauer kein Randfall.
+  → Priorität: vor der Hausmesse (16./17.09.). Lösungsweg siehe offene
+  Hypothese oben.
+
+- [ ] **OFFEN (2026-09-04) — Kein Heartbeat in der Korrekturschleife.**
+  `GotoAction SLfuCH` zeigt weiterhin auf `question_Qt7GUF` statt auf den
+  Staging-Knoten; `invokeFlowAction_4QAYoF` ist entfallen. Eine lange
+  Korrekturschleife lässt `Modified` altern → der Sweep kann in ein noch
+  laufendes Gespräch mailen. Bei 20 Min Karenz vertretbar, entspricht aber
+  nicht P1 #2 des Konzepts.
 
 - **Verworfene Hypothesen** (dokumentiert, damit sie nicht erneut verfolgt werden):
   1. ~~`Text(Global.Anrufgrund)` wirft zur Laufzeit, weil `Text()` keine
@@ -496,6 +551,264 @@ Abschnitt „Spaltenfalle".
 - [ ] **Nach Go-Live aufräumen:** Auswahl-Spalte sauber als `Abschlussart` neu
       anlegen. **Nicht vorher** — es bricht die Bindings in `Staging schreiben`
       und `Anliegen weiterleiten – slim`.
+
+### F7. Code-Review `Staging schreiben` + `Sweep offene Anrufe` (2026-09-04)
+
+Vollständige Durchsicht beider `workflow.json` gegen
+[Konzept-Ausfallsichere-Weiterleitung.md](Konzept-Ausfallsichere-Weiterleitung.md).
+Anleitungen zu allen Punkten stehen dort im Abschnitt **"Betriebs-Runbook"**,
+die Befundtabellen im Abschnitt **"Code-Review Staging + Sweep"**.
+Ergänzt **F6** (Spaltenfalle `Anrufgrund0`) — der dort beschriebene Bug ist
+im geprüften Flow-Stand bereits behoben, siehe „Im Review als korrekt
+bestätigt" weiter unten.
+
+**Am Montag (2026-09-08) hier weitermachen.** Reihenfolge: **F7-0 zuerst** (trifft
+die Kundenforderung), dann F7-1 Monitoring (schützt vor Unbekanntem), dann messen.
+
+#### OFFEN - vor der Hausmesse (16./17.09.)
+
+- [ ] **F7-0 · ZUERST KLÄREN — Staging läuft zu spät, Fall 3 ist dadurch
+      faktisch nicht mehr abgedeckt** (aufgefallen 2026-09-04 beim Review)
+
+      *Ist-Stand (per YAML verifiziert):* Der einzige Staging-Aufruf steht am
+      **Anfang von `Zusammenfassung - Slim`**, also **nachdem** Kundendaten,
+      Anrufgrund, Anlage und Anliegen bereits erfasst sind.
+
+      *Warum das die Kundenforderung bricht:* Das Konzept verlangt „sobald
+      Firmenname, Ansprechpartner und Telefonnummer genannt sind, muss
+      **garantiert** eine E-Mail ausgelöst werden". Legt der Anrufer **nach den
+      Kundendaten, aber vor der Zusammenfassung** hart auf — genau der Fall aus
+      dem Kundentermin vom 2026-09-03 — dann existiert **kein**
+      SharePoint-Datensatz. Der Sweep findet nichts, es geht **keine** Mail
+      raus. Das Safety-Net in `Ende der Unterhaltung` greift bei hartem
+      Auflegen ebenfalls nicht (kein Ereignis vom Teams-Phone-Kanal, siehe
+      Konzept, Abschnitt „Das Problem").
+
+      *Der Zielkonflikt:* frühes Staging (Kundenforderung) ⟷ kein
+      `InvokeFlowAction` im Frageablauf (Reihenfolge-Anomalie). Beides zugleich
+      geht nur, wenn der Aufruf an einer Stelle sitzt, auf die **keine
+      `ConditionGroup` über einer gerade gesetzten Variablen** folgt.
+
+      *Lösungsansatz zum Prüfen:* Staging-Aufruf ans **Ende von
+      `Kundendaten erfassen`**, unmittelbar **vor** dem Redirect auf
+      `Anrufgrund erfassen`. Dort folgt als Nächstes eine **Frage**, keine
+      Bedingung — die Anomalie träfe also nicht zu. Das muss am Telefon
+      verifiziert werden (Testszenario 2 aus der Übergabedoku:
+      Abbruch nach Telefonnummer ⇒ Datensatz vorhanden?).
+
+      *Fallback, falls das nicht stabil läuft:* Kundenerwartung nachjustieren —
+      Abdeckung erst ab erfasstem Anliegen. Das wäre eine **Rücknahme einer im
+      Termin zugesagten Eigenschaft** und gehört dann ausdrücklich mit AIRCO
+      besprochen, nicht stillschweigend.
+
+
+- [ ] **F7-1 - Fehler-Monitoring einrichten** (empfohlen als Erstes, ~10 Min)
+      Power Automate hat **keine Checkbox** dafür - nur eine wöchentliche
+      Sammel-Mail an Flow-Besitzer, viel zu träge. Standardweg ist Try/Catch
+      über `runAfter`:
+      1. Ganz unten im Flow eine `E-Mail senden (V2)` anhängen (Empfänger: du;
+         Betreff z. B. `Flow-Fehler: Staging schreiben`).
+      2. Auf dem Node **`...` -> "Ausführen nach konfigurieren"** -> Haken bei
+         **`ist fehlgeschlagen`**, **`Zeitüberschreitung`**, **`wurde
+         übersprungen`**; Haken bei `ist erfolgreich` **entfernen**.
+
+      | Flow | Node, hinter dem der Alarm hängt |
+      |------|-----------------------------------|
+      | `Staging schreiben` | `Bedingung` |
+      | `Sweep offene Anrufe` | `Auf alle anwenden` |
+      | `Ticketerstellung` | letzte Aktion des Erfolgs-Astes |
+
+      In den Body gehören `@{workflow()?['run']?['name']}` (Lauf-ID) **und** die
+      ConversationId - sonst ist der Lauf im Verlauf nicht wiederzufinden.
+      **Besonders wichtig bei `Staging schreiben`:** Der Flow ist `Stateless`
+      *und* antwortet dem Bot vor der eigentlichen Arbeit - ein Ausfall ist
+      sonst vollständig unsichtbar (vgl. F5, gleiche Fehlerklasse).
+
+- [ ] **F7-2 - Staging-Update monoton machen** (Ausdrücke fertig, nur einsetzen)
+      **Priorität hängt an F7-0:** Bei nur *einem* Staging-Aufruf pro Gespräch
+      läuft immer der Create-Zweig, der Update-Zweig ist toter Code und das
+      Problem tritt nicht auf. **Sobald F7-0 wieder mehrere Aufrufe einführt,
+      wird dieser Punkt zwingend.** Dann gilt:
+      *Problem:* Die 5 Staging-Aufrufe laufen **asynchron ohne garantierte
+      Reihenfolge**. Trifft ein früher Lauf verspätet ein, überschreibt sein
+      Platzhalter (`"nicht erfasst"`) einen bereits echten Wert.
+      **Das ist eine ernstzunehmende Alternativhypothese für den offenen Befund
+      "Anlage nicht erfasst trotz gefülltem Anliegen"** - bisher auf einen
+      Closed-List-Miss getippt. Der `Staging schreiben`-Ausführungsverlauf zum
+      Testanruf entscheidet zwischen beiden Ursachen.
+
+      *Wo:* `Staging schreiben` -> `Bedingung` -> Wahr-Ast -> `For each` ->
+      **`Element aktualisieren`**. Bei den drei Feldern den Chip mit `x`
+      entfernen und über den `fx`-Reiter ersetzen:
+
+      | Feld | Ausdruck |
+      |------|----------|
+      | Anrufgrund | `if(or(empty(triggerBody()?['text_4']), equals(triggerBody()?['text_4'],'nicht angegeben')), coalesce(item()?['Anrufgrund0'],'nicht angegeben'), triggerBody()?['text_4'])` |
+      | Anlage | `if(or(empty(triggerBody()?['text_5']), equals(triggerBody()?['text_5'],'nicht erfasst')), coalesce(item()?['Anlage'],'nicht erfasst'), triggerBody()?['text_5'])` |
+      | Anliegen | `if(or(empty(triggerBody()?['text_6']), equals(triggerBody()?['text_6'],'nicht erfasst')), coalesce(item()?['Anliegen'],'nicht erfasst'), triggerBody()?['text_6'])` |
+
+      `Firmenname`, `Ansprechpartner`, `Telefonnummer` bleiben **roh** gebunden -
+      ab dem ersten Aufruf gefüllt, kein Platzhalter nötig.
+
+      *Platzhalter projektweit verifiziert (2026-09-04, Grep über alle
+      `topics/*.mcs.yml`, an allen 5 Aufrufpunkten identisch):*
+      Anrufgrund -> `nicht angegeben` - Anlage -> `nicht erfasst` -
+      Anliegen -> `nicht erfasst`. Ändert sich eine Bot-Bindung, **muss der
+      `equals()`-Text mitgezogen werden** (Groß-/Kleinschreibung zählt) - sonst
+      greift die Prüfung still nicht mehr.
+
+      *Warum `item()` hier in zwei Rollen steht:* einmal als **Ziel**
+      (`item()?['ID']` = welche Zeile patchen), einmal als **Vorher-Wert**
+      (`item()?['Anlage']` = was steht schon drin). Der `GetItems`-Treffer ist
+      gleichzeitig die Lese-Quelle; die Schleife hält beide Zugriffe automatisch
+      auf derselben Zeile.
+
+- [ ] **F7-3 - Testanruf mit bewusster Korrektur**
+      Firmenname korrigieren, dann bis zum Ende durchsprechen. Prüft in *einem*
+      Durchgang: monotones Update (F7-2), Korrekturzweig-Heartbeat und die
+      20-Min-Karenz. Erwartung: genau **eine** Mail, Datensatz danach
+      `gesendet`/`vollständig`, korrigierter Firmenname in der Mail.
+
+- [ ] **F7-4 - Messung: doppelte `Titel` in `Telefonbot-Anrufe`?**
+      Liste nach Spalte *Titel* gruppieren und nach Doubletten suchen.
+      **Vorbedingung für die Entscheidung zu F7-7** - ohne Befund wäre der Fix
+      dort unnötige Latenz im Gespräch.
+
+#### OFFEN - nach der Messe
+
+- [ ] **F7-5 - Aufräum-Flow `Telefonbot-Anrufe aufräumen`**
+      SharePoint kann das nicht selbst (nur über Purview-Aufbewahrung -
+      lizenzpflichtig, Overkill). Vierter kleiner Flow:
+
+      | Node | Konfiguration |
+      |------|---------------|
+      | `Wiederholung` | wöchentlich, Sonntag nachts |
+      | `Elemente abrufen` | Filterabfrage: `Status eq 'gesendet' and Modified lt '@{addDays(utcNow(),-90)}'`, `$top` 500 |
+      | `Auf alle anwenden` -> `Element löschen` | ID = `@item()?['ID']` |
+
+      Zwei Sicherungen: **nur `gesendet`** löschen (ein `offen` gebliebener
+      Datensatz ist eine *unbearbeitete Anfrage* und darf nie stillschweigend
+      verschwinden), und vorher per `CSV-Tabelle erstellen` + `Datei erstellen`
+      archivieren, falls das Reporting historisch sein soll.
+      **Kein Blocker mehr**, seit die drei Indizes gesetzt sind: ein Filter auf
+      eine *indizierte* Spalte funktioniert auch über 5.000 Items hinaus,
+      solange die Treffermenge dieser Klausel darunter bleibt - bei
+      `Status eq 'offen'` immer der Fall.
+
+- [ ] **F7-6 - Kosmetik** (Nutzerentscheidung 2026-09-04: später)
+      - `Modified lt '@{addMinutes(...)}'` liefert 7 Nachkommastellen;
+        funktioniert, ist aber fragil ->
+        `formatDateTime(addMinutes(utcNow(),-20),'yyyy-MM-ddTHH:mm:ssZ')`
+      - Kein HTML-Escaping im Mailbody (`&`, `<` im Firmennamen zerlegen die
+        Tabelle)
+      - `KanalLabel` ist das einzige Feld ohne `if(empty(...))`-Fallback
+      - Betreffschema uneinheitlich: `[Abgebrochener Anruf] - Firma: X` vs.
+        `[Kritikalität] - X` -> für Outlook-Regeln beim Kunden vereinheitlichen
+      - `Staging schreiben` ggf. von `Stateless` auf `Stateful` umstellen
+        (Trigger -> `Einstellungen`) - Stateless protokolliert Läufe nur
+        eingeschränkt; fehlende Verlaufseinträge sind *kein* verlorener Aufruf
+
+#### ZURÜCKGESTELLT - separat bearbeiten (Entscheidung 2026-09-04)
+
+- [ ] **F7-7 - Race Condition beim Staging-Create -> doppelte Datensätze**
+      **Ebenfalls von F7-0 abhängig:** mit nur einem Aufruf pro Gespräch gibt
+      es keine konkurrierenden Läufe — der Punkt ist derzeit **latent**.
+      Kehren mehrere Aufrufpunkte zurück, ist er wieder aktiv.
+      *Mechanik:* `Respond to Copilot` steht als **2. Node**, also *vor*
+      `Elemente abrufen`. Der Flow antwortet dem Bot, bevor der Datensatz
+      existiert. Da Copilot Studio Staging-Aufrufe um 1-2 Turns verzögert,
+      können zwei Läufe ihr `GetItems` machen, bevor der erste das Item angelegt
+      hat => **zwei Items mit derselben ConversationId** => zwei Abbruch-Mails vom
+      Sweep. SharePoint-Listen haben keine Unique-Constraint und kein atomares
+      Upsert - "GetItems -> If -> PostItem" ist prinzipiell rennbar.
+
+      *Lösungskandidaten (noch zu entscheiden):*
+      1. `Respond to Copilot` ans **Ende** des Flows - serialisiert die Aufrufe
+         zwangsläufig. Preis: Bot wartet ~1 s pro Staging-Aufruf (5x pro Anruf).
+      2. Response vorn lassen, zweites `GetItems` unmittelbar vor
+         `Element erstellen` - verkleinert das Fenster, schließt es nicht.
+      3. Deduplizierung im Sweep - behandelt das Symptom, lässt doppelte
+         Datensätze im Reporting stehen.
+
+      *Vorbedingung:* **F7-4 zuerst** (erst messen, ob die Race real auftritt).
+
+#### ERLEDIGT (2026-09-04)
+
+- [x] **Sweep-Takt**: bleibt **stündlich** - als Entscheidung übernommen (nicht
+      als Mangel). Konzepttext an vier Stellen nachgezogen (Diagramm,
+      Flow-Tabelle, Erwartungsmanagement, Review-Tabelle). Versatz damit **bis
+      zu ~80 Min**; unkritisch bei 24-h-SLA. **Für Demos auf der Messe den Sweep
+      manuell auslösen** (`Testen -> Manuell`) statt die Stunde abzuwarten.
+- [x] **Sweep-Karenz 10 -> 20 Min.** Kein eigenes Feld! Die Zahl steht in
+      `Sweep offene Anrufe` -> `Elemente abrufen` -> **Filterabfrage**:
+      `Status eq 'offen' and Modified lt '@{addMinutes(utcNow(),-20)}'`.
+      *Grund:* Gespräche dauern 5-10 Min; bei 10 Min Karenz konnte der Sweep in
+      ein **laufendes** Gespräch mailen und danach mailte `Ticketerstellung`
+      regulär => zwei Mails. Der Dedup-Schutz greift dort nicht, weil
+      `Ticketerstellung` nach `Title` filtert, nicht nach `Status`.
+- [x] **Staging-`For each`: ID auf `item()?['ID']`.**
+      *Stolperstein:* `items('foreach')` -> `InvalidTemplate` ("repetition
+      action(s) 'foreach' ... not defined"). `foreach` ist der **Typ** der Aktion,
+      nicht ihr Name - der lautet `For_each`. **Konvention: immer `item()`
+      benutzen**, nicht `items('<Name>')`: bezieht sich immer auf die innerste
+      Schleife, braucht keinen Namen, überlebt Umbenennungen und den
+      Sprachwechsel der Oberfläche (im Sweep heißt dieselbe Schleife
+      `Auf_alle_anwenden`). Ein falscher Name in `items()` wird teils
+      anstandslos akzeptiert und liefert zur Laufzeit still `null`.
+      *Vorher:* `first(...)?['ID']` innerhalb der Schleife - hätte bei mehreren
+      Treffern n-mal dasselbe Item gepatcht und die Duplikate stehen lassen.
+- [x] **Indizes** auf `Title`, `Status`, `Modified` gesetzt (SharePoint ->
+      Listeneinstellungen -> Indizierte Spalten). Verhindert, dass die gefilterten
+      `GetItems` ab ~5.000 Items (bei 40 Anrufen/Tag in ~4 Monaten) **still**
+      am Listenschwellwert scheitern - still deshalb, weil der Bot den
+      Flow-Ausgang gar nicht auswertet.
+- [~] **Staging-Aufrufpunkte — Aussage im Lauf des 2026-09-04 überholt.**
+      Ein Zwischenstand hatte fünf Aufrufe (Kundendaten, Anrufgrund je Ast,
+      Anlage, Anliegen, Korrekturzweig). **Der aktuelle Pull-Stand hat genau
+      einen**: `Zusammenfassung-Slim.mcs.yml:13` (`InvokeFlowAction 2exxIi`),
+      ganz am Anfang des Topics. Grund ist die Reihenfolge-Anomalie (siehe
+      Topics.md): ein `InvokeFlowAction` im Frageablauf spaltet die
+      Dialogausführung, die folgende `ConditionGroup` sieht die gerade gesetzte
+      Global-Variable noch leer und nimmt den falschen Ast. **Konsequenz siehe
+      F7-0** — das ist kein Detail, sondern trifft die Kundenforderung.
+
+#### IM REVIEW ALS KORREKT BESTÄTIGT (keine Aktion nötig)
+
+- Staging setzt `Status`/`Abschlussart` **nur im Create-Zweig** - ein verspäteter
+  Staging-Lauf kann kein `gesendet` zurück auf `offen` kippen.
+- Sweep liest `Anrufgrund0` (Textspalte) statt `Anrufgrund` (Auswahl) - **der
+  Roh-JSON-Bug aus der Übergabedoku ist behoben.**
+- Sweep benutzt `item()?[...]` statt `items('Apply_to_each')?[...]` und ist damit
+  immun gegen die Lokalisierungsfalle `Auf_alle_anwenden`.
+- `Status eq 'offen'` im Filter ist korrekt: SharePoint **filtert** Choice-Spalten
+  über den skalaren Textwert, **liefert** sie aber als Objekt zurück (deshalb beim
+  *Lesen* `?['Value']`). Kein Widerspruch, sondern zwei verschiedene Schichten.
+- **Race-Schutz-Reihenfolge:** Das Konzept forderte "Status *vor* dem Mailversand
+  auf `gesendet` setzen"; implementiert ist Mail -> Patch. **Die Implementierung
+  ist fachlich richtiger** (verlorene Mail = Verstoß gegen die Kundenforderung
+  "kein Anruf geht verloren"; Doppelmail = bloßes Ärgernis). -> Konzept wurde
+  angeglichen, nicht der Flow.
+
+#### BINDUNGSFALLE Staging vs. Ticketerstellung - vollständig
+
+Beide Flows haben generische Parameternamen, aber **unterschiedliche
+Reihenfolgen**. Die Doku warnte bisher nur vor der ConversationId - tatsächlich
+stimmt **nur `text_5`** überein:
+
+| Slot | `Staging schreiben` | `Ticketerstellung` |
+|------|---------------------|--------------------|
+| `text` | **ConversationId** | **Firmenname** |
+| `text_1` | Firmenname | Ansprechpartner |
+| `text_2` | Ansprechpartner | Telefonnummer |
+| `text_3` | Telefonnummer | **Anliegen** |
+| `text_4` | **Anrufgrund** | **KanalLabel** |
+| `text_5` | Anlage | Anlage (identisch) |
+| `text_6` | **Anliegen** | **Anrufgrund** |
+| `text_7` | **KanalLabel** | **ConversationId** |
+
+Eine zwischen den Flows kopierte Bindung schreibt still ins falsche Feld -
+alles Strings, der Bot meldet nichts. **Angleichen der Reihenfolgen erst nach
+der Messe** (bräche die Bindungen in mehreren `InvokeFlowAction`-Nodes).
 
 ### G. Test / Go-Live
 - [x] **End-to-End-Test**: `FlowActionBadGateway`-Timeout durch `Respond to the agent` direkt nach dem Trigger behoben (siehe F2, 2026-08-25) — Testanrufe laufen seither zuverlässig durch.

@@ -59,7 +59,7 @@ Anruf läuft ──► "Staging schreiben" (mehrfach) ──► SharePoint-Daten
 
 | Flow | Aufgabe | Auslöser |
 |------|---------|----------|
-| **Staging schreiben** (neu) | Zwischenstand in SharePoint ablegen/aktualisieren (Upsert per ConversationId), Status `offen`. Kein KI, keine Mail. | Bot, **fortlaufend** nach Kundendaten → Anlage → Anliegen |
+| **Staging schreiben** (neu) | Zwischenstand in SharePoint ablegen/aktualisieren (Upsert per ConversationId), Status `offen`. Kein KI, keine Mail. | Bot. ⚠ **Stand 2026-09-04 nur noch am Anfang von `Zusammenfassung - slim`** — die Aufrufe im Frageablauf mussten entfernt werden, siehe „Regression 2026-09-04" unten. |
 | **Anliegen weiterleiten – slim** (bestehend, erweitert) | KI-Zusammenfassung + Kritikalität + E-Mail. **Neu:** setzt danach Datensatz auf `gesendet`. | Bot, am **Abschluss** / im Safety-Net |
 | **Sweep offene Anrufe** (neu) | Findet `offen` + seit >10 Min inaktiv → **Abbruch-Mail** → Status `gesendet`. | **Zeitplan, stündlich** (Entscheidung 2026-09-04), unabhängig vom Bot |
 
@@ -114,6 +114,43 @@ Gespräch noch nicht abgeschlossen ist. Im Zweifel ist er ein Abbruch (`offen` /
 
 ---
 
+## ⚠ Regression 2026-09-04: Staging-Aufrufe zerlegen den Dialog
+
+**Symptom:** Nach „Störung" fragte der Bot **„Bitte beschreiben Sie nun Ihr
+Anliegen"** statt nach der Anlage — reproduzierbar in allen acht Testläufen,
+im Testpanel *und* am Telefon.
+
+**Bestätigte Ursache:** Ein `InvokeFlowAction` im Frageablauf spaltet die
+Dialogausführung. Die nachfolgende `ConditionGroup` wertet `Global.Anrufgrund`
+noch als **leer** aus und nimmt den `else`-Ast (→ Anliegen). Erst wenn der
+Flow-Aufruf zurückkommt, läuft der echte Pfad nach und nimmt den richtigen Ast.
+
+**Nachweis:** Entfernen der Staging-Aufrufe in `Kundendaten erfassen`,
+`Anrufgrund erfassen`, `Anlage erfassen`, `Anliegen erfassen` — Reihenfolge
+sofort korrekt, im Chat und am Telefon. Nicht die Position im Topic war das
+Problem: ein Verschieben an den Topic-Anfang machte es schlimmer (doppelte
+Anrufgrund-Frage, weil `init:Global.Anrufgrund` beim Nachlauf zurücksetzt).
+
+**Widerlegt:** `Respond_to_Copilot` als erste Aktion (machen beide Flows) und
+`flowKind: Stateless` (beide Flows stehen im Export auf `Stateful` — die Notiz
+im P3-Abschnitt ist veraltet).
+
+**Preis dafür:** Fall 3 ist derzeit **nicht** abgedeckt. Ein Auflegen zwischen
+Kundendaten und Zusammenfassung hinterlässt keinen Datensatz; der Sweep hat
+nichts zu finden. Das ist ein Verstoß gegen die Kundenforderung und muss vor
+der Hausmesse (16./17.09.) gelöst sein.
+
+**Offene Hypothese für die Rückkehr:** In `Zusammenfassung - slim` steht der
+Staging-Flow strukturell **identisch** (Flow → Question → ConditionGroup) und
+funktioniert. Einziger Unterschied: die Bedingung liest `Topic.korrekt` statt
+`Global.Anrufgrund`. Vermutung: Global-Variablen werden über die Flow-Grenze
+nicht rechtzeitig persistiert, Topic-Variablen schon. Test: in
+`Anrufgrund erfassen` nach der Frage `SetVariable Topic.Grund =
+Global.Anrufgrund`, `ConditionGroup` auf `Topic.Grund` umstellen, Staging-Flow
+wieder an den Topic-Anfang.
+
+---
+
 ## Zusammenspiel / Doppelversand-Schutz
 
 - **Genau eine** E-Mail pro Anruf: Entweder der Abschluss-Flow (sauberes Ende)
@@ -146,7 +183,10 @@ Gespräch noch nicht abgeschlossen ist. Im Zweifel ist er ein Abbruch (`offen` /
 
 - [x] Fall 1 + 2 gelöst (Safety-Net + Reorder „E-Mail vor Verabschiedung")
 - [x] SharePoint-Liste `Telefonbot-Anrufe` angelegt
-- [x] Flow `Staging schreiben` (flowId `a0a99959-80a7-f111-b8de-7ced8d476627`) + 4 Aufrufpunkte im Bot (Kundendaten, Anrufgrund, Anlage, Anliegen)
+- [x] Flow `Staging schreiben` (flowId `a0a99959-80a7-f111-b8de-7ced8d476627`) angelegt
+- [ ] ⚠ **Aufrufpunkte 2026-09-04 von fünf auf einen reduziert** (nur noch
+      `Zusammenfassung - slim`), weil sie den Dialog zerlegten — siehe
+      „Regression 2026-09-04". Fall 3 dadurch offen.
 - [x] `Anliegen weiterleiten – slim` um `Status = gesendet`/`Abschlussart = vollstaendig` erweitert (beide Äste) + neue Eingabe `text_7 = ConversationId`
 - [x] Flow `Sweep offene Anrufe` (stündlich; Filter `Status eq 'offen' and Modified lt now-10min`; Abbruch-Mail + `Status = gesendet`)
 - [x] Publish + erster End-to-End-Test am Telefon (2026-09-04): Abbruch erkannt,
@@ -267,16 +307,17 @@ Klasse wie die `outputs()`-vs-`body()`-Falle). Internen Namen immer über den
       per Pull verifiziert): `Zusammenfassung-Slim` Z. 64 + 237, `EndofConversation`
       Z. 37 — Bindung stimmt mit dem Trigger-Schema überein, alle 8 Parameter
       sind `required` und über `If(IsBlank(...))` gegen Leerwerte abgesichert
-- [x] **Staging im Korrekturzweig der Zusammenfassung** (erledigt 2026-09-04,
-      Knoten `invokeFlowAction_4QAYoF`): `InvokeFlowAction` (Staging,
-      `a0a99959-…`) unmittelbar **vor** `GotoAction SLfuCH` in
-      `Zusammenfassung-Slim.mcs.yml` (Z. 213), auf derselben Ebene wie der
-      dreiteilige Korrektur-`ConditionGroup` — deckt damit alle drei
-      Korrekturpfade (Firmenname / Ansprechpartner / Telefonnummer) an ihrer
-      Sammelstelle ab. Damit ist es **fünf** Staging-Aufrufe im Bot:
-      Kundendaten, Anrufgrund (2×, je Ast), Anlage, Anliegen, Korrektur.
-      Grund: ohne diesen Aufruf trüge eine spätere Sweep-Abbruch-Mail die
-      **alten** Werte, wenn der Kunde nach einer Korrektur auflegt.
+- [!] **Staging im Korrekturzweig / mehrere Aufrufpunkte — Stand überholt.**
+      Zwischenzeitlich gab es fünf Staging-Aufrufe. Der **aktuelle Pull-Stand
+      (2026-09-04) hat genau einen**: `Zusammenfassung-Slim.mcs.yml:13`
+      (`InvokeFlowAction 2exxIi`), am Anfang des Topics — also **nach** der
+      kompletten Datenerfassung. Ursache: die Reihenfolge-Anomalie
+      (`InvokeFlowAction` im Frageablauf spaltet die Dialogausführung, die
+      folgende `ConditionGroup` liest die Variable noch leer).
+      **⚠ Damit ist Fall 3 faktisch nicht mehr abgedeckt:** bei hartem Auflegen
+      nach den Kundendaten existiert kein Datensatz, der Sweep findet nichts,
+      es geht keine Mail raus — genau der Fall aus dem Kundentermin.
+      → Offener Punkt **F7-0** in `ToDos.md`, vor allem anderen zu klären.
 - [ ] Verwaisten Tool-Eintrag `actions/Anliegenweiterleiten-slim.mcs.yml`
       (`019885f0-…`) aus dem Agenten entfernen — wird von keinem Topic mehr
       aufgerufen

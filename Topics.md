@@ -29,6 +29,32 @@ ist verworfen.
 > Die PPTX-Bezeichnung für diese Variante ist **„Stufe 0"** (Folie 8, 18.08.2026).
 > YAML-Quelle: `YAML/Slim/`.
 
+### ⚠ Ist-Stand der Kette (2026-09-04, per Pull aus dem Studio verifiziert)
+
+Die Beschreibungen der einzelnen Stufe-0-Topics weiter unten sind teilweise
+älter. **Maßgeblich ist diese Kette:**
+
+```
+Conversation Start
+  → Kundendaten erfassen      (3 Fragen, SetVariable KanalLabel)
+  → Anrufgrund erfassen       (ClosedList, NEU — in den Topic-Texten unten noch nicht dokumentiert)
+      ├ Störung / Wartung → Anlage erfassen → Anliegen erfassen
+      └ sonst             → Anliegen erfassen
+  → Zusammenfassung - slim    (Staging-Flow, Bestätigung, Korrekturschleife, Ticketerstellung)
+  → Ende der Unterhaltung     (Safety-Net)
+```
+
+**Regel, die dabei gilt (hart erarbeitet, siehe ToDos.md „Reihenfolge-Anomalie"):**
+Im Frageablauf steht **kein** `InvokeFlowAction`. Jeder Flow-Aufruf zwischen
+den Fragen spaltet die Dialogausführung — die nachfolgende `ConditionGroup`
+sieht die gerade beantwortete Global-Variable noch als leer und nimmt den
+falschen Ast. Staging-Aufrufe existieren daher nur noch in
+`Zusammenfassung - slim` und `Ende der Unterhaltung`.
+
+Die aktuelle flowId für die Ticketerstellung ist
+`834c8025-3da8-f111-b8dd-70a8a52f67fc` (Agent-Flow), **nicht** mehr
+`019885f0-…` wie in den Abschnitten unten teils angegeben.
+
 ### Topic: Conversation Start — Stufe 0 (identisch mit Stufe 1)
 
 Keine Änderungen gegenüber Stufe 1. Selber Begrüßungstext (beide Kanäle „transkribiert"),
@@ -38,7 +64,7 @@ selbes Redirect zu `Kundendatenerfassen`. Siehe Stufe-1-Dokumentation unten.
 
 Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
 
-1. Letzter Node redirectet zu `mosaiic_AIRCOTelefonBot.topic.Anlagenerfassung` (statt `Inbetriebnahme`).
+1. Letzter Node redirectet zu `mosaiic_AIRCOTelefonBot.topic.Anrufgrunderfassen` (Stand 2026-09-04; früher `Anlagenerfassung`, davor `Inbetriebnahme`).
 2. **Caller-ID-Block entfernt** (2026-08-20): Die automatische Rufnummern-Erkennung
    wurde nach Untersuchung aller verfügbaren Systemvariablen aufgegeben — keine
    Variable liefert die PSTN-Caller-ID im Teams Phone + Agents & Queues Kanal
@@ -71,7 +97,7 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
 - Question → init:Global.Ansprechpartner (StringPrebuiltEntity, allowBargeIn: false)
 - Question → Global.Telefonnummer (StringPrebuiltEntity, allowBargeIn: false)
 - SetVariable: Global.KanalLabel = "Telefon"
-- BeginDialog → Anlagenerfassung
+- BeginDialog → Anrufgrunderfassen   # 2026-09-04; kein InvokeFlowAction mehr in diesem Topic
 ```
 **Änderungen 2026-09-02:**
 - `PersonNamePrebuiltEntity` → `StringPrebuiltEntity`: Entity übersetzte Namen ins Englische („Ich bin der Detlef" → „I am Detlef").
