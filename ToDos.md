@@ -245,44 +245,55 @@ hatten **keinen Status** und wurden in dieser Session eingeordnet:
 > Testergebnis, damit es zwischen Sessions nicht verloren geht.
 
 **Problem**: Ein `InvokeFlowAction`-Knoten („Staging", flowId
-`a0a99959-80a7-f111-b8de-7ced8d476627`), der in „Kundendaten erfassen" direkt
-vor dem `BeginDialog` zum nächsten Topic steht, führt zu einem nicht
-reproduzierbar gleichen Fork: Der Bot springt über mehrere Topic-Grenzen
-hinweg (Kundendaten erfassen → Anrufgrund erfassen → Anlage erfassen/Anliegen
-erfassen), ohne dass die übersprungenen Knoten im Dialog-Trace auftauchen,
-und ohne dass der Flow-Aufruf bis zu diesem Zeitpunkt tatsächlich läuft.
+`a0a99959-80a7-f111-b8de-7ced8d476627`), dem im selben Topic noch ein
+`BeginDialog` und/oder eine `ConditionGroup` folgt, bevor die nächste Frage
+erreicht wird, führt zu einem reproduzierbaren Fork: Der Bot springt vorzeitig
+über mehrere Topic-Grenzen hinweg zur nächsten erreichbaren Frage, während der
+eigentlich korrekte Pfad (inkl. Flow-Aufruf) erst Sekunden später — nach
+Antwort des Flows — nachläuft und dabei bereits gefüllte Variablen
+kommentarlos überspringt.
 
-**Drei getestete Varianten, alle negativ:**
+**Vier getestete Varianten, alle negativ:**
 
-| Test | Reihenfolge in „Kundendaten erfassen" | Symptom |
+| Test | Position von Staging | Symptom |
 |---|---|---|
-| 10 | Frage(Anrufgrund) → SetVariable(KanalLabel) → Flow(Staging) → BeginDialog | Anliegen-Frage kam vor der Anlagen-Frage (Reihenfolge vertauscht, kein Datenverlust) |
-| 11 | Flow(Staging) → Frage(Anrufgrund) → SetVariable(KanalLabel) → BeginDialog | Anrufgrund-Frage komplett übersprungen — Anrufgrund blieb leer, Rest des Topics übersprungen |
-| 2026-09-07 | Frage(Anrufgrund) → SetVariable(KanalLabel) → Flow(Staging) → BeginDialog *(identische Struktur wie Test 10)* | Anlage-Frage komplett übersprungen (bei erkanntem „Störung"-Anrufgrund, der laut `ConditionGroup` in „Anrufgrund erfassen" eigentlich zur Anlagen-Frage führen müsste); Bot landete direkt bei „Bitte beschreiben Sie nun Ihr Anliegen." Staging-Flow lief laut Ausführungsverlauf bis zu diesem Punkt **nicht**. |
+| 10 | Kundendaten erfassen: Frage(Anrufgrund) → SetVariable(KanalLabel) → Flow → BeginDialog | Anliegen-Frage kam vor der Anlagen-Frage (Reihenfolge vertauscht, kein Datenverlust) |
+| 11 | Kundendaten erfassen: Flow → Frage(Anrufgrund) → SetVariable(KanalLabel) → BeginDialog | Anrufgrund-Frage komplett übersprungen — Anrufgrund blieb leer, Rest des Topics übersprungen |
+| 2026-09-07, 12:52 Uhr | Kundendaten erfassen: Frage(Anrufgrund) → SetVariable(KanalLabel) → Flow → BeginDialog *(identische Struktur wie Test 10)* | Anlage-Frage komplett übersprungen (bei „Störung"); Bot landete direkt bei der Anliegen-Frage. Flow lief bis zu diesem Zeitpunkt nicht. |
+| 2026-09-07, 12:55 Uhr | Staging aus Kundendaten erfassen entfernt, stattdessen an den Anfang von „Anrufgrund erfassen" gesetzt: Flow(`cXPOis`) → `ConditionGroup` → BeginDialog(Anlage/Anliegen je nach Anrufgrund) | **Mechanismus jetzt im Trace nachgewiesen** (siehe unten): Anliegen-Frage kam sofort, bevor der Flow zurück war; die `ConditionGroup` wurde beim verfrühten Durchlauf offenbar gegen einen noch nicht aktualisierten Zustand ausgewertet und nahm den **else**-Zweig (obwohl Anrufgrund korrekt „Störung" war), sodass die Anlage-Frage übersprungen wurde. ~27 s später lief der „echte" Durchlauf nach: Flow feuerte, `ConditionGroup` wertete diesmal **korrekt** in den Anlage-Zweig aus (Trace zeigt `conditionBranchId: conditionItem_8IyZXO`, Bedingung erfüllt), Anlage-Frage wurde nachträglich gestellt. Beim erneuten Erreichen von „Anliegen erfassen" wurde die dortige Frage nicht wiederholt (Variable schon belegt), sondern kaskadierte still bis in „Zusammenfassung - Slim". Kein Datenverlust in diesem Testlauf, aber Anliegen kam wieder vor Anlage — inhaltlich derselbe Fehler wie Test 10, nur über einen anderen Topic-Pfad ausgelöst. |
 
-**Bauregel widerlegt**: Test 10 und der Test vom 2026-09-07 hatten die
-**identische** Knotenreihenfolge, aber unterschiedlich schwere Symptome
-(Reorder vs. kompletter Skip einer Frage). Die Position von `InvokeFlowAction`
-relativ zu `SetVariable`/`Question` ist damit nicht der entscheidende Faktor —
-es sieht nach einem Timing-/Async-Problem der Copilot-Studio-Runtime aus,
-sobald ein Flow-Aufruf ein Topic beendet, das mit `BeginDialog` in ein anderes
-Topic springt. Die einzige bislang **nicht** geforkte Form bleibt: `Flow`
-direkt gefolgt von einer `Question` **im selben Topic**, wobei das Topic nach
-dieser Frage nicht sofort mit einem weiteren cross-Topic-`BeginDialog` endet
-(nachweislich stabil in „Zusammenfassung - Slim").
+**Bauregel präzisiert (nicht mehr nur „Position", sondern Mechanismus)**:
+Der Fork ist eine Race Condition der Copilot-Studio-Runtime: Trifft sie auf
+einen `InvokeFlowAction`, dem noch weitere Steuerungsknoten (`BeginDialog`,
+`ConditionGroup`) vor der nächsten Frage folgen, liefert sie für die
+Sofortantwort einen „schnellen" Pfad aus — der jede `ConditionGroup` in dieser
+Kette gegen einen noch nicht committeten Zustand auswertet und dabei
+zuverlässig in den falschen Zweig läuft. Erst wenn der Flow tatsächlich
+zurückkommt, läuft der korrekte Pfad nach und überspringt bereits gefüllte
+Variablen. Das erklärt zugleich Test 11 (Skip) und alle Anliegen-vor-Anlage-
+Fälle (Reorder) einheitlich. Die einzige über zwei Tests hinweg **nicht**
+geforkte Form bleibt: `Flow` direkt gefolgt von der nächsten `Question`
+**im selben Topic**, ohne `ConditionGroup` oder weiteren `BeginDialog`
+dazwischen (nachweislich stabil in „Zusammenfassung - Slim", Knoten `2exxIi`).
 
-**Empfehlung (vor der Messe)**: Nach drei gescheiterten Positionsversuchen
-das Herumschieben innerhalb von „Kundendaten erfassen" aufgeben. `Staging`
-aus diesem Topic entfernen und ausschließlich im dort bereits erwiesenermaßen
-stabilen Aufruf in „Zusammenfassung - Slim" belassen. Kostet die frühe
-Datensatz-Erfassung (Nice-to-have), verhindert aber Anrufgrund-/
-Anlagen-Datenverlust im Messebetrieb.
+**Empfehlung (vor der Messe)**: Nach vier gescheiterten Positionsversuchen
+(Kundendaten erfassen 2×, Anrufgrund erfassen 1×, plus Test 11) das
+Herumschieben aufgeben. `Staging` **nirgends** vor eine `ConditionGroup` oder
+einen weiteren `BeginDialog` stellen. Einziger stabiler Aufruf bleibt
+„Zusammenfassung - Slim" (`2exxIi`) — dort belassen, überall sonst entfernen.
+Kostet die frühe Datensatz-Erfassung (Nice-to-have), verhindert aber
+Anrufgrund-/Anlagen-Reihenfolgefehler im Messebetrieb.
 
-- [ ] `Staging`-Aufruf aus „Kundendaten erfassen" entfernen (nicht nur
-  verschieben — drei Positionen sind bereits gescheitert)
+- [x] ~~`Staging`-Aufruf aus „Kundendaten erfassen" entfernen~~ — erledigt
+  (Stand 2026-09-07, 12:55-Uhr-Test bestätigt: Topic enthält keinen
+  `InvokeFlowAction` mehr)
+- [ ] `Staging`-Aufruf (`cXPOis`) auch aus „Anrufgrund erfassen" wieder
+  entfernen — vierter Platzierungsversuch, vierter Fork; Mechanismus siehe
+  oben
 - [ ] Nach Entfernen: Testanruf zur Bestätigung, dass „Kundendaten erfassen"
-  → „Anrufgrund erfassen" → „Anlage erfassen"/„Anliegen erfassen" ohne Flow
-  im Pfad zuverlässig durchläuft
+  → „Anrufgrund erfassen" → „Anlage erfassen"/„Anliegen erfassen" ganz ohne
+  Flow im Pfad zuverlässig und in korrekter Reihenfolge durchläuft
+  (Anlage vor Anliegen bei Störung/Wartung)
 - [ ] Sweep-Flow weiterhin nicht Teil der Lösung — muss vor der Messe im
   Power-Apps-Portal ergänzt werden (siehe vorherige Session; hier nicht neu
   geprüft)
