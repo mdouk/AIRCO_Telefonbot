@@ -235,6 +235,58 @@ hatten **keinen Status** und wurden in dieser Session eingeordnet:
   Anrufer bei 0,2 noch zuverlässig erkannt werden, ist damit noch nicht
   geprüft.
 
+### F4. Fork-Bug „InvokeFlowAction vor BeginDialog" — Kundendaten erfassen (2026-09-07)
+
+> **Hinweis**: Der hier beschriebene Stand (Anrufgrund-Frage im Hauptfluss,
+> Topics „Anrufgrund erfassen"/„Anlage erfassen"/„Anliegen erfassen", Flow
+> „Staging"/„Sweep") ist lokal weiterentwickelt worden und in
+> [Architektur.md](Architektur.md)/[Topics.md](Topics.md) **noch nicht**
+> vollständig nachgezogen — dieser Eintrag dokumentiert ausschließlich das
+> Testergebnis, damit es zwischen Sessions nicht verloren geht.
+
+**Problem**: Ein `InvokeFlowAction`-Knoten („Staging", flowId
+`a0a99959-80a7-f111-b8de-7ced8d476627`), der in „Kundendaten erfassen" direkt
+vor dem `BeginDialog` zum nächsten Topic steht, führt zu einem nicht
+reproduzierbar gleichen Fork: Der Bot springt über mehrere Topic-Grenzen
+hinweg (Kundendaten erfassen → Anrufgrund erfassen → Anlage erfassen/Anliegen
+erfassen), ohne dass die übersprungenen Knoten im Dialog-Trace auftauchen,
+und ohne dass der Flow-Aufruf bis zu diesem Zeitpunkt tatsächlich läuft.
+
+**Drei getestete Varianten, alle negativ:**
+
+| Test | Reihenfolge in „Kundendaten erfassen" | Symptom |
+|---|---|---|
+| 10 | Frage(Anrufgrund) → SetVariable(KanalLabel) → Flow(Staging) → BeginDialog | Anliegen-Frage kam vor der Anlagen-Frage (Reihenfolge vertauscht, kein Datenverlust) |
+| 11 | Flow(Staging) → Frage(Anrufgrund) → SetVariable(KanalLabel) → BeginDialog | Anrufgrund-Frage komplett übersprungen — Anrufgrund blieb leer, Rest des Topics übersprungen |
+| 2026-09-07 | Frage(Anrufgrund) → SetVariable(KanalLabel) → Flow(Staging) → BeginDialog *(identische Struktur wie Test 10)* | Anlage-Frage komplett übersprungen (bei erkanntem „Störung"-Anrufgrund, der laut `ConditionGroup` in „Anrufgrund erfassen" eigentlich zur Anlagen-Frage führen müsste); Bot landete direkt bei „Bitte beschreiben Sie nun Ihr Anliegen." Staging-Flow lief laut Ausführungsverlauf bis zu diesem Punkt **nicht**. |
+
+**Bauregel widerlegt**: Test 10 und der Test vom 2026-09-07 hatten die
+**identische** Knotenreihenfolge, aber unterschiedlich schwere Symptome
+(Reorder vs. kompletter Skip einer Frage). Die Position von `InvokeFlowAction`
+relativ zu `SetVariable`/`Question` ist damit nicht der entscheidende Faktor —
+es sieht nach einem Timing-/Async-Problem der Copilot-Studio-Runtime aus,
+sobald ein Flow-Aufruf ein Topic beendet, das mit `BeginDialog` in ein anderes
+Topic springt. Die einzige bislang **nicht** geforkte Form bleibt: `Flow`
+direkt gefolgt von einer `Question` **im selben Topic**, wobei das Topic nach
+dieser Frage nicht sofort mit einem weiteren cross-Topic-`BeginDialog` endet
+(nachweislich stabil in „Zusammenfassung - Slim").
+
+**Empfehlung (vor der Messe)**: Nach drei gescheiterten Positionsversuchen
+das Herumschieben innerhalb von „Kundendaten erfassen" aufgeben. `Staging`
+aus diesem Topic entfernen und ausschließlich im dort bereits erwiesenermaßen
+stabilen Aufruf in „Zusammenfassung - Slim" belassen. Kostet die frühe
+Datensatz-Erfassung (Nice-to-have), verhindert aber Anrufgrund-/
+Anlagen-Datenverlust im Messebetrieb.
+
+- [ ] `Staging`-Aufruf aus „Kundendaten erfassen" entfernen (nicht nur
+  verschieben — drei Positionen sind bereits gescheitert)
+- [ ] Nach Entfernen: Testanruf zur Bestätigung, dass „Kundendaten erfassen"
+  → „Anrufgrund erfassen" → „Anlage erfassen"/„Anliegen erfassen" ohne Flow
+  im Pfad zuverlässig durchläuft
+- [ ] Sweep-Flow weiterhin nicht Teil der Lösung — muss vor der Messe im
+  Power-Apps-Portal ergänzt werden (siehe vorherige Session; hier nicht neu
+  geprüft)
+
 ### G. Test / Go-Live
 - [~] **End-to-End-Test** (in Bearbeitung, 2026-07-16): Erster Durchlauf im Testpanel — Flow läuft **erfolgreich** durch (KI-Zusammenfassung „Kritisch" korrekt, E-Mail-Branch erreicht), **aber der Bot meldet `FlowActionBadGateway / NoResponse`**. Ursache: der Bot ruft den Flow synchron auf und wartet auf `Respond to the agent`; die KI-Schritte (GPT-4.1 + GPT-4.1 mini + Knowledge) überschreiten das Warte-Zeitlimit → Transport-Timeout, obwohl der Flow-Lauf grün ist.
   - **Fix (zu bauen)**: `Respond to the agent` **direkt nach dem Trigger** platzieren (sofortige OK-Antwort), KI-Verarbeitung + Switch + E-Mail laufen danach. Stufe 1 liest keinen Flow-Output → Entkopplung verlustfrei. **Zu verifizieren**: ob Aktionen nach `Respond to the agent` im Agent-Trigger weiterlaufen; falls nicht → KI-/E-Mail-Teil als fire-and-forget child flow auslagern.
