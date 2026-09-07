@@ -253,7 +253,7 @@ eigentlich korrekte Pfad (inkl. Flow-Aufruf) erst Sekunden später — nach
 Antwort des Flows — nachläuft und dabei bereits gefüllte Variablen
 kommentarlos überspringt.
 
-**Vier getestete Varianten, alle negativ:**
+**Fünf getestete Varianten, alle negativ:**
 
 | Test | Position von Staging | Symptom |
 |---|---|---|
@@ -261,6 +261,19 @@ kommentarlos überspringt.
 | 11 | Kundendaten erfassen: Flow → Frage(Anrufgrund) → SetVariable(KanalLabel) → BeginDialog | Anrufgrund-Frage komplett übersprungen — Anrufgrund blieb leer, Rest des Topics übersprungen |
 | 2026-09-07, 12:52 Uhr | Kundendaten erfassen: Frage(Anrufgrund) → SetVariable(KanalLabel) → Flow → BeginDialog *(identische Struktur wie Test 10)* | Anlage-Frage komplett übersprungen (bei „Störung"); Bot landete direkt bei der Anliegen-Frage. Flow lief bis zu diesem Zeitpunkt nicht. |
 | 2026-09-07, 12:55 Uhr | Staging aus Kundendaten erfassen entfernt, stattdessen an den Anfang von „Anrufgrund erfassen" gesetzt: Flow(`cXPOis`) → `ConditionGroup` → BeginDialog(Anlage/Anliegen je nach Anrufgrund) | **Mechanismus jetzt im Trace nachgewiesen** (siehe unten): Anliegen-Frage kam sofort, bevor der Flow zurück war; die `ConditionGroup` wurde beim verfrühten Durchlauf offenbar gegen einen noch nicht aktualisierten Zustand ausgewertet und nahm den **else**-Zweig (obwohl Anrufgrund korrekt „Störung" war), sodass die Anlage-Frage übersprungen wurde. ~27 s später lief der „echte" Durchlauf nach: Flow feuerte, `ConditionGroup` wertete diesmal **korrekt** in den Anlage-Zweig aus (Trace zeigt `conditionBranchId: conditionItem_8IyZXO`, Bedingung erfüllt), Anlage-Frage wurde nachträglich gestellt. Beim erneuten Erreichen von „Anliegen erfassen" wurde die dortige Frage nicht wiederholt (Variable schon belegt), sondern kaskadierte still bis in „Zusammenfassung - Slim". Kein Datenverlust in diesem Testlauf, aber Anliegen kam wieder vor Anlage — inhaltlich derselbe Fehler wie Test 10, nur über einen anderen Topic-Pfad ausgelöst. |
+| 2026-09-07, 14:08 Uhr | Staging in ein eigenes, neu angelegtes Topic „Staging" ausgelagert (`mosaiic_AIRCOTelefonBot.topic.Staging`: Flow(`ZWR6XS`) → BeginDialog(`LzYRQH`) → Anrufgrund erfassen). Kundendaten erfassen redirectet jetzt zu diesem Topic statt direkt zu „Anrufgrund erfassen". | Identisches Bypass-Muster wie beim allerersten Test: Nach dem `BeginDialog` in „Kundendaten erfassen" fehlt im Trace jede Spur von `ZWR6XS`, `LzYRQH`, der `ConditionGroup` in „Anrufgrund erfassen" und der Anlage-Frage — der Bot landet unmittelbar bei der Anliegen-Frage. Ein eigenes, isoliertes Topic nur für den Flow-Aufruf ändert nichts: Es fügt lediglich einen weiteren Hop in derselben gefährlichen Kette hinzu. |
+
+**Damit ist die Positions-Frage endgültig geklärt**: Fünf von fünf
+Platzierungsversuchen (in drei verschiedenen Topics, davon eines eigens dafür
+angelegt) sind gescheitert. Es ist kein Konfigurations- oder Strukturdetail
+des Bots, das sich noch finden lässt, sondern eine strukturelle Grenze der
+Copilot-Studio-Runtime bei der Kombination `InvokeFlowAction` + nachfolgende
+`BeginDialog`/`ConditionGroup`-Kette. Auch die knotenspezifische
+„Latenznachricht"-Einstellung (Aktionseigenschaften-Panel) wurde geprüft und
+verworfen — der verfrühte Sprung tritt nachweislich auf, bevor der
+Flow-Aufruf überhaupt als „pending" im Trace erscheint, eine Warte-Ansage
+könnte daran nichts ändern. **Diese Untersuchung ist für die Messe
+abgeschlossen** — kein weiteres Herumschieben von Staging mehr versuchen.
 
 **Bauregel präzisiert (nicht mehr nur „Position", sondern Mechanismus)**:
 Der Fork ist eine Race Condition der Copilot-Studio-Runtime: Trifft sie auf
@@ -276,20 +289,20 @@ geforkte Form bleibt: `Flow` direkt gefolgt von der nächsten `Question`
 **im selben Topic**, ohne `ConditionGroup` oder weiteren `BeginDialog`
 dazwischen (nachweislich stabil in „Zusammenfassung - Slim", Knoten `2exxIi`).
 
-**Empfehlung (vor der Messe)**: Nach vier gescheiterten Positionsversuchen
-(Kundendaten erfassen 2×, Anrufgrund erfassen 1×, plus Test 11) das
-Herumschieben aufgeben. `Staging` **nirgends** vor eine `ConditionGroup` oder
-einen weiteren `BeginDialog` stellen. Einziger stabiler Aufruf bleibt
-„Zusammenfassung - Slim" (`2exxIi`) — dort belassen, überall sonst entfernen.
-Kostet die frühe Datensatz-Erfassung (Nice-to-have), verhindert aber
-Anrufgrund-/Anlagen-Reihenfolgefehler im Messebetrieb.
+**Empfehlung (vor der Messe, final)**: Nach fünf gescheiterten
+Positionsversuchen (Kundendaten erfassen 2×, Anrufgrund erfassen 1×, eigenes
+Topic „Staging" 1×, plus Test 11) das Herumschieben endgültig aufgeben.
+`Staging` **nirgends** vor eine `ConditionGroup` oder einen weiteren
+`BeginDialog` stellen. Einziger stabiler Aufruf bleibt „Zusammenfassung -
+Slim" (`2exxIi`) — dort belassen, überall sonst entfernen. Kostet die frühe
+Datensatz-Erfassung (Nice-to-have), verhindert aber Anrufgrund-/Anlagen-
+Reihenfolgefehler im Messebetrieb.
 
 - [x] ~~`Staging`-Aufruf aus „Kundendaten erfassen" entfernen~~ — erledigt
-  (Stand 2026-09-07, 12:55-Uhr-Test bestätigt: Topic enthält keinen
-  `InvokeFlowAction` mehr)
-- [ ] `Staging`-Aufruf (`cXPOis`) auch aus „Anrufgrund erfassen" wieder
-  entfernen — vierter Platzierungsversuch, vierter Fork; Mechanismus siehe
-  oben
+- [ ] `Staging`-Aufruf (`cXPOis`) aus „Anrufgrund erfassen" wieder entfernen
+- [ ] Eigens angelegtes Topic „Staging" (`mosaiic_AIRCOTelefonBot.topic.Staging`,
+  Knoten `ZWR6XS`/`LzYRQH`) wieder entfernen, „Kundendaten erfassen"
+  redirectet wieder direkt zu „Anrufgrund erfassen"
 - [ ] Nach Entfernen: Testanruf zur Bestätigung, dass „Kundendaten erfassen"
   → „Anrufgrund erfassen" → „Anlage erfassen"/„Anliegen erfassen" ganz ohne
   Flow im Pfad zuverlässig und in korrekter Reihenfolge durchläuft
