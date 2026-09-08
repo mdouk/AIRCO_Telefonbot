@@ -117,7 +117,7 @@
           "metadata": {
             "operationMetadataId": "b8f61c18-7224-4f8a-9c5f-72fbce5df764",
             "flowSystemMetadata": {
-              "flowKind": "Stateless"
+              "flowKind": "Stateful"
             }
           }
         }
@@ -140,7 +140,7 @@
           },
           "runAfter": {
             "Respond_to_Copilot": [
-              "Succeeded"
+              "SUCCEEDED"
             ]
           }
         },
@@ -220,23 +220,6 @@
             ]
           }
         },
-        "Respond_to_Copilot": {
-          "type": "Response",
-          "kind": "Skills",
-          "inputs": {
-            "schema": {
-              "type": "object",
-              "properties": {},
-              "additionalProperties": {}
-            },
-            "statusCode": 200,
-            "body": {}
-          },
-          "runAfter": {},
-          "metadata": {
-            "operationMetadataId": "81c94f73-dd52-465c-ad3b-a4686da63cc3"
-          }
-        },
         "Fehleralarm": {
           "type": "OpenApiConnection",
           "inputs": {
@@ -273,6 +256,23 @@
             "Fehleralarm": [
               "Succeeded"
             ]
+          }
+        },
+        "Respond_to_Copilot": {
+          "type": "Response",
+          "kind": "Skills",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {}
+            },
+            "statusCode": 200,
+            "body": {}
+          },
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "81c94f73-dd52-465c-ad3b-a4686da63cc3"
           }
         }
       },

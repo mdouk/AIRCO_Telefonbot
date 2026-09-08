@@ -95,30 +95,13 @@ beginDialog:
       fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
 
     - kind: SetVariable
-      id: EX0bn1
+      id: 2wyZbs
       variable: Global.KanalLabel
       value: Telefon
 
-    - kind: InvokeFlowAction
-      id: W0Ffqr
-      displayName: Staging
-      input:
-        binding:
-          text: =System.Conversation.Id
-          text_1: =Global.Firmenname
-          text_2: =Global.Ansprechpartner
-          text_3: =Global.Telefonnummer
-          text_4: =If(IsBlank(Global.Anrufgrund), "nicht angegeben", Text(Global.Anrufgrund))
-          text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
-          text_6: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
-          text_7: =Global.KanalLabel
-
-      output: {}
-      flowId: a0a99959-80a7-f111-b8de-7ced8d476627
-
     - kind: BeginDialog
       id: lzTpPJ
-      dialog: mosaiic_AIRCOTelefonBot.topic.Anrufgrunderfassen
+      dialog: mosaiic_AIRCOTelefonBot.topic.Staging
 
 inputType: {}
 outputType: {}

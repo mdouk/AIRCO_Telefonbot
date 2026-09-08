@@ -12,6 +12,7 @@ beginDialog:
 
     - kind: InvokeFlowAction
       id: 2exxIi
+      displayName: Staging
       input:
         binding:
           text: =System.Conversation.Id
