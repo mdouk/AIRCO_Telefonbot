@@ -4,14 +4,14 @@ mcs.metadata:
 kind: ClosedListEntity
 items:
   - id: 8jiEHk
-    displayName: problem
+    displayName: malfunction
     synonyms:
+      - issue
       - 1
       - one
       - not working
       - failure
       - breakdown
-      - malfunction
 
   - id: KXrpcq
     displayName: maintenance

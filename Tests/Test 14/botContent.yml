@@ -1,0 +1,2653 @@
+kind: BotDefinition
+entity:
+  schemaName: mosaiic_AIRCOTelefonBot
+  cdsBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+  accessControlPolicy: Any
+  authenticationMode: None
+  authenticationTrigger: AsNeeded
+  configuration:
+    channels:
+      - id: Telephony
+        channelId: Telephony
+
+      - channelId: MsTeamsPhone
+
+      - channelId: MsTeams
+
+    settings:
+      GenerativeActionsEnabled: false
+      TelephonyInitialized: true
+
+    isTelephonyEnabled: true
+    isAgentConnectable: true
+    voiceProcessingMode:
+      kind: ClassicVoiceProcessingMode
+
+    botSpeechSettings:
+      silenceDetectionTimeoutInMilliseconds: 10000
+      utteranceEndTimeoutInMilliseconds: 2500
+      speechRecognitionTimeoutInMilliseconds: 15000
+      isDomainLanguageModelEnabled: false
+      speechRecognitionSensitivity: 0.3
+
+    publishOnImport: true
+    gPTSettings:
+      defaultSchemaName: mosaiic_AIRCOTelefonBot.gpt.default
+
+    isLightweightBot: false
+    aISettings:
+      useModelKnowledge: true
+      isFileAnalysisEnabled: false
+      isSemanticSearchEnabled: false
+      contentModeration: Low
+      optInUseLatestModels: false
+
+    deferredProvisioning: false
+
+  template: default-2.1.0
+  language: 1031
+  supportedLanguages:
+    - 1033
+
+components:
+  - kind: DialogComponent
+    version: 3525949
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-04T08:48:33.0000000Z
+      modifiedTimeUtc: 2026-09-07T14:58:49.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Ticketerstellung
+    id: 0b33686d-3c83-4e27-90b7-c3a454ea8c63
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.action.Ticketerstellung
+    dialog:
+      kind: TaskDialog
+      action:
+        kind: InvokeFlowTaskAction
+        flowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
+        connectionProperties:
+          $kind: ConnectionProperties
+          diagnostics:
+          mode: Maker
+
+      outputMode: All
+
+  - kind: DialogComponent
+    version: 1978367
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:55:41.0000000Z
+      modifiedTimeUtc: 2026-07-17T12:55:41.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Unterhaltung zurücksetzen
+    id: 0c4c0141-a4ef-4ecb-a748-53f37eee32f1
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.ResetConversation
+    dialog:
+      startBehavior: UseLatestPublishedContentAndCancelOtherTopics
+      beginDialog:
+        kind: OnSystemRedirect
+        id: main
+        actions:
+          - kind: SendActivity
+            id: sendMessage_OPsT1O
+            activity: Wie kann ich Ihnen helfen?
+
+          - kind: ClearAllVariables
+            id: clearAllVariables_73bTFR
+            variables: ConversationScopedVariables
+
+          - kind: CancelAllDialogs
+            id: cancelAllDialogs_12Gt21
+
+  - kind: DialogComponent
+    version: 3526940
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-08T07:34:57.0000000Z
+      modifiedTimeUtc: 2026-09-08T13:30:56.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Kundendaten erfassen EN
+    id: 15cc1d18-52a6-428c-ba9c-bceb839cd5dc
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.KundendatenerfassenEN
+    dialog:
+      beginDialog:
+        kind: OnRedirect
+        id: main
+        actions:
+          - kind: Question
+            id: question_qMVPee_en
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.Firmenname
+            prompt:
+              text:
+                - Which company are you calling for?
+              speak:
+                - Which company are you calling for?
+              allowBargeIn: false
+
+            entity: StringPrebuiltEntity
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: Question
+            id: question_H0ONs7_en
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.Ansprechpartner
+            prompt:
+              text:
+                - May I have your name, please?
+              speak:
+                - May I have your name, please?
+              allowBargeIn: false
+
+            entity: StringPrebuiltEntity
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: Question
+            id: 9CvROV_en
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.Telefonnummer
+            prompt:
+              text:
+                - At which number can we reach you?
+              speak:
+                - What is your phone number?
+              allowBargeIn: false
+
+            entity: PhoneNumberPrebuiltEntity
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: SetVariable
+            id: setVariable_dvKuWV_en
+            variable: Global.TelefonGesprochen
+            value: |-
+              =Trim(
+                    Concat(
+                        Sequence(Len(Global.Telefonnummer)),
+                        Mid(Global.Telefonnummer, Value, 1) & " "
+                    )
+                )
+
+          - kind: Question
+            id: U6OTmJ_en
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.AnrufgrundEN
+            prompt:
+              text:
+                - |-
+                  What is the reason for your call?
+                  1 - Malfunction or problem
+                  2 - Schedule a maintenance appointment
+                  3 - Spare parts order
+                  4 - Request a callback
+                  5 - Something else
+              speak:
+                - "What is the reason for your call? You can say: malfunction or problem, schedule a maintenance appointment, spare parts order, request a callback, or something else."
+              allowBargeIn: false
+
+            entity:
+              kind: ClosedListEntityReference
+              sensitivityLevel: None
+              entityId: mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN
+
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: SetVariable
+            id: 2wyZbs_en
+            variable: Global.KanalLabel
+            value: Telefon
+
+          - kind: ConditionGroup
+            id: conditionGroup_DklHkA_en
+            conditions:
+              - id: conditionItem_8IyZXO_en
+                condition: =Global.AnrufgrundEN = 'mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN'.'8jiEHk' || Global.AnrufgrundEN = 'mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN'.KXrpcq
+                displayName: Störung oder Wartung > Anlage fragen
+                actions:
+                  - kind: Question
+                    id: question_Xnm8Nm_en
+                    interruptionPolicy:
+                      allowInterruption: false
+
+                    variable: Global.Anlage
+                    prompt:
+                      text:
+                        - Please tell us the system designation, the serial number and the year of manufacture.
+                      speak:
+                        - Please tell us the system designation, the serial number and the year of manufacture.
+                      allowBargeIn: false
+
+                    entity:
+                      kind: StringPrebuiltEntity
+                      sensitivityLevel: None
+
+                    voiceInputSettings:
+                      fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+                      defaultValueMissingAction: GoToDialog
+
+                    holdSettings:
+                      kind: UserRequestedHoldSettings
+
+                    fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: InvokeFlowAction
+            id: m8Ujcv_en
+            displayName: Staging
+            input:
+              binding:
+                text: =System.Conversation.Id
+                text_1: =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
+                text_2: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
+                text_3: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
+                text_4: =If(IsBlank(Global.AnrufgrundEN), "nicht angegeben", Text(Global.AnrufgrundEN))
+                text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
+                text_6: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
+                text_7: =If(IsBlank(Global.KanalLabel), "nicht angegeben", Global.KanalLabel)
+
+            output: {}
+            flowId: a0a99959-80a7-f111-b8de-7ced8d476627
+
+          - kind: Question
+            id: question_RZHeKB_en
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.Anliegen
+            prompt:
+              text:
+                - Please describe your request now.
+              speak:
+                - Please describe your request now.
+              allowBargeIn: false
+
+            entity: StringPrebuiltEntity
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: BeginDialog
+            id: uFP7SX_en
+            dialog: mosaiic_AIRCOTelefonBot.topic.ZusammenfassungEN
+
+      inputType: {}
+      outputType: {}
+
+  - kind: DialogComponent
+    version: 3526579
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T13:07:42.0000000Z
+      modifiedTimeUtc: 2026-09-08T09:56:51.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Kundendaten erfassen
+    id: 1a855be0-f2f3-4495-aed8-c7353cf624f4
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen
+    dialog:
+      beginDialog:
+        kind: OnRedirect
+        id: main
+        actions:
+          - kind: Question
+            id: question_qMVPee
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.Firmenname
+            prompt:
+              text:
+                - Für welche Firma kontaktieren Sie uns?
+              speak:
+                - Für welche Firma rufen Sie an?
+              allowBargeIn: false
+
+            entity: StringPrebuiltEntity
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: Question
+            id: question_H0ONs7
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: init:Global.Ansprechpartner
+            prompt:
+              text:
+                - Wie ist Ihr Name?
+              speak:
+                - Wie ist Ihr Name?
+              allowBargeIn: false
+
+            entity: StringPrebuiltEntity
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: Question
+            id: 9CvROV
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.Telefonnummer
+            prompt:
+              text:
+                - Unter welcher Nummer können wir Sie erreichen?
+              speak:
+                - Wie ist Ihre Telefonnummer?
+              allowBargeIn: false
+
+            entity: PhoneNumberPrebuiltEntity
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: SetVariable
+            id: setVariable_dvKuWV
+            variable: Global.TelefonGesprochen
+            value: |-
+              =Trim(
+                    Concat(
+                        Sequence(Len(Global.Telefonnummer)),
+                        Mid(Global.Telefonnummer, Value, 1) & " "
+                    )
+                )
+
+          - kind: Question
+            id: U6OTmJ
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.Anrufgrund
+            prompt:
+              text:
+                - |-
+                  Was ist der Grund Ihres Anrufs?
+                  1 - Störung oder Problem
+                  2 - Wartungstermin vereinbaren
+                  3 - Ersatzteilbestellung
+                  4 - Rückrufbitte
+                  5 - Sonstiges
+              speak:
+                - "Was ist der Grund Ihres Anrufs? Sie können sagen: Störung oder Problem, Wartungstermin vereinbaren, Ersatzteilbestellung, Rückrufbitte, oder Sonstiges."
+              allowBargeIn: false
+
+            entity:
+              kind: ClosedListEntityReference
+              entityId: mosaiic_AIRCOTelefonBot.entity.Anrufgrund
+
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: SetVariable
+            id: 2wyZbs
+            variable: Global.KanalLabel
+            value: Telefon
+
+          - kind: InvokeFlowAction
+            id: m8Ujcv
+            displayName: Staging
+            input:
+              binding:
+                text: =System.Conversation.Id
+                text_1: =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
+                text_2: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
+                text_3: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
+                text_4: =If(IsBlank(Global.Anrufgrund), "nicht angegeben", Text(Global.Anrufgrund))
+                text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
+                text_6: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
+                text_7: =If(IsBlank(Global.KanalLabel), "nicht angegeben", Global.KanalLabel)
+
+            output: {}
+            flowId: a0a99959-80a7-f111-b8de-7ced8d476627
+
+          - kind: BeginDialog
+            id: lzTpPJ
+            dialog: mosaiic_AIRCOTelefonBot.topic.Anrufgrunderfassen
+
+      inputType: {}
+      outputType: {}
+
+  - kind: DialogComponent
+    version: 3168033
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:55:40.0000000Z
+      modifiedTimeUtc: 2026-08-25T11:51:26.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Fallback
+    id: 1ab7e97c-eaa6-4de8-9c5b-c57b243eb75f
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Dieses Systemthema wird ausgelöst, wenn die Äußerung des Benutzers mit keinem vorhandenen Thema übereinstimmt.
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.Fallback
+    dialog:
+      beginDialog:
+        kind: OnUnknownIntent
+        id: main
+        actions:
+          - kind: SendActivity
+            id: sendActivity_edXoXa
+            activity:
+              text:
+                - Entschuldigung, das habe ich nicht richtig verstanden. Ich nehme Ihr Anliegen gerne trotzdem auf.
+              speak:
+                - Entschuldigung, das habe ich nicht richtig verstanden. Ich nehme Ihr Anliegen gerne trotzdem auf.
+
+          - kind: BeginDialog
+            id: GqSwCg
+            dialog: mosaiic_AIRCOTelefonBot.topic.Anliegenerfassen
+
+  - kind: CustomEntityComponent
+    version: 3526829
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-08T12:23:27.0000000Z
+      modifiedTimeUtc: 2026-09-08T12:51:17.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Anrufgrund EN
+    id: 1badb689-8d18-4a5a-9c95-9d23dc3758ab
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Why did the customer call?
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN
+    entity:
+      kind: ClosedListEntity
+      items:
+        - id: 8jiEHk
+          displayName: problem
+          synonyms:
+            - 1
+            - one
+            - not working
+            - failure
+            - breakdown
+            - malfunction
+
+        - id: KXrpcq
+          displayName: maintenance
+          synonyms:
+            - 2
+            - two
+            - servicing
+            - service appointment
+
+        - id: yc12cg
+          displayName: spare parts
+          synonyms:
+            - spare part
+            - parts
+            - order parts
+            - three
+            - order
+            - 3
+
+        - id: g6Wk6n
+          displayName: callback
+          synonyms:
+            - call me back
+            - call back
+            - four
+            - 4
+
+        - id: tpthRC
+          displayName: other
+          synonyms:
+            - general question
+            - something else
+            - five
+            - 5
+
+  - kind: DialogComponent
+    version: 1986835
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:59:36.0000000Z
+      modifiedTimeUtc: 2026-07-17T13:04:17.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Spracheingabe nicht erkannt
+    id: 1fd40664-adfb-4238-af94-d90cc5774a23
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Wird ausgelöst, wenn die Spracheingaben des Benutzers nicht erkannt werden können.
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.UnrecognizedSpeech
+    dialog:
+      beginDialog:
+        kind: OnUnrecognizedSpeech
+        id: main
+        actions:
+          - kind: SendActivity
+            id: sendActivity_26sT9O
+            activity:
+              text:
+                - Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?
+              speak:
+                - Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?
+
+  - kind: DialogComponent
+    version: 1985805
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:55:40.0000000Z
+      modifiedTimeUtc: 2026-07-17T13:02:48.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Konversationsboosting
+    id: 31b56d65-4ea3-47f8-99df-2024b9ab80e5
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Erstellen Sie generative Antworten aus Wissensquellen.
+    shareContext: {}
+    state: Inactive
+    status: Inactive
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.Search
+    dialog:
+      beginDialog:
+        kind: OnUnknownIntent
+        id: main
+        priority: -1
+        actions:
+          - kind: SearchAndSummarizeContent
+            id: search-content
+            variable: Topic.Answer
+            userInput: =System.Activity.Text
+
+          - kind: ConditionGroup
+            id: has-answer-conditions
+            conditions:
+              - id: has-answer
+                condition: =!IsBlank(Topic.Answer)
+                actions:
+                  - kind: EndDialog
+                    id: end-topic
+                    clearTopicQueue: true
+
+  - kind: DialogComponent
+    version: 3266939
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:55:40.0000000Z
+      modifiedTimeUtc: 2026-09-02T13:07:42.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Bei Fehler
+    id: 3ca2b800-40c3-429b-9a83-05ac79a30707
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Dieses Systemthema wird ausgelöst, wenn der Agent auf einen Fehler stößt. Bei Verwendung des Test-Chatbereichs wird die vollständige Fehlerbeschreibung angezeigt.
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.OnError
+    dialog:
+      startBehavior: UseLatestPublishedContentAndCancelOtherTopics
+      beginDialog:
+        kind: OnError
+        id: main
+        actions:
+          - kind: SetVariable
+            id: setVariable_timestamp
+            variable: init:Topic.CurrentTime
+            value: =Text(Now(), DateTimeFormat.UTC)
+
+          - kind: ConditionGroup
+            id: condition_1
+            conditions:
+              - id: bL4wmY
+                condition: =System.Conversation.InTestMode = true
+                actions:
+                  - kind: SendActivity
+                    id: sendMessage_XJBYMo
+                    activity:
+                      text:
+                        - |-
+                          Fehlermeldung: {System.Error.Message}
+                          Fehlercode: {System.Error.Code}
+                          Unterhaltungs-ID: {System.Conversation.Id}
+                          Zeit (UTC): {Topic.CurrentTime}
+                      speak:
+                        - Es tut uns leid, es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später erneut. Auf Wiederhören.
+
+            elseActions:
+              - kind: SendActivity
+                id: sendMessage_dZ0gaF
+                activity:
+                  text:
+                    - |-
+                      Ein Fehler ist aufgetreten.
+                      Fehlercode: {System.Error.Code}
+                      Unterhaltungs-ID: {System.Conversation.Id}
+                      Zeit (UTC): {Topic.CurrentTime}.
+                  speak:
+                    - Es tut uns leid, es ist ein technischer Fehler aufgetreten. Ihr Anliegen wurde gespeichert und ein Mitarbeiter wird sich bei Ihnen melden. Auf Wiederhören.
+
+          - kind: LogCustomTelemetryEvent
+            id: 9KwEAn
+            eventName: OnErrorLog
+            properties: "={ErrorMessage: System.Error.Message, ErrorCode: System.Error.Code, TimeUTC: Topic.CurrentTime, ConversationId: System.Conversation.Id}"
+
+          - kind: SetVariable
+            id: resetFlowFlag
+            variable: Global.FlowAufgerufen
+            value: =false
+
+          - kind: BeginDialog
+            id: NW7NyY
+            dialog: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+  - kind: DialogComponent
+    version: 3526617
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-08T07:55:17.0000000Z
+      modifiedTimeUtc: 2026-09-08T10:31:52.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Anlage erfassen EN
+    id: 46554b28-da5c-4539-954c-952d9ea99c6a
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.AnlageerfassenEN
+    dialog:
+      beginDialog:
+        kind: OnRedirect
+        id: main
+        actions:
+          - kind: Question
+            id: question_Xnm8Nm_en
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.Anlage
+            prompt:
+              text:
+                - Please tell us the system designation, the serial number and the year of manufacture.
+              speak:
+                - Please tell us the system designation, the serial number and the year of manufacture.
+              allowBargeIn: false
+
+            entity:
+              kind: StringPrebuiltEntity
+              sensitivityLevel: None
+
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            holdSettings:
+              kind: UserRequestedHoldSettings
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: BeginDialog
+            id: k1uiUZ_en
+            dialog: mosaiic_AIRCOTelefonBot.topic.AnliegenerfassenEN
+
+      inputType: {}
+      outputType: {}
+
+  - kind: BotSettingsComponent
+    version: 3282311
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:59:35.0000000Z
+      modifiedTimeUtc: 2026-09-03T11:06:29.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Ivr
+    id: 4e6c7a34-a19a-4244-8800-585819ed9c11
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.settings.Ivr
+    settings:
+      kind: IvrBotSettings
+      holdSettings:
+        holdWords:
+          - Moment
+          - einen Moment bitte
+          - Warten Sie
+          - Warte
+          - Einen Moment
+          - Ich muss nachschauen
+          - Ich muss kurz nachschauen
+        holdMessage: Kein Problem, ich warte. Sagen Sie einfach Bescheid, wenn Sie so weit sind.
+        resumeWords:
+          - So
+          - Fertig
+          - Ich bin wieder da
+          - Wieder da
+          - ich hab's
+        holdTimeoutMessage: Entschuldigung, ich habe Sie eine Weile nicht mehr gehört. Sind Sie noch dran?
+        resumeResponse: Danke, machen wir weiter.
+
+      latencySettings:
+        latencyMessage: Einen Moment bitte. Ich muss kurz darüber nachdenken.
+
+      voiceFont: {}
+
+  - kind: DialogComponent
+    version: 3525953
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-03T10:42:13.0000000Z
+      modifiedTimeUtc: 2026-09-07T14:58:50.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Unbenannt
+    id: 50482660-bc58-4e40-92e7-6c8184d9777d
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.action.Unbenannt
+    dialog:
+      kind: TaskDialog
+      modelDisplayName: Staging schreiben
+      modelDescription: Staging schreiben
+      action:
+        kind: InvokeFlowTaskAction
+        flowId: a0a99959-80a7-f111-b8de-7ced8d476627
+        connectionProperties:
+          $kind: ConnectionProperties
+          diagnostics:
+          mode: Maker
+
+      outputMode: All
+
+  - kind: DialogComponent
+    version: 3526417
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:55:41.0000000Z
+      modifiedTimeUtc: 2026-09-08T06:38:19.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Eskalieren
+    id: 52dc4af6-1b45-48ce-ae4e-2e75b6011c97
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: |-
+      Dieses Systemthema wird ausgelöst, wenn der Benutzer angibt, dass er mit einem Mitarbeiter sprechen möchte.
+      Sie können in den Agent-Einstellungen konfigurieren, wie der Agent mit Übergabeszenarien an menschliche Agents umgeht.
+      Falls Ihr Agent keine Eskalationen verarbeitet, sollte dieses Thema deaktiviert werden.
+    shareContext: {}
+    state: Inactive
+    status: Inactive
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.Escalate
+    dialog:
+      startBehavior: CancelOtherTopics
+      beginDialog:
+        kind: OnEscalate
+        id: main
+        intent:
+          displayName: Eskalieren
+          includeInOnSelectIntent: false
+          triggerQueries:
+            - Mit einem Agent kommunizieren
+            - Mit einem Agent sprechen
+            - Mit einem Agent reden
+            - Mit einer Person sprechen
+            - Mit einer Person reden
+            - Mit jemandem sprechen
+            - Mit jemandem reden
+            - Rückruf
+            - Kundenservice anrufen
+            - Mich bitte anrufen
+            - Support anrufen
+            - Technischen Support anrufen
+            - Kann mich ein Agent anrufen
+            - Kann ich anrufen
+            - Kann ich mit einer anderen Person Kontakt aufnehmen
+            - Kann ich mit jemand anderem Kontakt aufnehmen
+            - Kann ich Unterstützung von einem wirklichen Agent erhalten
+            - Kann ich Unterstützung von einem echten Agent erhalten
+            - Kann ich Unterstützung von einem richtigen Agent erhalten
+            - Kann ich an eine Person weitergeleitet werden, die ich anrufen kann
+            - Kann ich eine Einwahlnummer erhalten oder zurückgerufen werden
+            - Kann mich ein Mitarbeiter anrufen
+            - Kann ich einen Anruf planen
+            - Kann ich mit einem Mitarbeiter sprechen
+            - Kann ich mit einem Mitarbeiter reden
+            - Kann ich mit einem Menschen sprechen
+            - Kann ich mit einem Menschen reden
+            - Kann ich mit einem menschlichen Assistenten sprechen
+            - Kann ich mit einem menschlichen Assistenten reden
+            - Kann mich jemand anrufen
+            - Mit einem Menschen chatten
+            - Mit einem Mitarbeiter chatten
+            - Mit einem Agent chatten
+            - Bitte mit jemandem chatten
+            - Mit einem Live-Agent verbinden
+            - Mit einer Person verbinden
+            - Kann mich jemand telefonisch kontaktieren
+            - Kunden-Agent
+            - Kundenmitarbeiter
+            - Kundenservice
+            - Ein Manager muss mich kontaktieren
+            - Ich benötige Kundenservice
+            - Ich brauche Kundenservice
+            - Ich benötige Hilfe von einer Person
+            - Ich brauche Hilfe von einer Person
+            - Ich muss mit einem Live-Agent sprechen
+            - Ich muss mit einem Live-Agent reden
+            - Ich muss bitte mit einem Experten sprechen
+            - Ich muss bitte mit einem Fachmann sprechen
+            - Ich muss bitte mit einem Experten reden
+            - Ich muss bitte mit einem Fachmann reden
+            - Ich möchte mit dem Kundenservice sprechen
+            - Ich möchte mit dem Kundenservice reden
+            - Ich möchte mit Live-Support fortfahren
+            - Ich möchte mit Live-Support weitermachen
+            - Ich möchte mit einem Berater sprechen
+            - Ich möchte mit einem Berater reden
+            - Ich möchte mit einem Live-Techniker sprechen
+            - Ich möchte mit einem Live-Techniker reden
+            - Ich möchte mit einem Kollegen sprechen
+            - Ich möchte mit einem Kollegen reden
+            - Ich möchte mit einem Techniker sprechen
+            - Ich möchte mit einem Techniker reden
+            - Mit einem Mitglied des technischen Supports sprechen
+            - Mit einem Mitglied des technischen Supports reden
+
+        actions:
+          - kind: SendActivity
+            id: sendMessage_s39DCt
+            conversationOutcome: Escalated
+            activity: |-
+              Die Übergabe an einen Mitarbeiter ist derzeit bei diesem Copilot nicht konfiguriert. Hier kann der Agent jedoch Informationen einblenden, wie auf andere Weise mit einer Person Kontakt aufgenommen werden kann.
+
+              Gibt es etwas anderes, bei dem ich Ihnen helfen kann?
+
+  - kind: CustomEntityComponent
+    version: 3526682
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-08T07:23:53.0000000Z
+      modifiedTimeUtc: 2026-09-08T11:13:12.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Sprachwahl
+    id: 54ee2b0d-f899-4d94-b6b7-1488e6fcadb9
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Auswahl der Gesprächssprache am Gesprächsanfang.
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.entity.Sprachwahl
+    entity:
+      kind: ClosedListEntity
+      items:
+        - id: deutsch
+          displayName: deutsch
+          synonyms:
+            - German
+            - weiter
+            - eins
+            - one
+          dtmfKey: Num1
+
+        - id: englisch
+          displayName: englisch
+          synonyms:
+            - English
+            - in English
+            - zwei
+            - two
+          dtmfKey: Num2
+
+  - kind: DialogComponent
+    version: 3266704
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:59:36.0000000Z
+      modifiedTimeUtc: 2026-09-02T10:18:46.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Stille-Erkennung
+    id: 6108c742-7a46-4ba2-9c43-eba1b8c18a22
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Wird ausgelöst, wenn eine gewisse Zeit keine Sprach- oder MFV-Eingabe vom Benutzer erfolgt ist. Um diesen Trigger zu verwenden, muss die Stille-Erkennung in den Bot-Einstellungen aktiviert sein.
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.Silence
+    dialog:
+      beginDialog:
+        kind: OnSilence
+        id: main
+        actions:
+          - kind: Question
+            id: question_mFD1X1
+            interruptionPolicy:
+              allowInterruption: true
+
+            variable: init:Topic.Var1
+            prompt:
+              text:
+                - Sind Sie noch da?
+              speak:
+                - Sind Sie noch da?
+
+            entity: StringPrebuiltEntity
+            voiceInputSettings:
+              inputTimeoutResponse:
+                speak:
+                  - Wir erkennen keine Aktivitäten von Ihnen. Bitte rufen Sie uns zurück, wenn es Ihnen passt.
+
+          - kind: BeginDialog
+            id: Rgrh4i
+            dialog: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+  - kind: DialogComponent
+    version: 3526619
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-08T07:55:32.0000000Z
+      modifiedTimeUtc: 2026-09-08T10:31:53.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Anliegen erfassen EN
+    id: 66ee2207-5b09-457d-bb0d-240efabd8dc9
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.AnliegenerfassenEN
+    dialog:
+      beginDialog:
+        kind: OnRedirect
+        id: main
+        actions:
+          - kind: Question
+            id: question_RZHeKB_en
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.Anliegen
+            prompt:
+              text:
+                - Please describe your request now.
+              speak:
+                - Please describe your request now.
+              allowBargeIn: false
+
+            entity: StringPrebuiltEntity
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: BeginDialog
+            id: uFP7SX_en
+            dialog: mosaiic_AIRCOTelefonBot.topic.ZusammenfassungEN
+
+      inputType: {}
+      outputType: {}
+
+  - kind: DialogComponent
+    version: 3526946
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:55:41.0000000Z
+      modifiedTimeUtc: 2026-09-08T13:40:50.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Start der Unterhaltung
+    id: 693ff7fc-4a72-43dd-96a9-7d2a34dd62f7
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Dieses Systemthema wird ausgelöst, wenn der Agent eine Aktivität empfängt, die auf den Beginn einer neuen Unterhaltung hindeutet. Wenn Sie nicht möchten, dass der Agent die Unterhaltung beginnt, deaktivieren Sie dieses Thema.
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.ConversationStart
+    dialog:
+      beginDialog:
+        kind: OnConversationStart
+        id: main
+        actions:
+          - kind: SendActivity
+            id: sendMessage_M0LuhV
+            activity:
+              text:
+                - Willkommen beim technischen Service der Firma AIRCO Systems GmbH. Ich bin der digitale Service-Assistent. Zur Bearbeitung Ihres Anliegens wird dieses Gespräch mittels KI verarbeitet.
+              speak:
+                - Willkommen beim technischen Service der Firma <sub alias="Airko">AIRCO</sub> Systems GmbH. Sie sprechen mit unserem digitalen Service-Assistenten. Zur Bearbeitung Ihres Anliegens wird dieses Gespräch transkribiert und verarbeitet.
+              allowBargeIn: false
+
+          - kind: Question
+            id: question_9fI3eo
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Topic.Sprachwahl
+            prompt:
+              text:
+                - Für Deutsch geben Sie bitte die 1 ein, für Englisch die 2. For English, please enter 2.
+              speak:
+                - Für Deutsch drücken Sie die Eins. For English, press two.
+              allowBargeIn: true
+
+            entity:
+              kind: ClosedListEntityReference
+              sensitivityLevel: None
+              entityId: mosaiic_AIRCOTelefonBot.entity.Sprachwahl
+              selectedItems:
+                - id: deutsch
+                  dtmfKey: Num1
+
+                - id: englisch
+                  dtmfKey: Num2
+
+              dtmfMultipleChoiceOptions:
+                generateMapping: true
+                readOutOptions: false
+
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen
+
+          - kind: ConditionGroup
+            id: conditionGroup_FDLIaV
+            conditions:
+              - id: conditionItem_P810UA
+                condition: =Topic.Sprachwahl = 'mosaiic_AIRCOTelefonBot.entity.Sprachwahl'.englisch
+                displayName: Englisch gewählt
+                actions:
+                  - kind: SetMultipleVariables
+                    id: setVariable_aym5pY
+                    assignments:
+                      - variable: System.User.Language
+                        value:
+                          kind: OptionDataValue
+                          type:
+                            kind: SystemOptionSet
+                            name: Locale
+
+                          value: English
+
+                      - variable: Global.Sprache
+                        value: Englisch
+
+                  - kind: BeginDialog
+                    id: Q7RLUY
+                    dialog: mosaiic_AIRCOTelefonBot.topic.KundendatenerfassenEN
+
+            elseActions:
+              - kind: BeginDialog
+                id: heIXod
+                dialog: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen
+
+  - kind: DialogComponent
+    version: 3524377
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:55:41.0000000Z
+      modifiedTimeUtc: 2026-09-07T10:43:37.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Ende der Unterhaltung
+    id: 6baef780-f16e-409c-927d-c7ae7e52d4aa
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: |-
+      Dieses Systemthema wird nur durch eine Umleitungsaktion ausgelöst
+      und führt den Benutzer durch die Bewertung seiner Unterhaltung mit dem Agent.
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+    dialog:
+      startBehavior: CancelOtherTopics
+      beginDialog:
+        kind: OnSystemRedirect
+        id: main
+        actions:
+          - kind: ConditionGroup
+            id: conditionGroup_safetyNet
+            conditions:
+              - id: conditionItem_hasPhone
+                condition: =Not(IsBlank(Global.Telefonnummer)) && Not(Global.FlowAufgerufen)
+                actions:
+                  - kind: SetVariable
+                    id: setVariable_vZO64V
+                    variable: Global.FlowAufgerufen
+                    value: =true
+
+                  - kind: InvokeFlowAction
+                    id: OZFphC
+                    input:
+                      binding:
+                        text: =Global.Firmenname
+                        text_1: =Global.Ansprechpartner
+                        text_2: =Global.Telefonnummer
+                        text_3: =Global.Anliegen
+                        text_4: =Global.KanalLabel
+                        text_5: =Global.Anlage
+                        text_6: =Text(Global.Anrufgrund)
+                        text_7: =System.Conversation.Id
+
+                    output: {}
+                    flowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
+
+                  - kind: SendActivity
+                    id: BsLiWe
+                    activity:
+                      text:
+                        - Vielen Dank, ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
+                      speak:
+                        - Vielen Dank, ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
+
+          - kind: EndConversation
+            id: endConversation_1
+
+  - kind: DialogComponent
+    version: 3525522
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-02T13:19:27.0000000Z
+      modifiedTimeUtc: 2026-09-07T14:05:45.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Anrufgrund erfassen
+    id: 838eb75f-31d2-471f-bac1-2617590e970f
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.Anrufgrunderfassen
+    dialog:
+      beginDialog:
+        kind: OnRedirect
+        id: main
+        actions:
+          - kind: ConditionGroup
+            id: conditionGroup_DklHkA
+            conditions:
+              - id: conditionItem_8IyZXO
+                condition: =Global.Anrufgrund = 'mosaiic_AIRCOTelefonBot.entity.Anrufgrund'.u9xatS || Global.Anrufgrund = 'mosaiic_AIRCOTelefonBot.entity.Anrufgrund'.gShHbV
+                displayName: Störung oder Wartung > Anlage fragen
+                actions:
+                  - kind: BeginDialog
+                    id: beginDialog_anlage
+                    dialog: mosaiic_AIRCOTelefonBot.topic.Anlagenerfassung
+
+            elseActions:
+              - kind: BeginDialog
+                id: beginDialog_anliegen_direkt
+                dialog: mosaiic_AIRCOTelefonBot.topic.Anliegenerfassen
+
+      inputType: {}
+      outputType: {}
+
+  - kind: CustomEntityComponent
+    version: 3526749
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-02T13:24:31.0000000Z
+      modifiedTimeUtc: 2026-09-08T12:24:32.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Anrufgrund
+    id: 94371b2b-21a1-4c08-9f1e-4011e4a5e282
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Warum hat der Kunde angerufen?
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.entity.Anrufgrund
+    entity:
+      kind: ClosedListEntity
+      items:
+        - id: u9xatS
+          displayName: stoerung
+          synonyms:
+            - 1
+            - eins
+            - defekt
+            - kaputt
+            - Fehler
+            - Ausfall
+            - Problem
+            - Störung
+
+        - id: gShHbV
+          displayName: wartung
+          synonyms:
+            - Wartungstermin
+            - Servicetermin
+            - 2
+            - zwei
+            - Termin
+            - Service
+
+        - id: pcaRDr
+          displayName: ersatzteil
+          synonyms:
+            - Ersatzteile
+            - Ersatzteilbestellung
+            - 3
+            - drei
+            - Öl
+            - Material
+            - Teile
+            - bestellen
+            - Bestellung
+
+        - id: jMUZBn
+          displayName: rueckruf
+          synonyms:
+            - 4
+            - vier
+            - Rückrufbitte
+            - zurückrufen
+            - Rückruf
+
+        - id: qa3pK2
+          displayName: sonstiges
+          synonyms:
+            - 5
+            - fünf
+            - anderes Thema
+            - allgemeine Frage
+
+  - kind: DialogComponent
+    version: 3490085
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T13:24:00.0000000Z
+      modifiedTimeUtc: 2026-09-07T06:51:37.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Anliegen erfassen
+    id: 9ac0b6bb-b072-41d4-b1ae-ac3d9e7f5eed
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.Anliegenerfassen
+    dialog:
+      beginDialog:
+        kind: OnRedirect
+        id: main
+        actions:
+          - kind: Question
+            id: question_RZHeKB
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: init:Global.Anliegen
+            prompt:
+              text:
+                - Bitte beschreiben Sie nun Ihr Anliegen.
+              speak:
+                - Bitte beschreiben Sie nun Ihr Anliegen.
+              allowBargeIn: false
+
+            entity: StringPrebuiltEntity
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: BeginDialog
+            id: uFP7SX
+            dialog: mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim
+
+      inputType: {}
+      outputType: {}
+
+  - kind: GptComponent
+    version: 2656812
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:55:41.0000000Z
+      modifiedTimeUtc: 2026-07-24T08:37:43.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: AIRCO Telefon-Bot
+    id: 9f7fe157-3589-4725-81ad-31fcf3ea6090
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.gpt.default
+    metadata:
+      instructions: |-
+        Du bist der digitale Service-Assistent der AIRCO Systems GmbH für den 1st-Level-Support (Industriekompressoren, Stickstoffanlagen, Druckluftaufbereitung). Sprich den Anrufer stets formell mit „Sie" an, in sachlich-technischem, klarem Ton, keine Umgangssprache, keine überschwängliche Freundlichkeit.
+        Bleibe strikt beim Thema: Beantworte ausschließlich Anliegen, die mit AIRCO-Produkten, -Service oder dem laufenden Support-Gespräch zu tun haben. Weiche bei fachfremden Fragen höflich aus und lenke zurück zum eigentlichen Anliegen. 
+        Nenne niemals Preise, Kosten oder Kostenschätzungen. Versuche niemals, eine technische Störung selbst zu diagnostizieren oder zu beheben. Mache keine Zusagen zu Reaktions- oder Bearbeitungszeiten, die von der vereinbarten SLA abweichen.
+        Das Gespräch wird ausschließlich auf Deutsch geführt. Erkennst du, dass der Anrufer Englisch spricht, antworte in einem kurzen englischen Satz, dass diese Leitung nur Deutsch unterstützt, und leite direkt an einen Mitarbeiter weiter.
+      responseInstructions:
+      gptCapabilities:
+        webBrowsing: false
+        codeInterpreter: false
+
+      aISettings:
+        model:
+          modelNameHint: GPT41
+
+        extensionData:
+          lastUsedCustomModel: {}
+
+  - kind: DialogComponent
+    version: 1985791
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:59:37.0000000Z
+      modifiedTimeUtc: 2026-07-17T13:02:42.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Erkennung von Anrufbeantwortern
+    id: b7a60171-9bf2-4adc-9dc4-3496fb9ca388
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Dies wird ausgelöst, wenn der Agent erkennt, dass er mit einem Anrufbeantworter interagiert.
+    shareContext: {}
+    state: Inactive
+    status: Inactive
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.AnsweringMachineDetection
+    dialog:
+      beginDialog:
+        kind: OnAnsweringMachineDetected
+        id: main
+        actions:
+          - kind: SendActivity
+            id: sendActivity_C8pKOo
+            activity:
+              text:
+                - Hallo, {System.Bot.Name} versucht, Sie zu erreichen.
+              speak:
+                - Hallo, {System.Bot.Name} versucht, Sie zu erreichen.
+
+          - kind: EndConversation
+            id: Rgrz4i
+
+  - kind: DialogComponent
+    version: 3526826
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-08T07:56:11.0000000Z
+      modifiedTimeUtc: 2026-09-08T12:50:22.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Zusammenfassung EN
+    id: bdee6538-40ff-4964-8562-6c16b38a48c1
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.ZusammenfassungEN
+    dialog:
+      beginDialog:
+        kind: OnRedirect
+        id: main
+        actions:
+          - kind: SetVariable
+            id: setVariable_IgcdCf_en
+            variable: Topic.Korrekturversuche
+            value: =0
+
+          - kind: InvokeFlowAction
+            id: 2exxIi_en
+            displayName: Staging
+            input:
+              binding:
+                text: =System.Conversation.Id
+                text_1: =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
+                text_2: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
+                text_3: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
+                text_4: =If(IsBlank(Global.AnrufgrundEN), "nicht angegeben", Text(Global.AnrufgrundEN))
+                text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
+                text_6: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
+                text_7: =If(IsBlank(Global.KanalLabel), "Telefon", Global.KanalLabel)
+
+            output: {}
+            flowId: a0a99959-80a7-f111-b8de-7ced8d476627
+
+          - kind: Question
+            id: question_Qt7GUF_en
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: init:Topic.korrekt
+            prompt:
+              text:
+                - |-
+                  Let me summarise your details:
+                  - Company: {Global.Firmenname}
+                  - Contact: {Global.Ansprechpartner}
+                  - Phone number: {Global.Telefonnummer}
+
+                  Is that correct?
+              speak:
+                - Let me summarise your details. You are calling for {Global.Firmenname}. Your name is {Global.Ansprechpartner} and we can reach you at {Global.TelefonGesprochen}. Is that correct?
+              allowBargeIn: false
+
+            entity: BooleanPrebuiltEntity
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: ConditionGroup
+            id: conditionGroup_lwSRiq_en
+            conditions:
+              - id: conditionItem_3i56ds_en
+                condition: =Topic.korrekt = true
+                actions:
+                  - kind: SetVariable
+                    id: setVariable_DCilYb_en
+                    variable: Global.FlowAufgerufen
+                    value: =true
+
+                  - kind: InvokeFlowAction
+                    id: invokeFlowAction_s8uOdc_en
+                    input:
+                      binding:
+                        text: =Global.Firmenname
+                        text_1: =Global.Ansprechpartner
+                        text_2: =Global.Telefonnummer
+                        text_3: =Global.Anliegen
+                        text_4: =Global.KanalLabel
+                        text_5: =Global.Anlage
+                        text_6: =Text(Global.AnrufgrundEN)
+                        text_7: =System.Conversation.Id
+
+                    output: {}
+                    flowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
+
+                  - kind: SendActivity
+                    id: dWynBC_en
+                    activity:
+                      text:
+                        - Thank you. I have forwarded your request. A member of our team will contact you shortly. Goodbye.
+                      speak:
+                        - Thank you. I have forwarded your request. A member of our team will contact you shortly. Goodbye!
+
+                  - kind: BeginDialog
+                    id: PWDKsD_en
+                    dialog: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+            elseActions:
+              - kind: SetVariable
+                id: setVariable_DQIEeM_en
+                variable: Topic.Korrekturversuche
+                value: =Topic.Korrekturversuche +1
+
+              - kind: ConditionGroup
+                id: conditionGroup_73xIxM_en
+                conditions:
+                  - id: conditionItem_Ewz9wH_en
+                    condition: =Topic.Korrekturversuche <= 3
+                    displayName: Versuche =< 3
+                    actions:
+                      - kind: Question
+                        id: question_ODxM04_en
+                        interruptionPolicy:
+                          allowInterruption: true
+
+                        variable: init:Topic.Korrekturfeld
+                        prompt:
+                          text:
+                            - Which detail was incorrect? The company name, the contact name, or the phone number?
+                          speak:
+                            - Which detail was incorrect? The company name, the contact name, or the phone number?
+
+                        entity:
+                          kind: ClosedListEntityReference
+                          entityId: mosaiic_AIRCOTelefonBot.entity.Korrekturfeld
+
+                        voiceInputSettings:
+                          fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+                          defaultValueMissingAction: GoToDialog
+
+                        fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+                      - kind: ConditionGroup
+                        id: conditionGroup_7MJ9bT_en
+                        conditions:
+                          - id: conditionItem_kLZWTj_en
+                            condition: =Topic.Korrekturfeld = 'mosaiic_AIRCOTelefonBot.entity.Korrekturfeld'.KJwQ9x
+                            actions:
+                              - kind: SetVariable
+                                id: setVariable_EmKb6d_en
+                                variable: Global.Firmenname
+                                value: =Blank()
+
+                              - kind: Question
+                                id: question_UrXver_en
+                                interruptionPolicy:
+                                  allowInterruption: true
+
+                                variable: Global.Firmenname
+                                prompt:
+                                  text:
+                                    - What is the correct company name?
+                                  speak:
+                                    - What is the correct company name?
+
+                                entity:
+                                  kind: StringPrebuiltEntity
+                                  sensitivityLevel: None
+
+                                voiceInputSettings:
+                                  fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+                                  defaultValueMissingAction: GoToDialog
+
+                                fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+                          - id: conditionItem_33ZPed_en
+                            condition: =Topic.Korrekturfeld = 'mosaiic_AIRCOTelefonBot.entity.Korrekturfeld'.md1vGC
+                            actions:
+                              - kind: SetVariable
+                                id: setVariable_2nLyQe_en
+                                variable: Global.Ansprechpartner
+                                value: =Blank()
+
+                              - kind: Question
+                                id: question_sB1Ck1_en
+                                interruptionPolicy:
+                                  allowInterruption: true
+
+                                variable: Global.Ansprechpartner
+                                prompt:
+                                  text:
+                                    - What is your correct name?
+                                  speak:
+                                    - What is your correct name?
+
+                                entity: StringPrebuiltEntity
+                                voiceInputSettings:
+                                  fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+                                  defaultValueMissingAction: GoToDialog
+
+                                fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+                          - id: conditionItem_nV5Ax7_en
+                            condition: =Topic.Korrekturfeld = 'mosaiic_AIRCOTelefonBot.entity.Korrekturfeld'.swLyyJ
+                            actions:
+                              - kind: SetVariable
+                                id: setVariable_j62k3e_en
+                                variable: Global.Telefonnummer
+                                value: =Blank()
+
+                              - kind: Question
+                                id: question_Q8Yy2q_en
+                                interruptionPolicy:
+                                  allowInterruption: true
+
+                                variable: Global.Telefonnummer
+                                prompt:
+                                  text:
+                                    - What is your correct phone number?
+                                  speak:
+                                    - What is your correct phone number?
+
+                                entity: PhoneNumberPrebuiltEntity
+                                voiceInputSettings:
+                                  fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+                                  defaultValueMissingAction: GoToDialog
+
+                                fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+                              - kind: SetVariable
+                                id: BrNrJj_en
+                                variable: Global.TelefonGesprochen
+                                value: |-
+                                  =Trim(
+                                        Concat(
+                                            Sequence(Len(Global.Telefonnummer)),
+                                            Mid(Global.Telefonnummer, Value, 1) & " "
+                                        )
+                                    )
+
+                        elseActions:
+                          - kind: SendActivity
+                            id: sendActivity_zYNVAs_en
+                            activity:
+                              text:
+                                - I'm sorry, I didn't understand that.
+                              speak:
+                                - I'm sorry, I didn't understand that.
+
+                          - kind: GotoAction
+                            id: rlmkpf_en
+                            actionId: question_ODxM04_en
+
+                      - kind: GotoAction
+                        id: SLfuCH_en
+                        actionId: question_Qt7GUF_en
+
+                elseActions:
+                  - kind: SetVariable
+                    id: g3K5c7_en
+                    variable: Global.FlowAufgerufen
+                    value: =true
+
+                  - kind: InvokeFlowAction
+                    id: zE6DJh_en
+                    input:
+                      binding:
+                        text: =Global.Firmenname
+                        text_1: =Global.Ansprechpartner
+                        text_2: =Global.Telefonnummer
+                        text_3: =Global.Anliegen
+                        text_4: =Global.KanalLabel
+                        text_5: =Global.Anlage
+                        text_6: =Text(Global.AnrufgrundEN)
+                        text_7: =System.Conversation.Id
+
+                    output: {}
+                    flowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
+
+                  - kind: SendActivity
+                    id: 5cXWgp_en
+                    activity:
+                      text:
+                        - Unfortunately, your details could not be fully confirmed. I have forwarded your request. A member of our team will contact you shortly. Goodbye!
+                      speak:
+                        - Unfortunately, your details could not be fully confirmed. I have forwarded your request. A member of our team will contact you shortly. Goodbye!
+
+                  - kind: BeginDialog
+                    id: Cs2X1Y_en
+                    dialog: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+      inputType: {}
+      outputType: {}
+
+  - kind: DialogComponent
+    version: 3490064
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-08-18T10:15:10.0000000Z
+      modifiedTimeUtc: 2026-09-07T06:50:59.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Anlage erfassen
+    id: c48c6ae9-56b7-444a-805d-ed353d06ca20
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.Anlagenerfassung
+    dialog:
+      beginDialog:
+        kind: OnRedirect
+        id: main
+        actions:
+          - kind: Question
+            id: question_Xnm8Nm
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: Global.Anlage
+            prompt:
+              text:
+                - Bitte teilen Sie uns die Anlagenbezeichnung, Serialnummer und das Baujahr mit.
+              speak:
+                - Bitte teilen Sie uns die Anlagenbezeichnung, Serialnummer und das Baujahr mit.
+              allowBargeIn: false
+
+            entity:
+              kind: StringPrebuiltEntity
+              sensitivityLevel: None
+
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            holdSettings:
+              kind: UserRequestedHoldSettings
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: BeginDialog
+            id: k1uiUZ
+            dialog: mosaiic_AIRCOTelefonBot.topic.Anliegenerfassen
+
+      inputType: {}
+      outputType: {}
+
+  - kind: DialogComponent
+    version: 1982624
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:59:36.0000000Z
+      modifiedTimeUtc: 2026-07-17T12:59:36.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Unbekannte Wähltastatureingabe
+    id: c4989449-936d-43f7-8909-78d7f448362c
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Wird ausgelöst, wenn die Wähltastatureingaben eines Benutzers mit keinen vorhandenen Wähltastatureinstellungen übereinstimmen. Vor dem Auslösen dieses Triggers werden globale MFV-Wähltastaturkonfigurationen berücksichtigt.
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.UnknownDtmfKey
+    dialog:
+      beginDialog:
+        kind: OnUnknownDtmfKey
+        id: main
+        actions:
+          - kind: SendActivity
+            id: sendActivity_26sT88
+            activity: Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?
+
+  - kind: DialogComponent
+    version: 3526782
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-08T07:55:03.0000000Z
+      modifiedTimeUtc: 2026-09-08T12:43:31.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Anrufgrund erfassen EN
+    id: d00ccea7-3380-42f2-a6bc-64f22f6a51a9
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.AnrufgrunderfassenEN
+    dialog:
+      beginDialog:
+        kind: OnRedirect
+        id: main
+        actions:
+          - kind: ConditionGroup
+            id: conditionGroup_DklHkA_en
+            conditions:
+              - id: conditionItem_8IyZXO_en
+                condition: =Global.AnrufgrundEN = 'mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN'.'8jiEHk' || Global.AnrufgrundEN = 'mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN'.KXrpcq
+                displayName: Störung oder Wartung > Anlage fragen
+                actions:
+                  - kind: BeginDialog
+                    id: beginDialog_anlage_en
+                    dialog: mosaiic_AIRCOTelefonBot.topic.AnlageerfassenEN
+
+            elseActions:
+              - kind: BeginDialog
+                id: beginDialog_anliegen_direkt_en
+                dialog: mosaiic_AIRCOTelefonBot.topic.AnliegenerfassenEN
+
+      inputType: {}
+      outputType: {}
+
+  - kind: DialogComponent
+    version: 3526712
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-08-18T10:14:35.0000000Z
+      modifiedTimeUtc: 2026-09-08T12:00:10.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Zusammenfassung
+    id: dc37b837-998a-4059-b997-460e7086637d
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim
+    dialog:
+      beginDialog:
+        kind: OnRedirect
+        id: main
+        actions:
+          - kind: SetVariable
+            id: setVariable_IgcdCf
+            variable: Topic.Korrekturversuche
+            value: =0
+
+          - kind: InvokeFlowAction
+            id: 2exxIi
+            displayName: Staging
+            input:
+              binding:
+                text: =System.Conversation.Id
+                text_1: =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
+                text_2: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
+                text_3: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
+                text_4: =If(IsBlank(Global.Anrufgrund), "nicht angegeben", Text(Global.Anrufgrund))
+                text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
+                text_6: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
+                text_7: =If(IsBlank(Global.KanalLabel), "Telefon", Global.KanalLabel)
+
+            output: {}
+            flowId: a0a99959-80a7-f111-b8de-7ced8d476627
+
+          - kind: Question
+            id: question_Qt7GUF
+            interruptionPolicy:
+              allowInterruption: false
+
+            variable: init:Topic.korrekt
+            prompt:
+              text:
+                - |-
+                  Ich fasse Ihre Angaben zusammen:
+                  - Firma: {Global.Firmenname}
+                  - Ansprechpartner: {Global.Ansprechpartner}
+                  - Telefonnummer: {Global.Telefonnummer}
+
+                  Ist das so korrekt?
+              speak:
+                - Ich fasse Ihre Angaben zusammen. Sie rufen für die Firma {Global.Firmenname} an. Ihr Name lautet {Global.Ansprechpartner} und Sie sind unter {Global.TelefonGesprochen} erreichbar. Ist das so korrekt? Bitte antworten Sie mit Ja oder Nein.
+              allowBargeIn: false
+
+            entity:
+              kind: ClosedListEntityReference
+              entityId: mosaiic_AIRCOTelefonBot.entity.JaNein
+
+            voiceInputSettings:
+              fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+              defaultValueMissingAction: GoToDialog
+
+            fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+          - kind: ConditionGroup
+            id: conditionGroup_lwSRiq
+            conditions:
+              - id: conditionItem_3i56ds
+                condition: =Topic.korrekt = 'mosaiic_AIRCOTelefonBot.entity.JaNein'.aJ8mN2
+                actions:
+                  - kind: SetVariable
+                    id: setVariable_DCilYb
+                    variable: Global.FlowAufgerufen
+                    value: =true
+
+                  - kind: InvokeFlowAction
+                    id: invokeFlowAction_s8uOdc
+                    input:
+                      binding:
+                        text: =Global.Firmenname
+                        text_1: =Global.Ansprechpartner
+                        text_2: =Global.Telefonnummer
+                        text_3: =Global.Anliegen
+                        text_4: =Global.KanalLabel
+                        text_5: =Global.Anlage
+                        text_6: =Text(Global.Anrufgrund)
+                        text_7: =System.Conversation.Id
+
+                    output: {}
+                    flowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
+
+                  - kind: SendActivity
+                    id: dWynBC
+                    activity:
+                      text:
+                        - Vielen Dank, ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören.
+                      speak:
+                        - Vielen Dank, ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
+
+                  - kind: BeginDialog
+                    id: PWDKsD
+                    dialog: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+            elseActions:
+              - kind: SetVariable
+                id: setVariable_DQIEeM
+                variable: Topic.Korrekturversuche
+                value: =Topic.Korrekturversuche +1
+
+              - kind: ConditionGroup
+                id: conditionGroup_73xIxM
+                conditions:
+                  - id: conditionItem_Ewz9wH
+                    condition: =Topic.Korrekturversuche <= 3
+                    displayName: Versuche =< 3
+                    actions:
+                      - kind: Question
+                        id: question_ODxM04
+                        interruptionPolicy:
+                          allowInterruption: true
+
+                        variable: init:Topic.Korrekturfeld
+                        prompt:
+                          text:
+                            - Welche Angabe war nicht korrekt? Der Firmenname, der Ansprechpartnername oder die Telefonnummer?
+                          speak:
+                            - Welche Angabe war nicht korrekt? Der Firmenname, der Ansprechpartnername oder die Telefonnummer?
+
+                        entity:
+                          kind: ClosedListEntityReference
+                          entityId: mosaiic_AIRCOTelefonBot.entity.Korrekturfeld
+
+                        voiceInputSettings:
+                          fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+                          defaultValueMissingAction: GoToDialog
+
+                        fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+                      - kind: ConditionGroup
+                        id: conditionGroup_7MJ9bT
+                        conditions:
+                          - id: conditionItem_kLZWTj
+                            condition: =Topic.Korrekturfeld = 'mosaiic_AIRCOTelefonBot.entity.Korrekturfeld'.KJwQ9x
+                            actions:
+                              - kind: SetVariable
+                                id: setVariable_EmKb6d
+                                variable: Global.Firmenname
+                                value: =Blank()
+
+                              - kind: Question
+                                id: question_UrXver
+                                interruptionPolicy:
+                                  allowInterruption: true
+
+                                variable: Global.Firmenname
+                                prompt:
+                                  text:
+                                    - Wie lautet der richtige Firmenname?
+                                  speak:
+                                    - Wie lautet der richtige Firmenname?
+
+                                entity:
+                                  kind: StringPrebuiltEntity
+                                  sensitivityLevel: None
+
+                                voiceInputSettings:
+                                  fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+                                  defaultValueMissingAction: GoToDialog
+
+                                fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+                          - id: conditionItem_33ZPed
+                            condition: =Topic.Korrekturfeld = 'mosaiic_AIRCOTelefonBot.entity.Korrekturfeld'.md1vGC
+                            actions:
+                              - kind: SetVariable
+                                id: setVariable_2nLyQe
+                                variable: Global.Ansprechpartner
+                                value: =Blank()
+
+                              - kind: Question
+                                id: question_sB1Ck1
+                                interruptionPolicy:
+                                  allowInterruption: true
+
+                                variable: Global.Ansprechpartner
+                                prompt:
+                                  text:
+                                    - Wie ist Ihr richtiger Name?
+                                  speak:
+                                    - Wie ist Ihr richtiger Name?
+
+                                entity: StringPrebuiltEntity
+                                voiceInputSettings:
+                                  fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+                                  defaultValueMissingAction: GoToDialog
+
+                                fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+                          - id: conditionItem_nV5Ax7
+                            condition: =Topic.Korrekturfeld = 'mosaiic_AIRCOTelefonBot.entity.Korrekturfeld'.swLyyJ
+                            actions:
+                              - kind: SetVariable
+                                id: setVariable_j62k3e
+                                variable: Global.Telefonnummer
+                                value: =Blank()
+
+                              - kind: Question
+                                id: question_Q8Yy2q
+                                interruptionPolicy:
+                                  allowInterruption: true
+
+                                variable: Global.Telefonnummer
+                                prompt:
+                                  text:
+                                    - Wie ist Ihre richtige Telefonnummer?
+                                  speak:
+                                    - Wie ist Ihre richtige Telefonnummer?
+
+                                entity: PhoneNumberPrebuiltEntity
+                                voiceInputSettings:
+                                  fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+                                  defaultValueMissingAction: GoToDialog
+
+                                fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+                              - kind: SetVariable
+                                id: BrNrJj
+                                variable: Global.TelefonGesprochen
+                                value: |-
+                                  =Trim(
+                                        Concat(
+                                            Sequence(Len(Global.Telefonnummer)),
+                                            Mid(Global.Telefonnummer, Value, 1) & " "
+                                        )
+                                    )
+
+                        elseActions:
+                          - kind: SendActivity
+                            id: sendActivity_zYNVAs
+                            activity:
+                              text:
+                                - Das habe ich leider nicht verstanden.
+                              speak:
+                                - Das habe ich leider nicht verstanden.
+
+                          - kind: GotoAction
+                            id: rlmkpf
+                            actionId: question_ODxM04
+
+                      - kind: InvokeFlowAction
+                        id: 5UKhu9
+                        displayName: Staging
+                        input:
+                          binding:
+                            text: =System.Conversation.Id
+                            text_1: =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
+                            text_2: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
+                            text_3: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
+                            text_4: =If(IsBlank(Global.Anrufgrund), "nicht angegeben", Text(Global.Anrufgrund))
+                            text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
+                            text_6: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
+                            text_7: =If(IsBlank(Global.KanalLabel), "Telefon", Global.KanalLabel)
+
+                        output: {}
+                        flowId: a0a99959-80a7-f111-b8de-7ced8d476627
+
+                      - kind: GotoAction
+                        id: SLfuCH
+                        actionId: question_Qt7GUF
+
+                elseActions:
+                  - kind: SetVariable
+                    id: g3K5c7
+                    variable: Global.FlowAufgerufen
+                    value: =true
+
+                  - kind: InvokeFlowAction
+                    id: zE6DJh
+                    input:
+                      binding:
+                        text: =Global.Firmenname
+                        text_1: =Global.Ansprechpartner
+                        text_2: =Global.Telefonnummer
+                        text_3: =Global.Anliegen
+                        text_4: =Global.KanalLabel
+                        text_5: =Global.Anlage
+                        text_6: =Text(Global.Anrufgrund)
+                        text_7: =System.Conversation.Id
+
+                    output: {}
+                    flowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
+
+                  - kind: SendActivity
+                    id: 5cXWgp
+                    activity:
+                      text:
+                        - Ihre Angaben konnten leider nicht abschließend bestätigt werden. Ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
+                      speak:
+                        - Ihre Angaben konnten leider nicht abschließend bestätigt werden. Ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
+
+                  - kind: BeginDialog
+                    id: Cs2X1Y
+                    dialog: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+      inputType: {}
+      outputType: {}
+
+  - kind: DialogComponent
+    version: 1985780
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:55:41.0000000Z
+      modifiedTimeUtc: 2026-07-17T13:02:37.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: "Anmelden "
+    id: dd744890-ddd8-482f-b692-29e5757501a0
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Dieses Systemthema wird ausgelöst, wenn der Agent den Benutzer anmelden muss oder eine Anmeldung des Benutzers verlangt
+    shareContext: {}
+    state: Inactive
+    status: Inactive
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.Signin
+    dialog:
+      beginDialog:
+        kind: OnSignIn
+        id: main
+        actions:
+          - kind: ConditionGroup
+            id: conditionGroup_ypjGKL
+            conditions:
+              - id: conditionItem_7XYIIR
+                condition: =System.SignInReason = SignInReason.SignInRequired
+                actions:
+                  - kind: SendActivity
+                    id: sendMessage_1jHUNO
+                    activity: Hallo! Um Ihnen helfen zu können, müssen Sie sich anmelden.
+
+          - kind: OAuthInput
+            id: gOjhZA
+            title: Anmeldung
+            text: Zum Fortfahren bitte anmelden
+
+  - kind: CustomEntityComponent
+    version: 3526649
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:58:32.0000000Z
+      modifiedTimeUtc: 2026-09-08T10:31:59.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Korrekturfeld
+    id: dd87eca9-31aa-4f98-8f23-9054c18457d0
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Welche Angabe falsch verstanden wurde.
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.entity.Korrekturfeld
+    entity:
+      kind: ClosedListEntity
+      smartMatchingEnabled: true
+      items:
+        - id: md1vGC
+          displayName: Ansprechpartner
+          synonyms:
+            - der Kontakt
+            - Kontaktperson
+            - der Name
+            - ich heiße
+            - mein Name
+            - Ansprechperson
+            - der Ansprechpartner
+            - the contact
+            - contact person
+            - my name
+
+        - id: KJwQ9x
+          displayName: Firmenname
+          synonyms:
+            - unser Firmenname
+            - unser Firma
+            - die Firma heißt
+            - wir heißen
+            - Firmenbezeichnung
+            - das Unternehmen
+            - Unternehmen
+            - der Firmenname
+            - die Firma
+            - Firma
+            - company name
+            - the company
+            - company
+
+        - id: swLyyJ
+          displayName: Telefonnummer
+          synonyms:
+            - Telefon
+            - Rufnummer
+            - Telefonnumer
+            - Nummer
+            - phone number
+            - the number
+            - telephone number
+
+        - id: gjJ4ZJ
+          displayName: Inbetriebnahme
+          synonyms:
+            - das Datum
+            - die 12 Monate
+            - die zwölf Monate
+            - die Installation
+            - aufgestellt
+            - installiert
+            - Inbetriebnahmedatum
+            - in Betrieb
+            - in Betrieb genommen
+            - die Inbetriebnahme
+
+        - id: YvfEJQ
+          displayName: Wartungsvertrag
+          synonyms:
+            - Wartungsvereinbarung
+            - der Service
+            - die Wartung
+            - Servicevertrag
+            - der Vertrag
+
+  - kind: DialogComponent
+    version: 1985811
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-07-17T12:55:40.0000000Z
+      modifiedTimeUtc: 2026-07-17T13:02:50.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: Mehrere passende Themen
+    id: e8cd7465-fdea-4bd0-9f60-c804f91f4a4d
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Dieses Systemthema wird ausgelöst, wenn der Agent mehrere Themen mit der eingehenden Nachricht abgleicht und klären muss, welches Thema ausgelöst werden soll.
+    shareContext: {}
+    state: Inactive
+    status: Inactive
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.topic.MultipleTopicsMatched
+    dialog:
+      beginDialog:
+        kind: OnSelectIntent
+        id: main
+        triggerBehavior: Always
+        actions:
+          - kind: SetVariable
+            id: setVariable_M6434i
+            variable: init:Topic.IntentOptions
+            value: =System.Recognizer.IntentOptions
+
+          - kind: SetTextVariable
+            id: setTextVariable_0
+            variable: Topic.NoneOfTheseDisplayName
+            value: Nichts davon
+
+          - kind: EditTable
+            id: sendMessage_g5Ls09
+            changeType: Add
+            itemsVariable: Topic.IntentOptions
+            value: "={ DisplayName: Topic.NoneOfTheseDisplayName, TopicId: \"NoTopic\", TriggerId: \"NoTrigger\", Score: 1.0 }"
+
+          - kind: Question
+            id: question_zf2HhP
+            interruptionPolicy:
+              allowInterruption: false
+
+            alwaysPrompt: true
+            variable: System.Recognizer.SelectedIntent
+            prompt: "Meinten Sie:"
+            entity:
+              kind: DynamicClosedListEntity
+              items: =Topic.IntentOptions
+
+          - kind: ConditionGroup
+            id: conditionGroup_60PuXb
+            conditions:
+              - id: conditionItem_rs7GgM
+                condition: =System.Recognizer.SelectedIntent.TopicId = "NoTopic"
+                actions:
+                  - kind: ReplaceDialog
+                    id: YZXRDb
+                    dialog: mosaiic_AIRCOTelefonBot.topic.Fallback
+
+  - kind: CustomEntityComponent
+    version: 3526713
+    managedProperties:
+      isCustomizable: false
+      solutionId: fd140aae-4df4-11dd-bd17-0019b9312238
+
+    auditInfo:
+      createdTimeUtc: 2026-09-08T12:00:11.0000000Z
+      modifiedTimeUtc: 2026-09-08T12:00:11.0000000Z
+      createdBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+      modifiedBy: 038f203f-4f5b-4fd7-b43e-ecfe99e15a95
+
+    displayName: JaNein
+    id: e9c4b3ca-f610-4f86-9a28-0d427ed6fd93
+    parentBotId: e90b2ac7-de81-f111-ab0e-7ced8d2d1a33
+    description: Ja/Nein-Bestätigung (deutsche Antwortoption), ersetzt BooleanPrebuiltEntity um den englischen Voice-Auto-Hint zu vermeiden.
+    shareContext: {}
+    state: Active
+    status: Active
+    publisherUniqueName: DefaultPublisherorg3d9837a5
+    schemaName: mosaiic_AIRCOTelefonBot.entity.JaNein
+    entity:
+      kind: ClosedListEntity
+      smartMatchingEnabled: true
+      items:
+        - id: aJ8mN2
+          displayName: ja
+          synonyms:
+            - korrekt
+            - stimmt
+            - passt
+            - genau
+            - richtig
+            - das stimmt
+            - ist richtig
+            - jawohl
+
+        - id: bK9pQ4
+          displayName: nein
+          synonyms:
+            - falsch
+            - nicht korrekt
+            - stimmt nicht
+            - stimmt nicht so
+            - das ist falsch
+            - nicht richtig
+
+flows:
+  - displayName: Staging schreiben
+    isEnabled: true
+    workflowId: a0a99959-80a7-f111-b8de-7ced8d476627
+    inputType:
+      properties:
+        text:
+          displayName: ConversationId
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_1:
+          displayName: Firmenname
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_2:
+          displayName: Ansprechpartner
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_3:
+          displayName: Telefonnummer
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_4:
+          displayName: Anrufgrund
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_5:
+          displayName: Anlage
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_6:
+          displayName: Anliegen
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_7:
+          displayName: KanalLabel
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+    outputType: {}
+    connectionType: EmbeddedOnly
+    secureInputs: false
+    secureOutputs: false
+
+  - displayName: Ticketerstellung
+    isEnabled: true
+    workflowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
+    inputType:
+      properties:
+        text:
+          displayName: Firmenname
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_1:
+          displayName: Ansprechpartner
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_2:
+          displayName: Telefonnummer
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_3:
+          displayName: Anliegen
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_4:
+          displayName: KanalLabel
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_5:
+          displayName: Anlage
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_6:
+          displayName: Anrufgrund
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+        text_7:
+          displayName: ConversationId
+          description: Geben Sie Ihre Eingabe ein.
+          isRequired: true
+          type: String
+
+    outputType: {}
+    connectionType: EmbeddedOnly
+    secureInputs: false
+    secureOutputs: false

@@ -41,6 +41,7 @@ beginDialog:
 
         dtmfMultipleChoiceOptions:
           generateMapping: true
+          readOutOptions: false
 
       voiceInputSettings:
         fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen

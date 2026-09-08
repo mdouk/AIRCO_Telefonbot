@@ -10,7 +10,7 @@ beginDialog:
       interruptionPolicy:
         allowInterruption: false
 
-      variable: init:Global.Anliegen
+      variable: Global.Anliegen
       prompt:
         text:
           - Bitte beschreiben Sie nun Ihr Anliegen.

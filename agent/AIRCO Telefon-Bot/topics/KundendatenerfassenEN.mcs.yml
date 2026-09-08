@@ -86,13 +86,13 @@ beginDialog:
         text:
           - |-
             What is the reason for your call?
-            1 - Malfunction or problem
+            1 - Malfunction
             2 - Schedule a maintenance appointment
             3 - Spare parts order
             4 - Request a callback
             5 - Something else
         speak:
-          - "What is the reason for your call? You can say: malfunction or problem, schedule a maintenance appointment, spare parts order, request a callback, or something else."
+          - "What is the reason for your call? You can say: malfunction, maintenance appointment, spare parts order, request a callback, or something else."
         allowBargeIn: false
 
       entity:
@@ -146,7 +146,7 @@ beginDialog:
               fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
 
     - kind: InvokeFlowAction
-      id: m8Ujcv_en
+      id: bJtc5e
       displayName: Staging
       input:
         binding:
