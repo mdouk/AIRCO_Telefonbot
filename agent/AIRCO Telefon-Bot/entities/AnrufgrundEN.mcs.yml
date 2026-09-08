@@ -14,7 +14,7 @@ items:
       - malfunction
 
   - id: KXrpcq
-    displayName: mainentance
+    displayName: maintenance
     synonyms:
       - 2
       - two

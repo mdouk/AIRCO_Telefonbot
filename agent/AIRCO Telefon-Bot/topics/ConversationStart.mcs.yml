@@ -32,6 +32,15 @@ beginDialog:
         kind: ClosedListEntityReference
         sensitivityLevel: None
         entityId: mosaiic_AIRCOTelefonBot.entity.Sprachwahl
+        selectedItems:
+          - id: deutsch
+            dtmfKey: Num1
+
+          - id: englisch
+            dtmfKey: Num2
+
+        dtmfMultipleChoiceOptions:
+          generateMapping: true
 
       voiceInputSettings:
         fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen

@@ -74,7 +74,7 @@ beginDialog:
                   text_3: =Global.Anliegen
                   text_4: =Global.KanalLabel
                   text_5: =Global.Anlage
-                  text_6: =Text(Global.Anrufgrund)
+                  text_6: =Text(Global.AnrufgrundEN)
                   text_7: =System.Conversation.Id
 
               output: {}
@@ -258,7 +258,7 @@ beginDialog:
                   text_3: =Global.Anliegen
                   text_4: =Global.KanalLabel
                   text_5: =Global.Anlage
-                  text_6: =Text(Global.Anrufgrund)
+                  text_6: =Text(Global.AnrufgrundEN)
                   text_7: =System.Conversation.Id
 
               output: {}
