@@ -27,7 +27,9 @@ ist verworfen.
 > Die Zusammenfassung bestätigt nur die 3 Kontaktfelder; Anlage und Anliegen
 > gehen unbestätigt in den Flow „Anliegen weiterleiten – slim".
 > Die PPTX-Bezeichnung für diese Variante ist **„Stufe 0"** (Folie 8, 18.08.2026).
-> YAML-Quelle: `YAML/Slim/`.
+> **Quelle der Wahrheit: `agent/AIRCO Telefon-Bot/topics/`** (per
+> `manage-agent` gespiegelt). Der frühere Ordner `YAML/Slim/` existiert nicht
+> mehr; die alten Arbeitskopien liegen als historischer Stand in `Backup/`.
 
 ### ⚠ Ist-Stand der Kette (2026-09-08, per Fresh-Clone verifiziert)
 
