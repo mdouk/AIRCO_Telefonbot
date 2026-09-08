@@ -36,10 +36,20 @@ Nachweis im Trace `Tests/Test 2/dialog.json`: `invokeFlowAction_nOBDGN` und `inv
 
 ## Arbeitsweise MCP (bewährt)
 
-Lokale Quelle der Wahrheit für Push: `agent/AIRCO Telefon-Bot/topics/*.mcs.yml`.
-`YAML/*.md` sind Arbeitskopien (parallel pflegen).
+Lokale Quelle der Wahrheit für Push: `agent/AIRCO Telefon-Bot/topics/*.mcs.yml`
+— **die einzige.** Der frühere Parallelordner `YAML/` ist am 2026-09-08
+aufgelöst worden (er war driftende Zweitquelle und hat zu einer Fehldiagnose
+geführt); der alte Stand liegt als reines Archiv in `Backup/` und wird **nicht**
+mehr mitgepflegt.
 **Immer erst Pull, dann Edit, dann Push** (sonst wird Cloud-Stand überschrieben).
 Skill: `copilot-studio:manage-agent` mit `pull` / `push` (Browser-Login nötig).
+
+> ⚠ **`pull` ist nicht verlässlich.** Er meldet `ok` und schreibt trotzdem
+> gecachte statt echter Cloud-Inhalte (2026-09-08 zweimal bestätigt, einmal
+> davon: manuell im Portal gesetzter Fix kam gar nicht an). Vor jedem Push, dem
+> eine manuelle oder fremde Änderung vorausging, per `clone` in ein
+> Temp-Verzeichnis gegenprüfen und `diff -rq` gegen den Workspace laufen lassen
+> (`.mcs/` ausklammern). Details: CLAUDE.md, „Werkzeugfalle".
 Push macht nur die **Draft** — für echten Anruf ist **Publish** nötig.
 
 ---
@@ -93,7 +103,7 @@ Abschnitt „Spaltenfalle"):
 
 - Konzept: `Konzept-Ausfallsichere-Weiterleitung.md`
 - Test-Traces: `Tests/Test 1/`, `Tests/Test 2/` (`dialog.json` = voller Dialog-Trace mit Exceptions)
-- Bot-Topics: `agent/AIRCO Telefon-Bot/topics/` (+ Arbeitskopien in `YAML/`)
+- Bot-Topics: `agent/AIRCO Telefon-Bot/topics/` (einzige Quelle; Altstand-Archiv: `Backup/`)
 - Kundentermin (Ursprung der Anforderung): `Protocols/2026-09-03 Kundentermin Transkript.md`
 
 ## Code-Review Staging + Sweep (2026-09-04)
