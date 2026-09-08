@@ -375,6 +375,24 @@ Jeweils **strukturgleiche** Kopie der Vorlage, nur Texte übersetzt.
 | `AnliegenerfassenEN.mcs.yml` | `Anliegenerfassen.mcs.yml` | `ZusammenfassungSlimEN` |
 | `ZusammenfassungSlimEN.mcs.yml` | `Zusammenfassung-Slim.mcs.yml` | `EndofConversation` |
 
+> ### ⚠ ÜBERHOLT 2026-09-08 — diese Kette existiert nicht mehr
+>
+> Die Tabelle oben beschreibt den **ursprünglich geplanten** Aufbau und ist nur
+> noch als Entstehungsgeschichte zu lesen. Tatsächlich gebaut wurden die Dateien
+> `AnlageerfassenEN.mcs.yml` und `ZusammenfassungEN.mcs.yml` (nicht
+> `AnlagenerfassungEN` / `ZusammenfassungSlimEN`) — und die Kette aus vier
+> Topics hat **die Reihenfolge-Anomalie reproduziert** (`Tests/Test 12`,
+> `Test 13`: Sprung mitten ins deutsche `Anliegen erfassen`).
+>
+> **Auflösung:** `AnrufgrunderfassenEN`, `AnlageerfassenEN` und
+> `AnliegenerfassenEN` wurden **inline in `KundendatenerfassenEN` gezogen**;
+> dasselbe danach für den deutschen Zweig. Beide `Kundendaten erfassen`-Topics
+> enthalten jetzt die vollständige Erfassung inkl. Anrufgrund-Verzweigung,
+> Anlage- und Anliegen-Frage und springen direkt in die Zusammenfassung.
+> Die sechs alten Topics existieren noch, werden aber nicht mehr aufgerufen.
+> Bestätigt durch `Tests/Test 14`. Details: CLAUDE.md, Bauregel
+> „kein `InvokeFlowAction` im Frageablauf".
+
 > **`KundendatenerfassenEN` trägt den Staging-Flowaufruf mit.** Er steht in der
 > Vorlage nach der `SetVariable`-Zuweisung `Global.KanalLabel = Telefon` und
 > unmittelbar vor dem `BeginDialog` — **exakt diese Position beibehalten**,
@@ -468,7 +486,7 @@ Jeweils `ConditionGroup` auf `=Global.Sprache = "Englisch"`, deutscher Text als
 | Datei | Was zu ändern ist |
 |---|---|
 | **`Fallback.mcs.yml`** | **Wichtigster Punkt.** Das Topic endet mit `BeginDialog → Anliegenerfassen`, also dem **deutschen** Topic. Ein englischer Anrufer, dessen Äußerung keinem Topic zugeordnet wird, landete damit mitten im Gespräch wieder auf Deutsch. **Nachricht *und* Zielsprache verzweigen:** englisch → `AnliegenerfassenEN`. |
-| `EndofConversation.mcs.yml` | Die Safety-Net-`SendActivity` (`BsLiWe`) zweisprachig. Die `InvokeFlowAction` und die Bedingung `Not(IsBlank(Global.Telefonnummer)) && Not(Global.FlowAufgerufen)` bleiben **ungeteilt und unverändert** — die Ausfallsicherung ist sprachneutral. |
+| `EndofConversation.mcs.yml` | Die Safety-Net-`SendActivity` (`BsLiWe`) zweisprachig. Die Bedingung `Not(IsBlank(Global.Telefonnummer)) && Not(Global.FlowAufgerufen)` bleibt **ungeteilt und unverändert** — sie ist sprachneutral. ⚠ **Korrektur 2026-09-08:** Die `InvokeFlowAction` ist es *nicht* — `text_6` las nur `Global.Anrufgrund` und wäre für englische Anrufer leer geblieben. **Bereits behoben:** `=If(IsBlank(Global.Anrufgrund), Text(Global.AnrufgrundEN), Text(Global.Anrufgrund))`. Nicht auf „unverändert" zurücksetzen. |
 | `Silence.mcs.yml` | Prompt „Sind Sie noch da?" → „Are you still there?"; `inputTimeoutResponse` → „We're not detecting any activity. Please call us back at your convenience." Das abschließende `BeginDialog → EndofConversation` bleibt. |
 | `UnrecognizedSpeech.mcs.yml` | „Sorry, I didn't catch that. Could you repeat it, please?" |
 | `UnknownDtmfKey.mcs.yml` | Durch das neue Tastenmenü relevanter geworden. **Achtung:** hier ist `activity:` ein einfacher String, nicht die `text`/`speak`-Struktur — Form beibehalten. |

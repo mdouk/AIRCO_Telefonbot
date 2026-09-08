@@ -29,34 +29,49 @@ ist verworfen.
 > Die PPTX-Bezeichnung für diese Variante ist **„Stufe 0"** (Folie 8, 18.08.2026).
 > YAML-Quelle: `YAML/Slim/`.
 
-### ⚠ Ist-Stand der Kette (2026-09-05, per Pull aus dem Studio verifiziert)
+### ⚠ Ist-Stand der Kette (2026-09-08, per Fresh-Clone verifiziert)
 
 Die Topic-Beschreibungen weiter unten sind älter und teils überholt.
 **Maßgeblich ist diese Kette:**
 
 ```
-Conversation Start
-  → Kundendaten erfassen
-        Q1 Global.Firmenname          (StringPrebuilt)
-        Q2 init:Global.Ansprechpartner (StringPrebuilt)
-        Q3 Global.Telefonnummer       (StringPrebuilt)
-        Q4 Global.Anrufgrund          (ClosedList, 5 Optionen)   ← 2026-09-05 hierher verschoben
+Start der Unterhaltung
+      SendActivity Begrüßung
+      Q Topic.Sprachwahl   (ClosedList, DTMF 1 = deutsch / 2 = englisch)
+      englisch → System.User.Language = English, Global.Sprache = "Englisch"
+                 → Kundendaten erfassen EN
+      sonst     → Kundendaten erfassen
+  → Kundendaten erfassen  /  Kundendaten erfassen EN   ← ALLES in EINEM Topic
+        Q1 Global.Firmenname            (StringPrebuilt)
+        Q2 init:Global.Ansprechpartner  (nur DE; EN ohne init:)
+        Q3 Global.Telefonnummer         (DE: PhoneNumberPrebuilt)
+        SetVariable Global.TelefonGesprochen  (Ziffern einzeln, für TTS)
+        Q4 Global.Anrufgrund / Global.AnrufgrundEN   (ClosedList, 5 Optionen)
         SetVariable Global.KanalLabel = "Telefon"
+        ConditionGroup: Störung (u9xatS / 8jiEHk) oder Wartung (gShHbV / KXrpcq)
+              → Q Global.Anlage                        ← inline, KEIN eigenes Topic
         InvokeFlowAction "Staging schreiben" (a0a99959-…)
-  → Anrufgrund erfassen                ← enthält NUR noch die ConditionGroup, keine Frage
-        Störung (u9xatS) oder Wartung (gShHbV) → Anlage erfassen
-        sonst                                  → Anliegen erfassen
-  → Anlage erfassen        Q Global.Anlage    → Anliegen erfassen
-  → Anliegen erfassen      Q init:Global.Anliegen → Zusammenfassung - Slim
-  → Zusammenfassung - Slim
+        Q Global.Anliegen (DE: init:)                  ← inline, KEIN eigenes Topic
+  → Zusammenfassung - Slim  /  Zusammenfassung EN
         SetVariable Topic.Korrekturversuche = 0
         InvokeFlowAction "Staging schreiben"
-        Q init:Topic.korrekt  ("Ist das so korrekt?")
+        Q init:Topic.korrekt  ("Ist das so korrekt?" / "Is that correct?")
         ja   → FlowAufgerufen = true → InvokeFlowAction "Ticketerstellung" → Ende
-        nein → Korrekturschleife (≤ 3) → GotoAction question_Qt7GUF
+        nein → Korrekturschleife (≤ 3) → GotoAction question_Qt7GUF(_en)
                nach 3 Versuchen → Ticketerstellung → Ende
   → Ende der Unterhaltung   (Safety-Net, nur wenn FlowAufgerufen = false)
+        text_6 = If(IsBlank(Global.Anrufgrund),
+                    Text(Global.AnrufgrundEN), Text(Global.Anrufgrund))
 ```
+
+> **Merge 2026-09-08:** `Anrufgrund erfassen`, `Anlage erfassen` und
+> `Anliegen erfassen` sind als eigenständige Topics **aus der Kette
+> verschwunden** — je DE und EN. Sie existieren noch als Dateien, werden aber
+> nicht mehr aufgerufen. Auslöser war die Reihenfolge-Anomalie im englischen
+> Zweig (`Tests/Test 12`/`13`), Bestätigung des Fixes in `Tests/Test 14`.
+> Die Abschnitte „Topic: Anlage erfassen" und „Topic: Anliegen erfassen" weiter
+> unten beschreiben also **Inhalt, der jetzt inline liegt** — die Fragen,
+> Entities und Bedingungs-IDs stimmen weiterhin, nur der Topic-Zuschnitt nicht.
 
 **Bauregel, die dabei gilt — hart erarbeitet:** Im Frageablauf steht **kein**
 `InvokeFlowAction`. Begründung und Beweisführung in `Architektur.md` §3a sowie

@@ -124,16 +124,35 @@ Entscheidungspunkte inkl. Eskalationsreihenfolge) steht in
 gepflegt, um Diagramm-Duplikate mit widersprüchlichem Stand zu vermeiden.
 
 Kurzfassung **Stufe 0 „Slim" — die aktiv gebaute Kette** (Stand 2026-09-08,
-per Pull verifiziert):
-`Conversation Start` → `Kundendaten erfassen` (Firmenname, Ansprechpartner,
-Telefonnummer, **Anrufgrund** als Closed List, dann `SetVariable KanalLabel`
-und der Staging-Flowaufruf `a0a99959-…` mit `IsBlank()`-Guards auf allen
-8 Parametern) → `Anrufgrund erfassen` (**nur noch Verzweigung, keine Frage**) → bei
-Störung/Wartung `Anlage erfassen`, sonst direkt → `Anliegen erfassen`
-(Freitext) → `Zusammenfassung - Slim` (Staging-Flow, Bestätigung der
-3 Kontaktfelder, Korrekturschleife ≤ 3) → Flow `Ticketerstellung` →
-`Ende der Unterhaltung` (Safety-Net, falls `Global.FlowAufgerufen` = false).
+per Fresh-Clone verifiziert; **Topics gemergt**, siehe Bauregel unten):
+`Start der Unterhaltung` (Begrüßung + **Sprachfrage** DTMF 1 = Deutsch /
+2 = Englisch, `Global.Sprache`) → **je nach Sprache** `Kundendaten erfassen`
+**oder** `Kundendaten erfassen EN` → `Zusammenfassung - Slim` bzw.
+`Zusammenfassung EN` (Staging-Flow, Bestätigung der 3 Kontaktfelder,
+Korrekturschleife ≤ 3) → Flow `Ticketerstellung` → `Ende der Unterhaltung`
+(Safety-Net, falls `Global.FlowAufgerufen` = false).
+
+**`Kundendaten erfassen` / `Kundendaten erfassen EN` enthalten seit
+2026-09-08 die komplette Erfassung in *einem* Topic**: Firmenname,
+Ansprechpartner, Telefonnummer, `SetVariable TelefonGesprochen`, **Anrufgrund**
+als Closed List (`Global.Anrufgrund` bzw. `Global.AnrufgrundEN`),
+`SetVariable KanalLabel`, ConditionGroup (bei Störung/Wartung inline die
+**Anlage**-Frage), dann der Staging-Flowaufruf `a0a99959-…` mit
+`IsBlank()`-Guards auf allen 8 Parametern, dann die **Anliegen**-Frage
+(Freitext), dann der Sprung in die Zusammenfassung.
+
+> ⚠ Die Reihenfolge Staging-Aufruf → **Anliegen-Frage im selben Topic** ist
+> die einzige nachweislich funktionierende; sie nicht umstellen. Siehe
+> Bauregel unten.
+
 Inaktiv: `Inbetriebnahme`, `Vertragsfrage`, `Zusammenfassung` (Nicht-Slim).
+**Tot (nicht mehr aufgerufen, nicht gelöscht):** `Anrufgrund erfassen`,
+`Anlage erfassen`, `Anliegen erfassen` und die EN-Pendants
+`Anrufgrund erfassen EN`, `Anlage erfassen EN`, `Anliegen erfassen EN` — ihr
+Inhalt steckt jetzt inline in den beiden `Kundendaten erfassen`-Topics.
+`Fallback` zeigt zwar noch auf `Anliegen erfassen`, ist aber selbst nicht
+auslösbar (alle Fragen `allowInterruption: false`, `GenerativeActionsEnabled:
+false`), daher ebenfalls toter Pfad.
 
 Kurzfassung **Stufe 1 (v2, 2026-07-14)** — Topics vorhanden, aber nicht aktiv:
 `Conversation Start` → `Kundendaten erfassen` → `Inbetriebnahme` („Wurde die
@@ -189,11 +208,58 @@ als nächste kommt, im selben Topic** (so gelöst in `Zusammenfassung - Slim`).
 Vollständige Herleitung in `Architektur.md` §3a und `ToDos.md`
 („Reihenfolge-Anomalie").
 
+**Konsequenz 2026-09-08 — Topic-Merge in beiden Sprachen:** „Im selben Topic"
+heißt wörtlich. Ein `BeginDialog` auf ein Topic, dessen erste Aktion eine Frage
+ist, zählt **nicht** — genau daran scheiterte der englische Zweig
+(`Tests/Test 12`, `Test 13`: Sprung aus `Kundendaten erfassen EN` mitten in das
+**deutsche** Topic `Anliegen erfassen`). Deshalb wurden `Anrufgrund erfassen`,
+`Anlage erfassen` und `Anliegen erfassen` — je EN und DE — **inline in
+`Kundendaten erfassen` bzw. `Kundendaten erfassen EN` gezogen**, sodass der
+Staging-Aufruf unmittelbar vor der Anliegen-Frage desselben Topics steht.
+Bestätigt durch `Tests/Test 14`: der Trace zeigt durchgehend
+`topicId = …topic.KundendatenerfassenEN`, kein Topic-Sprung mehr.
+
+> **Nicht „optimieren":** Ein Verschieben des Aufrufs hinter die Anliegen-Frage
+> (direkt vor das `BeginDialog` zur Zusammenfassung) wurde am 2026-09-08
+> ausprobiert und wieder zurückgenommen — das ist wieder die
+> `InvokeFlowAction` → `BeginDialog`-Konstellation, also genau das
+> Fehlermuster. Zusätzlich verliert die Ausfallsicherung dabei nichts, gewinnt
+> aber auch nichts: an der bestätigten Position ist `Global.Anlage` bereits
+> erfasst, wenn der Staging-Satz geschrieben wird.
+
 **Diagnose-Werkzeug:** Der Trace-Export des Testpanels (`dialog.json`,
 `valueType: DialogTracingInfo`) liefert je Aktion `topicId`, `actionId`,
 `conditionItemExit` und `variableState.globalState` mit Millisekunden-
 Zeitstempeln. Damit ist ein solcher Sprung direkt sichtbar — deutlich schneller
 als jede Herleitung aus den YAMLs.
+
+### ⚠ Werkzeugfalle: `pull` liefert stillschweigend veraltete Inhalte
+
+**`manage-agent.bundle.js pull` meldet `status: ok` / `isSuccess: true`, kann
+aber Inhalte aus einem Cache statt aus dem echten Cloud-Draft schreiben.**
+Am 2026-09-08 zweimal bestätigt:
+
+1. Ein `pull` lieferte `ZusammenfassungEN` mit `Text(Global.Anrufgrund)`,
+   obwohl der Draft längst `Text(Global.AnrufgrundEN)` enthielt — zwei Pulls
+   derselben Datei im Abstand von Minuten ergaben **unterschiedliche** Inhalte.
+2. Ein manuell im Maker-Portal gesetzter Fix in `Ende der Unterhaltung` kam per
+   `pull` überhaupt nicht an (`ok`, aber null geänderte Dateien).
+
+**Gegenprobe (der verlässliche Weg):** `clone` in ein leeres Temp-Verzeichnis —
+das startet eine frische LSP-Session ohne übernommenen Zustand — und dann
+`diff -rq` gegen den Workspace (`.mcs/` ausklammern, das sind nur Sync-Metadaten):
+
+```bash
+node …/manage-agent.bundle.js clone --workspace "<temp>" \
+  --tenant-id … --environment-id … --environment-url … \
+  --agent-mgmt-url … --agent-id …
+diff -rq "<temp>/AIRCO Telefon-Bot" "agent/AIRCO Telefon-Bot" | grep -v "\.mcs[/\\]"
+```
+
+**Regel:** Wenn das Werkzeug einer eigenen Beobachtung im Portal widerspricht,
+gilt das Portal. Vor jedem Push, dem eine fremde/manuelle Änderung vorausging,
+einmal per Fresh-Clone gegenprüfen — sonst überschreibt der Push fremde Arbeit
+oder scheitert an `ConcurrencyVersionMismatch`.
 
 ### ⚠ Bauregel: kein Expressmodus in Flows mit KI-Node
 

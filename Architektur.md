@@ -205,24 +205,39 @@ Copilot Studio auch das akustische Barge-in betrifft oder nur den Themenwechsel.
 
 ---
 
-## 3a. Gesprächsfluss Stufe 0 — Slim-Variante (Stand 2026-09-05, per Pull verifiziert)
+## 3a. Gesprächsfluss Stufe 0 — Slim-Variante (Stand 2026-09-08, per Fresh-Clone verifiziert)
+
+> **Änderung 2026-09-08 — Topic-Merge.** `Anrufgrund erfassen`, `Anlage
+> erfassen` und `Anliegen erfassen` sind keine eigenen Topics mehr, sondern
+> liegen **inline in `Kundendaten erfassen`** (bzw. `Kundendaten erfassen EN`).
+> Grund: Die Regel unten („kein `InvokeFlowAction` im Frageablauf") gilt
+> **wörtlich pro Topic** — ein `BeginDialog` auf ein Topic, dessen erste Aktion
+> eine Frage ist, genügt nicht. Der englische Zweig hat das reproduziert
+> (`Tests/Test 12`/`13`), der Fix ist in `Tests/Test 14` bestätigt.
 
 ```mermaid
 flowchart TD
     Anruf["Anrufer wählt AIRCO-Festnetznummer"] --> Teams["Microsoft Teams Phone"]
-    Teams --> Start["Conversation Start<br/>Begrüßung, Bot-Offenlegung"]
-    Start --> Kunde["<b>Kundendaten erfassen</b><br/>Q1 Firmenname · Q2 Ansprechpartner · Q3 Telefonnummer<br/>Q4 Anrufgrund (Closed List)<br/>SetVariable KanalLabel<br/>InvokeFlowAction 'Staging schreiben'"]
-    Kunde --> Grund{"<b>Anrufgrund erfassen</b><br/>reine Verzweigung, keine Frage"}
-    Grund -->|"Störung oder Wartung"| Anlage["<b>Anlage erfassen</b><br/>Bezeichnung + Seriennummer + Baujahr<br/>(Freitext → Global.Anlage)"]
-    Grund -->|"Ersatzteil / Rückruf / Sonstiges"| Anliegen
-    Anlage --> Anliegen["<b>Anliegen erfassen</b><br/>(Freitext → Global.Anliegen)"]
-    Anliegen --> Summe["<b>Zusammenfassung - Slim</b><br/>InvokeFlowAction 'Staging schreiben'<br/>Bestätigung nur der 3 Kontaktfelder"]
+    Teams --> Start["Start der Unterhaltung<br/>Begrüßung, Bot-Offenlegung<br/>Q Sprachwahl (DTMF 1 = DE / 2 = EN)"]
+    Start -->|"englisch"| KundeEN["<b>Kundendaten erfassen EN</b>"]
+    Start -->|"deutsch / Stille / unerkannt"| Kunde["<b>Kundendaten erfassen</b>"]
+
+    Kunde --> Block["Q1 Firmenname · Q2 Ansprechpartner · Q3 Telefonnummer<br/>SetVariable TelefonGesprochen<br/>Q4 Anrufgrund (Closed List)<br/>SetVariable KanalLabel"]
+    KundeEN --> Block
+
+    Block --> Grund{"ConditionGroup<br/>(im selben Topic)"}
+    Grund -->|"Störung oder Wartung"| Anlage["Q Anlage<br/>Bezeichnung + Seriennummer + Baujahr<br/>(Freitext → Global.Anlage)"]
+    Grund -->|"Ersatzteil / Rückruf / Sonstiges"| Staging
+    Anlage --> Staging["InvokeFlowAction 'Staging schreiben'<br/>a0a99959-…"]
+    Staging --> Anliegen["Q Anliegen<br/>(Freitext → Global.Anliegen)<br/><i>muss direkt nach dem Flowaufruf stehen</i>"]
+
+    Anliegen --> Summe["<b>Zusammenfassung - Slim</b> / <b>Zusammenfassung EN</b><br/>InvokeFlowAction 'Staging schreiben'<br/>Bestätigung nur der 3 Kontaktfelder"]
 
     Summe -->|"widerspricht (≤ 3 Versuche)"| Korrektur["Korrektur-Frage:<br/>Firmenname, Ansprechpartner oder Telefonnummer?"]
     Korrektur --> Summe
     Summe -->|"bestätigt oder 3 Versuche erschöpft"| Ticket["InvokeFlowAction<br/><b>'Ticketerstellung'</b><br/>834c8025-…<br/>KI-Zusammenfassung + Kritikalität + E-Mail"]
 
-    Ticket --> Ende["<b>Ende der Unterhaltung</b><br/>Safety-Net: Ticketerstellung, falls<br/>Global.FlowAufgerufen noch false"]
+    Ticket --> Ende["<b>Ende der Unterhaltung</b><br/>Safety-Net: Ticketerstellung, falls<br/>Global.FlowAufgerufen noch false<br/>Anrufgrund sprachneutral (DE/EN)"]
 ```
 
 ### Regel: kein `InvokeFlowAction` im Frageablauf

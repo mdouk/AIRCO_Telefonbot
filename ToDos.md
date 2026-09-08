@@ -26,6 +26,45 @@ die Roadmap der Ausbaustufen in [Architektur.md](Architektur.md).
 | **Power Automate Flow „Anliegen weiterleiten – slim"** | **erledigt (2026-08-18)** — 6 Text-Inputs (keine Booleans); Trigger: Firmenname/Ansprechpartner/Telefonnummer/Anliegen/KanalLabel/Anlage. KI-Verarbeitung: JSON-Schema um `anlagenbezeichnung`, `serialnummer`, `baujahr` (optional) erweitert; `kritikalitaet`-Enum auf `"Sonstiges"` (statt `"Other"`) umgestellt; `Anlage` als Kontext-Input im Prompt. E-Mail-Body: Tabellenzeile „Anlage" (`triggerBody()?['text_5']`) hinzugefügt, Inbetriebnahme/Wartungsvertrag entfernt, Rohtext-Duplikat entfernt. `Respond to the agent` direkt nach Trigger (Timeout-Fix). Fallback-E-Mail bereits korrekt (Anlage vorhanden, keine Booleans). Prioritätsformel unverändert korrekt (`Sonstiges` fällt in Low-Fallback). **⚠ Korrektur (2026-09-04):** Das tatsächliche JSON-Schema (`YAML/Agent Definition - KI-Verarbeitung.md`) enthält **kein** `anlagenbezeichnung`/`serialnummer`/`baujahr` und das Enum lautet `"Other"`, nicht `"Sonstiges"` — die Felder wurden später zugunsten von `anrufgrund` wieder vereinfacht. **⚠ Abgelöst (2026-09-04):** Flow wegen Microsoft-Designer-Bug nicht mehr bearbeitbar → als Agent-Flow **`Ticketerstellung`** neu aufgebaut (Details + bewusste Abweichungen: `Konzept-Ausfallsichere-Weiterleitung.md`, Abschnitt „Neuaufbau 2026-09-04"). **flowId neu: `834c8025-3da8-f111-b8dd-70a8a52f67fc`**; alle 3 `InvokeFlowAction`-Nodes umgehängt und per Pull verifiziert (2026-09-04). Alter Flow + verwaistes Tool `Anliegenweiterleiten-slim` werden nach grünem End-to-End-Test gelöscht. |
 | Störungs-/Anliegenliste einbinden | **offen** — identisch mit Stufe 1; wartet auf Kundenlieferung |
 
+> ### ⚠ Struktur-Update 2026-09-08 — Topic-Merge in beiden Sprachen
+>
+> Die Zeilen „Anrufgrund erfassen", „Anlage erfassen" und „Anliegen erfassen"
+> oben beschreiben **eigenständige Topics, die es so nicht mehr gibt.** Ihr
+> Inhalt (Fragen, Bedingungs-IDs, Entity-Referenzen) ist unverändert, sitzt aber
+> jetzt **inline in `Kundendaten erfassen` bzw. `Kundendaten erfassen EN`**.
+>
+> **Grund:** Der englische Zweig reproduzierte die Reihenfolge-Anomalie
+> (`Tests/Test 12`, `Test 13` — Sprung aus `Kundendaten erfassen EN` mitten in
+> das deutsche `Anliegen erfassen`). Die Bauregel „Flowaufruf direkt vor der
+> nächsten Frage, **im selben Topic**" ist wörtlich zu nehmen: ein `BeginDialog`
+> auf ein Topic, dessen erste Aktion eine Frage ist, zählt nicht. Nach dem Merge
+> zeigt `Tests/Test 14` durchgehend `topicId = …KundendatenerfassenEN`.
+> Der deutsche Zweig hatte dieselbe latente Konstellation und wurde
+> gleichgezogen.
+>
+> **Tote Topics (bewusst nicht gelöscht, nichts ruft sie mehr auf):**
+> `Anrufgrunderfassen`, `Anlagenerfassung`, `Anliegenerfassen`,
+> `AnrufgrunderfassenEN`, `AnlageerfassenEN`, `AnliegenerfassenEN`.
+> `Fallback` verweist zwar noch auf `Anliegenerfassen`, ist aber selbst nicht
+> auslösbar (alle Fragen `allowInterruption: false`,
+> `GenerativeActionsEnabled: false`) — deshalb wurde die geplante
+> Zweisprachigkeit von `Fallback` (Schritt 6) **bewusst zurückgestellt**.
+>
+> **Falle, falls `Fallback` je aktiviert wird:** Beim Merge musste das
+> `init:`-Präfix von `Global.Anliegen` in `Anliegenerfassen.mcs.yml` entfernt
+> werden (`DuplicateVariableInitializer` — `init:` gilt pro Variable, nicht pro
+> Topic; es sitzt jetzt in `Kundendatenerfassen.mcs.yml`). `AnliegenerfassenEN`
+> hatte nie eines. Folge: Beide Topics würden die Anliegen-Frage
+> **überspringen**, wenn `Global.Anliegen` schon gefüllt ist. Vor Aktivierung
+> dort je ein `SetVariable Global.Anliegen = Blank()` unmittelbar vor die Frage
+> setzen (Hausmuster, siehe Korrekturschleifen in `Zusammenfassung - Slim`).
+>
+> **Zweiter offener Punkt am `Fallback`-Pfad:** Er springt mitten in die Kette
+> (`Anliegen erfassen` → Zusammenfassung) und setzt voraus, dass Firmenname /
+> Ansprechpartner / Telefonnummer bereits erfasst sind. Feuert er früher, liest
+> die Zusammenfassung leere Felder vor. Bei Aktivierung eher nach
+> `Kundendaten erfassen` routen.
+
 ---
 
 ## Stufe 1 (aktuelle Stufe) — Status
