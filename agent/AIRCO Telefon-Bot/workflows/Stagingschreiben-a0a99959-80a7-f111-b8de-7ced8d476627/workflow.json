@@ -9,6 +9,15 @@
           "connectionReferenceLogicalName": "new_sharedsharepointonline_d27fe"
         },
         "runtimeSource": "embedded"
+      },
+      "shared_office365": {
+        "api": {
+          "name": "shared_office365"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_e7809d43"
+        },
+        "runtimeSource": "embedded"
       }
     },
     "definition": {
@@ -104,10 +113,11 @@
               ]
             }
           },
+          "conditions": [],
           "metadata": {
             "operationMetadataId": "b8f61c18-7224-4f8a-9c5f-72fbce5df764",
             "flowSystemMetadata": {
-              "flowKind": "Stateful"
+              "flowKind": "Stateless"
             }
           }
         }
@@ -225,6 +235,44 @@
           "runAfter": {},
           "metadata": {
             "operationMetadataId": "81c94f73-dd52-465c-ad3b-a4686da63cc3"
+          }
+        },
+        "Fehleralarm": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "emailMessage/To": "michael.doukas@mosaiic.de",
+              "emailMessage/Subject": "\u26A0 Flow-Fehler: Staging schreiben \u2013 @{triggerBody()?[\u0027text_1\u0027]}",
+              "emailMessage/Body": "\u003Cp class=\u0022editor-paragraph\u0022\u003EDer Flow \u0022Staging schreiben\u0022 ist fehlgeschlagen.\u003C/p\u003E\u003Cp class=\u0022editor-paragraph\u0022\u003EDer Staging-Datensatz f\u00FCr diesen Anruf wurde m\u00F6glicherweise NICHT geschrieben.\u003Cbr\u003E\u003C/p\u003E\u003Cbr\u003E\u003Cp class=\u0022editor-paragraph\u0022\u003E- Lauf-ID: @{workflow()?[\u0027run\u0027]?[\u0027name\u0027]}\u003C/p\u003E\u003Cp class=\u0022editor-paragraph\u0022\u003E- ConversationId: @{triggerBody()?[\u0027text\u0027]}\u003Cbr\u003E- Zeit (UTC): @{utcNow()}\u003Cbr\u003E- Fehler: @{actions(\u0027Elemente_abrufen\u0027)?[\u0027error\u0027]?[\u0027message\u0027]}\u003C/p\u003E\u003Cbr\u003E\u003Cp class=\u0022editor-paragraph\u0022\u003E- Firmenname: @{triggerBody()?[\u0027text_1\u0027]}\u003C/p\u003E\u003Cp class=\u0022editor-paragraph\u0022\u003E- Ansprechpartner: @{triggerBody()?[\u0027text_2\u0027]}\u003Cbr\u003E- Telefonnummer: @{triggerBody()?[\u0027text_3\u0027]}\u003C/p\u003E",
+              "emailMessage/Importance": "Normal"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+              "operationId": "SendEmailV2",
+              "connectionName": "shared_office365"
+            }
+          },
+          "runAfter": {
+            "Bedingung": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          }
+        },
+        "Beenden": {
+          "type": "Terminate",
+          "inputs": {
+            "runStatus": "Failed",
+            "runError": {
+              "code": "StagingSchreibenFehlgeschlagen",
+              "message": "Staging-Datensatz nicht geschrieben - Abbruchschutz fuer diesen Anruf unwirksam, Fehleralarm wurde versendet"
+            }
+          },
+          "runAfter": {
+            "Fehleralarm": [
+              "Succeeded"
+            ]
           }
         }
       },

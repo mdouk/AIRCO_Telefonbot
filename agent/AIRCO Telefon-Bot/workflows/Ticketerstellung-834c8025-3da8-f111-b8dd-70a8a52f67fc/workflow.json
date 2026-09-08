@@ -394,6 +394,49 @@
               "Succeeded"
             ]
           }
+        },
+        "Fehleralarm": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "emailMessage/To": "michael.doukas@mosaiic.de",
+              "emailMessage/Subject": "\u26A0 Flow-Fehler: Ticketerstellung - @{triggerBody()?[\u0027text\u0027]} - @{formatDateTime(utcNow(),\u0027dd.MM. HH:mm\u0027)}",
+              "emailMessage/Body": "\u003Cp class=\u0022editor-paragraph\u0022\u003EDer Flow \u0022Ticketerstellung\u0022 ist fehlgeschlagen.\u003C/p\u003E\u003Cp class=\u0022editor-paragraph\u0022\u003EM\u00F6glicherweise wurde KEINE Service-Mail f\u00FCr diesen Anruf versendet.\u003Cbr\u003E\u003Cbr\u003E- Lauf-ID: @{workflow()?[\u0027run\u0027]?[\u0027name\u0027]}\u003Cbr\u003E- ConversationId: @{triggerBody()?[\u0027text_7\u0027]}\u003Cbr\u003E- Zeit (UTC): @{utcNow()}\u003Cbr\u003E\u003Cbr\u003E- Firmenname: @{triggerBody()?[\u0027text\u0027]}\u003Cbr\u003E- Ansprechpartner: @{triggerBody()?[\u0027text_1\u0027]}\u003Cbr\u003E- Telefonnummer: @{triggerBody()?[\u0027text_2\u0027]}\u003Cbr\u003E- Anrufgrund: @{triggerBody()?[\u0027text_6\u0027]}\u003Cbr\u003E- Anlage: @{triggerBody()?[\u0027text_5\u0027]}\u003Cbr\u003E- Anliegen: @{triggerBody()?[\u0027text_3\u0027]}\u003C/p\u003E\u003Cbr\u003E\u003Cp class=\u0022editor-paragraph\u0022\u003E\u003Cb\u003E\u003Cstrong class=\u0022editor-text-bold\u0022\u003ESofortma\u00DFnahme\u003C/strong\u003E\u003C/b\u003E: Pr\u00FCfen, ob eine Service-Mail zu diesem Anruf eingegangen ist. Falls nicht, den Anrufer unter der oben genannten Nummer zur\u00FCckrufen.\u003C/p\u003E\u003Cp class=\u0022editor-paragraph\u0022\u003EHinweis: Der Sweep fasst innerhalb einer Stunde selbst nach, sofern der SharePoint-Datensatz noch auf Status = offen steht. Es kann daher eine zweite Mail als \u0022abgebrochener Anruf\u0022 eintreffen.\u003C/p\u003E",
+              "emailMessage/Importance": "Normal"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+              "operationId": "SendEmailV2",
+              "connectionName": "shared_office365"
+            }
+          },
+          "runAfter": {
+            "Auf_alle_anwenden": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ],
+            "Auf_alle_anwenden_1": [
+              "TimedOut",
+              "Skipped",
+              "Failed"
+            ]
+          }
+        },
+        "Beenden": {
+          "type": "Terminate",
+          "inputs": {
+            "runStatus": "Failed",
+            "runError": {
+              "code": "TicketMailFehlgeschlagen",
+              "message": "Service-Mail konnte nicht zugestellt werden - Fehleralarm wurde versendet"
+            }
+          },
+          "runAfter": {
+            "Fehleralarm": [
+              "Succeeded"
+            ]
+          }
         }
       },
       "outputs": {},

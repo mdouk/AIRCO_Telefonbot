@@ -205,36 +205,72 @@ Copilot Studio auch das akustische Barge-in betrifft oder nur den Themenwechsel.
 
 ---
 
-## 3a. Gesprächsfluss Stufe 0 — Slim-Variante (2026-08-18)
+## 3a. Gesprächsfluss Stufe 0 — Slim-Variante (Stand 2026-09-05, per Pull verifiziert)
 
 ```mermaid
 flowchart TD
     Anruf["Anrufer wählt AIRCO-Festnetznummer"] --> Teams["Microsoft Teams Phone"]
-    Teams --> Start["Conversation Start (System Topic)<br/>Begrüßung, Bot-Offenlegung"]
-    Start --> Kunde["Kundendaten erfassen<br/>Firmenname, Ansprechpartner, Telefonnummer<br/>(Caller-ID + Bestätigung)"]
-    Kunde --> Anlage["Anlagenbeschreibung erfassen<br/>Anlagenbezeichnung + Seriennummer + Baujahr<br/>(Freitext, eine offene Frage → Global.Anlage)"]
-    Anlage --> Anliegen["Anliegen erfassen<br/>(Freitext → Global.Anliegen)"]
-    Anliegen --> Summe["Zusammenfassung & Bestätigung<br/>(nur Kontaktdaten: Firma + Ansprechpartner + Tel)<br/>Anlage + Anliegen gehen unbestätigt in den Flow"]
+    Teams --> Start["Conversation Start<br/>Begrüßung, Bot-Offenlegung"]
+    Start --> Kunde["<b>Kundendaten erfassen</b><br/>Q1 Firmenname · Q2 Ansprechpartner · Q3 Telefonnummer<br/>Q4 Anrufgrund (Closed List)<br/>SetVariable KanalLabel<br/>InvokeFlowAction 'Staging schreiben'"]
+    Kunde --> Grund{"<b>Anrufgrund erfassen</b><br/>reine Verzweigung, keine Frage"}
+    Grund -->|"Störung oder Wartung"| Anlage["<b>Anlage erfassen</b><br/>Bezeichnung + Seriennummer + Baujahr<br/>(Freitext → Global.Anlage)"]
+    Grund -->|"Ersatzteil / Rückruf / Sonstiges"| Anliegen
+    Anlage --> Anliegen["<b>Anliegen erfassen</b><br/>(Freitext → Global.Anliegen)"]
+    Anliegen --> Summe["<b>Zusammenfassung - Slim</b><br/>InvokeFlowAction 'Staging schreiben'<br/>Bestätigung nur der 3 Kontaktfelder"]
 
-    Summe -->|"Anrufer widerspricht<br/>(≤ 3 Versuche)"| Korrektur["Korrektur-Frage:<br/>Firmenname, Ansprechpartner oder Telefonnummer?<br/>(Closed-List, 3 Optionen)"]
+    Summe -->|"widerspricht (≤ 3 Versuche)"| Korrektur["Korrektur-Frage:<br/>Firmenname, Ansprechpartner oder Telefonnummer?"]
     Korrektur --> Summe
-    Summe -->|"Anrufer bestätigt<br/>(oder 3 Versuche erschöpft)"| Flow["Action Node:<br/>Power Automate Flow<br/>'Anliegen weiterleiten – slim'<br/>(6 Text-Inputs, keine Booleans)"]
+    Summe -->|"bestätigt oder 3 Versuche erschöpft"| Ticket["InvokeFlowAction<br/><b>'Ticketerstellung'</b><br/>834c8025-…<br/>KI-Zusammenfassung + Kritikalität + E-Mail"]
 
-    Flow --> Ende["Verabschiedung, Anruf beendet"]
+    Ticket --> Ende["<b>Ende der Unterhaltung</b><br/>Safety-Net: Ticketerstellung, falls<br/>Global.FlowAufgerufen noch false"]
 ```
 
-**Unterschiede zu Stufe 1:**
+### Regel: kein `InvokeFlowAction` im Frageablauf
+
+**Das ist die wichtigste Bauvorgabe dieser Stufe.** Ein Flow-Aufruf zwischen zwei
+Fragen bringt die Copilot-Studio-Engine dazu, den Aufruf **zurückzustellen und
+zur nächsten Frage im Graphen zu springen** — dabei überspringt sie alles
+dazwischen. Erst mit der nächsten Nutzereingabe wird der Flow nachgeholt und der
+echte Pfad läuft weiter. Sichtbar wird das als Frage aus einem späteren Topic,
+die zu früh kommt, und — wenn die Frage `init:` verwendet — als doppelt
+gestellte Frage.
+
+Belegt in `Tests/Test 6`, `Test 8` und `Test 9`; behoben durch Entfernen aller
+Staging-Aufrufe aus der Fragekette (Nachweis: Reihenfolge sofort korrekt, im
+Chat **und** am Telefon). Widerlegte Erklärungsversuche, die nicht erneut
+verfolgt werden sollten: Position des Knotens im Topic, `Respond to Copilot` als
+erste Flow-Aktion, `flowKind: Stateless`, Topic- statt Global-Variable in der
+Bedingung. Details in `ToDos.md`, Abschnitt „Reihenfolge-Anomalie".
+
+Die einzige nachweislich unschädliche Position ist die in
+`Zusammenfassung - Slim`: Dort ist die **nächste Frage im Graphen ohnehin die,
+die als nächste kommen soll** (zwei Zeilen darunter im selben Topic), der Sprung
+landet also dort, wo der Dialog hinwollte.
+
+### Staging-Aufrufpunkte (Fall 3)
+
+| Ort | Zweck | Risiko |
+|-----|-------|--------|
+| `Kundendaten erfassen`, letzte Aktion vor dem Redirect | Kontaktdaten + Anrufgrund sichern | ⚠ **ungetestet** — Flow steht direkt vor einem `BeginDialog`, dahinter folgt eine `ConditionGroup` auf `Global.Anrufgrund`. Das ist das Muster, das in `Test 8` den falschen Ast nahm. |
+| `Zusammenfassung - Slim`, Position 2 | vollständiger Datensatz vor der Bestätigung | ✅ erprobt |
+
+### Unterschiede zu Stufe 1
 
 | Aspekt | Stufe 1 | Stufe 0 (Slim) |
 |--------|---------|----------------|
-| Inbetriebnahme-Frage | ✅ Ja/Nein | ❌ entfällt |
-| Vertragsfrage | ✅ Ja/Nein | ❌ entfällt |
-| Anlagenbeschreibung | ❌ entfällt | ✅ Freitext (Bezeichnung + SN + Baujahr) |
-| Zusammenfassung | 4 Varianten (Inbetrieb × Vertrag) + Anliegen | 1 kombinierter Summary+Question-Node (nur Kontaktdaten) |
-| Korrekturfelder | 5 (+ Inbetriebnahme + Vertrag) | 3 (nur Kontaktdaten) |
-| Flow-Inputs | 5 Text + 2 Boolean | 6 Text, keine Boolean |
-| Flow-Name | „Anliegen weiterleiten (KI)" | „Anliegen weiterleiten – slim" |
-| flowId | `299a805a-9036-df8d-ed1d-ec8dbc0fcd99` | `019885f0-e29a-f111-b8db-7ced8d476627` |
+| Inbetriebnahme-Frage | ✅ Ja/Nein | ❌ entfällt (Topic inaktiv) |
+| Vertragsfrage | ✅ Ja/Nein | ❌ entfällt (Topic inaktiv) |
+| Anrufgrund | ❌ entfällt | ✅ Closed List, 5 Optionen, steuert die Verzweigung |
+| Anlagenbeschreibung | ❌ entfällt | ✅ Freitext, nur im Störungs-/Wartungsast |
+| Zusammenfassung | 4 Varianten (Inbetrieb × Vertrag) | 1 Node, nur Kontaktdaten |
+| Korrekturfelder | 5 | 3 (nur Kontaktdaten) |
+| Abschluss-Flow | „Anliegen weiterleiten (KI)" `299a805a-…` | **„Ticketerstellung" `834c8025-…`** (Agent-Flow) |
+| Ausfallsicherung | keine | Fall 1–3: Safety-Net + Staging + Sweep |
+
+> **Abgelöst:** Der Flow „Anliegen weiterleiten – slim" (`019885f0-…`) wird von
+> keinem Topic mehr aufgerufen und ist durch `Ticketerstellung` ersetzt. Der
+> verwaiste Tool-Eintrag `actions/Anliegenweiterleiten-slim.mcs.yml` steht noch
+> im Agenten (siehe ToDos.md).
 
 ---
 

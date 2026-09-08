@@ -29,31 +29,56 @@ ist verworfen.
 > Die PPTX-Bezeichnung für diese Variante ist **„Stufe 0"** (Folie 8, 18.08.2026).
 > YAML-Quelle: `YAML/Slim/`.
 
-### ⚠ Ist-Stand der Kette (2026-09-04, per Pull aus dem Studio verifiziert)
+### ⚠ Ist-Stand der Kette (2026-09-05, per Pull aus dem Studio verifiziert)
 
-Die Beschreibungen der einzelnen Stufe-0-Topics weiter unten sind teilweise
-älter. **Maßgeblich ist diese Kette:**
+Die Topic-Beschreibungen weiter unten sind älter und teils überholt.
+**Maßgeblich ist diese Kette:**
 
 ```
 Conversation Start
-  → Kundendaten erfassen      (3 Fragen, SetVariable KanalLabel)
-  → Anrufgrund erfassen       (ClosedList, NEU — in den Topic-Texten unten noch nicht dokumentiert)
-      ├ Störung / Wartung → Anlage erfassen → Anliegen erfassen
-      └ sonst             → Anliegen erfassen
-  → Zusammenfassung - slim    (Staging-Flow, Bestätigung, Korrekturschleife, Ticketerstellung)
-  → Ende der Unterhaltung     (Safety-Net)
+  → Kundendaten erfassen
+        Q1 Global.Firmenname          (StringPrebuilt)
+        Q2 init:Global.Ansprechpartner (StringPrebuilt)
+        Q3 Global.Telefonnummer       (StringPrebuilt)
+        Q4 Global.Anrufgrund          (ClosedList, 5 Optionen)   ← 2026-09-05 hierher verschoben
+        SetVariable Global.KanalLabel = "Telefon"
+        InvokeFlowAction "Staging schreiben" (a0a99959-…)
+  → Anrufgrund erfassen                ← enthält NUR noch die ConditionGroup, keine Frage
+        Störung (u9xatS) oder Wartung (gShHbV) → Anlage erfassen
+        sonst                                  → Anliegen erfassen
+  → Anlage erfassen        Q Global.Anlage    → Anliegen erfassen
+  → Anliegen erfassen      Q init:Global.Anliegen → Zusammenfassung - Slim
+  → Zusammenfassung - Slim
+        SetVariable Topic.Korrekturversuche = 0
+        InvokeFlowAction "Staging schreiben"
+        Q init:Topic.korrekt  ("Ist das so korrekt?")
+        ja   → FlowAufgerufen = true → InvokeFlowAction "Ticketerstellung" → Ende
+        nein → Korrekturschleife (≤ 3) → GotoAction question_Qt7GUF
+               nach 3 Versuchen → Ticketerstellung → Ende
+  → Ende der Unterhaltung   (Safety-Net, nur wenn FlowAufgerufen = false)
 ```
 
-**Regel, die dabei gilt (hart erarbeitet, siehe ToDos.md „Reihenfolge-Anomalie"):**
-Im Frageablauf steht **kein** `InvokeFlowAction`. Jeder Flow-Aufruf zwischen
-den Fragen spaltet die Dialogausführung — die nachfolgende `ConditionGroup`
-sieht die gerade beantwortete Global-Variable noch als leer und nimmt den
-falschen Ast. Staging-Aufrufe existieren daher nur noch in
-`Zusammenfassung - slim` und `Ende der Unterhaltung`.
+**Bauregel, die dabei gilt — hart erarbeitet:** Im Frageablauf steht **kein**
+`InvokeFlowAction`. Begründung und Beweisführung in `Architektur.md` §3a sowie
+`ToDos.md` („Reihenfolge-Anomalie"). Wer hier einen Flow-Knoten einfügt, zerlegt
+die Fragereihenfolge — reproduzierbar, nicht sporadisch.
 
-Die aktuelle flowId für die Ticketerstellung ist
-`834c8025-3da8-f111-b8dd-70a8a52f67fc` (Agent-Flow), **nicht** mehr
-`019885f0-…` wie in den Abschnitten unten teils angegeben.
+**Offener Punkt an genau dieser Kette:** Der Staging-Aufruf am Ende von
+`Kundendaten erfassen` steht unmittelbar vor einem `BeginDialog`, hinter dem eine
+`ConditionGroup` auf `Global.Anrufgrund` folgt. Das ist strukturell dasselbe
+Muster, das in `Tests/Test 8` den falschen (else-)Ast nahm. **Noch nicht
+getestet** — siehe ToDos.md.
+
+**Aktuelle flowIds:**
+
+| Flow | flowId | aufgerufen aus |
+|------|--------|----------------|
+| Staging schreiben | `a0a99959-80a7-f111-b8de-7ced8d476627` | Kundendaten erfassen, Zusammenfassung - Slim |
+| Ticketerstellung | `834c8025-3da8-f111-b8dd-70a8a52f67fc` | Zusammenfassung - Slim (2×), Ende der Unterhaltung |
+| ~~Anliegen weiterleiten – slim~~ | ~~`019885f0-…`~~ | **von keinem Topic mehr** — abgelöst |
+
+**Inaktive Topics** (aus Stufe 1, laufen in Stufe 0 nicht mehr mit):
+`Inbetriebnahme`, `Vertragsfrage`, `Zusammenfassung` (die Nicht-Slim-Variante).
 
 ### Topic: Conversation Start — Stufe 0 (identisch mit Stufe 1)
 
@@ -96,9 +121,19 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
 - Question → Global.Firmenname (StringPrebuiltEntity, allowBargeIn: false)
 - Question → init:Global.Ansprechpartner (StringPrebuiltEntity, allowBargeIn: false)
 - Question → Global.Telefonnummer (StringPrebuiltEntity, allowBargeIn: false)
+- Question → Global.Anrufgrund (ClosedList Anrufgrund)   # 2026-09-05 aus „Anrufgrund erfassen" hierher verschoben
 - SetVariable: Global.KanalLabel = "Telefon"
-- BeginDialog → Anrufgrunderfassen   # 2026-09-04; kein InvokeFlowAction mehr in diesem Topic
+- InvokeFlowAction „Staging schreiben" (a0a99959-…)      # ⚠ ungetestet an dieser Position
+- BeginDialog → Anrufgrunderfassen
 ```
+
+**Warum die Anrufgrund-Frage hier steht (2026-09-05):** Fall 3 verlangt, dass ab
+den drei Kontaktfeldern ein SharePoint-Datensatz existiert. Der einzige
+nachweislich unschädliche Ort für einen Flow-Aufruf ist „direkt vor der Frage,
+die ohnehin als nächste kommt, im selben Topic" — deshalb wurde die
+Anrufgrund-Frage hochgezogen und `Anrufgrund erfassen` auf die reine
+Verzweigung reduziert. **Ob die aktuelle Reihenfolge (Frage → SetVariable →
+Flow → BeginDialog) trägt, ist noch nicht getestet.**
 **Änderungen 2026-09-02:**
 - `PersonNamePrebuiltEntity` → `StringPrebuiltEntity`: Entity übersetzte Namen ins Englische („Ich bin der Detlef" → „I am Detlef").
 - `PhoneNumberPrebuiltEntity` → `StringPrebuiltEntity`: Entity lehnte ausländische/dialektale Formate ab → Telefonnummer blieb leer → Flow schlug fehl.
@@ -131,7 +166,10 @@ Identisch mit Stufe 1, **einzige Änderung**: letzter Node redirectet zu
 
 - **Trigger**: `OnRedirect` (von „Anliegen erfassen")
 - **Topic-ID im Dialog**: `mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim`
-- **flowId**: `019885f0-e29a-f111-b8db-7ced8d476627` (Flow „Anliegen weiterleiten – slim")
+- **flowIds (Stand 2026-09-05)**: `a0a99959-80a7-f111-b8de-7ced8d476627`
+  („Staging schreiben", Position 2 im Topic) und
+  `834c8025-3da8-f111-b8dd-70a8a52f67fc` („Ticketerstellung", in beiden
+  Abschluss-Ästen). ~~`019885f0-…`~~ ist abgelöst.
 
 **Kernunterschiede zur Stufe-1-Zusammenfassung:**
 
@@ -699,7 +737,9 @@ SendActivity + InvokeFlowAction + BeginDialog → EndofConversation.
 
 ## System-Topics — Sicherheitsnetz bei Gesprächsabbruch (2026-09-02)
 
-Gilt für **Stufe 0 und Stufe 1**. Slim-Flow-ID: `019885f0-e29a-f111-b8db-7ced8d476627`.
+Gilt für **Stufe 0 und Stufe 1**. Abschluss-Flow ist seit 2026-09-04 der
+Agent-Flow „Ticketerstellung" `834c8025-3da8-f111-b8dd-70a8a52f67fc`
+(~~`019885f0-…`~~ abgelöst).
 
 ### Globale Variable: `Global.FlowAufgerufen` (Boolean)
 

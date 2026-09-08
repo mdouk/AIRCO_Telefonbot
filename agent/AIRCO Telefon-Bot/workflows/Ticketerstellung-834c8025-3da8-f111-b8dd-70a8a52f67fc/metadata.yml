@@ -2,7 +2,7 @@
 workflowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
 name: Ticketerstellung
 type: 1
-description: 
+description: Run a flow from Copilot and send back a response. Flow author's connection will be used for new connections.
 subprocess: false
 category: 5
 mode: 0

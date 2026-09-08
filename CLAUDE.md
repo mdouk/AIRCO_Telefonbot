@@ -23,7 +23,7 @@ AIRCO verkauft und wartet Industriekompressoren, Stickstoffanlagen und Druckluft
 
 | Stufe | Kurzbeschreibung |
 |-------|------------------|
-| **0 „Slim"** ⬅ neue Variante (2026-08-18) | **Ohne** Inbetriebnahme/Vertragsfrage; stattdessen **Anlagenbeschreibung** (Bezeichnung + Seriennummer + Baujahr, Freitext → `Global.Anlage`). Kundendaten + Anlage + Anliegen → 6 Text-Inputs an Flow „Anliegen weiterleiten – slim" (flowId: `019885f0-e29a-f111-b8db-7ced8d476627`). Zusammenfassung bestätigt nur Kontaktdaten (Anlage + Anliegen unbestätigt in den Flow). Läuft parallel zu Stufe 1. |
+| **0 „Slim"** ⬅ **die aktiv gebaute Variante** (Stand 2026-09-05) | **Ohne** Inbetriebnahme/Vertragsfrage. Kette: Kundendaten (Firma, Ansprechpartner, Telefon, **Anrufgrund** als Closed List) → Verzweigung → bei Störung/Wartung **Anlagenbeschreibung** (Freitext → `Global.Anlage`) → Anliegen (Freitext) → Zusammenfassung (bestätigt nur die 3 Kontaktfelder) → Flow **„Ticketerstellung"** (flowId `834c8025-3da8-f111-b8dd-70a8a52f67fc`, Agent-Flow; löst `019885f0-…` ab). Zusätzlich **Ausfallsicherung Fall 1–3**: Safety-Net in „Ende der Unterhaltung", Flow „Staging schreiben" (`a0a99959-…`) + stündlicher Sweep. Details: [Konzept-Ausfallsichere-Weiterleitung.md](Konzept-Ausfallsichere-Weiterleitung.md). Seit 2026-09-08 zusätzlich **Zweisprachigkeit DE/EN** in Umsetzung (Sprach-Fork am Gesprächsanfang + duplizierte englische Kette) — alles dazu in [Konzept-Englisch.md](Konzept-Englisch.md). |
 | **1** (v2, 2026-07-14) | Vertragsfrage + Inbetriebnahme (je ja/nein, Selbstauskunft), Anliegen als Freitext erfassen; **kein** Prio-Filter, **keine** Eskalation. Der Power-Automate-Flow verarbeitet den Freitext **per KI**: Zusammenfassung + Kritikalität (Kritisch/Hoch/Mittel/Niedrig) anhand einer Kunden-Störungsliste → E-Mail-Betreff + Routing an 4 Postfächer. **Keine** Kategorie-Klassifizierung A–F (erst Stufe 2) |
 | 1.5 | Ticketanlage in Planner / SharePoint-Liste |
 | 1.6 | Ticketanlage in Odoo |
@@ -123,7 +123,18 @@ Entscheidungspunkte inkl. Eskalationsreihenfolge) steht in
 **[Architektur.md](Architektur.md)** — dort auch als Quelle der Wahrheit
 gepflegt, um Diagramm-Duplikate mit widersprüchlichem Stand zu vermeiden.
 
-Kurzfassung **Stufe 1 (v2, 2026-07-14)**:
+Kurzfassung **Stufe 0 „Slim" — die aktiv gebaute Kette** (Stand 2026-09-05,
+per Pull verifiziert):
+`Conversation Start` → `Kundendaten erfassen` (Firmenname, Ansprechpartner,
+Telefonnummer, **Anrufgrund** als Closed List, dann Staging-Flow) →
+`Anrufgrund erfassen` (**nur noch Verzweigung, keine Frage**) → bei
+Störung/Wartung `Anlage erfassen`, sonst direkt → `Anliegen erfassen`
+(Freitext) → `Zusammenfassung - Slim` (Staging-Flow, Bestätigung der
+3 Kontaktfelder, Korrekturschleife ≤ 3) → Flow `Ticketerstellung` →
+`Ende der Unterhaltung` (Safety-Net, falls `Global.FlowAufgerufen` = false).
+Inaktiv: `Inbetriebnahme`, `Vertragsfrage`, `Zusammenfassung` (Nicht-Slim).
+
+Kurzfassung **Stufe 1 (v2, 2026-07-14)** — Topics vorhanden, aber nicht aktiv:
 `Conversation Start` → `Kundendaten erfassen` → `Inbetriebnahme` („Wurde die
 Anlage in den letzten 12 Monaten in Betrieb genommen?", Ja/Nein,
 Selbstauskunft) → `Vertragsfrage` (Ja/Nein, Selbstauskunft) →
@@ -148,6 +159,66 @@ Zielbild **Stufe 2+** (zurückgestellt, siehe Architektur.md Abschnitt 8):
 | `Redirect to Topic` | Intern zwischen Topics navigieren |
 | ~~`Transfer to Agent`~~ | **entfällt in v2** (kein Live-Transfer mehr); v1-Node „Unterhaltung übertragen" nur noch im Backup |
 | `Action Node` | Power Automate Flow aufrufen |
+
+### ⚠ Bauregel: kein `InvokeFlowAction` im Frageablauf
+
+**Ein Power-Automate-Aufruf zwischen zwei Fragen zerlegt die Fragereihenfolge.**
+Die Copilot-Studio-Engine stellt den Aufruf zurück, springt zur nächsten Frage,
+die sie im Graphen findet, und überspringt alles dazwischen; erst mit der
+nächsten Nutzereingabe wird der Flow nachgeholt. Sichtbar als Frage aus einem
+späteren Topic, die zu früh kommt — und bei `init:`-Variablen zusätzlich als
+doppelt gestellte Frage. Reproduzierbar, nicht sporadisch, im Testpanel **und**
+am Telefon (`Tests/Test 6`, `Test 8`, `Test 9`).
+
+Widerlegt und **nicht erneut zu verfolgen**: Position des Knotens im Topic,
+`Respond to Copilot` als erste Flow-Aktion, `flowKind: Stateless`, Umstellung
+der Bedingung auf eine Topic-Variable, Expressmodus.
+
+> **Nicht verwechseln (2026-09-07):** `flowKind: Stateless` / Expressmodus sind
+> **nur für die Reihenfolge-Anomalie** widerlegt. Für den **anderen** Bug —
+> leere KI-Felder in der E-Mail — sind sie die **bewiesene Ursache**; siehe die
+> Bauregel direkt darunter.
+
+Einzige nachweislich unschädliche Position: **direkt vor der Frage, die ohnehin
+als nächste kommt, im selben Topic** (so gelöst in `Zusammenfassung - Slim`).
+Vollständige Herleitung in `Architektur.md` §3a und `ToDos.md`
+(„Reihenfolge-Anomalie").
+
+**Diagnose-Werkzeug:** Der Trace-Export des Testpanels (`dialog.json`,
+`valueType: DialogTracingInfo`) liefert je Aktion `topicId`, `actionId`,
+`conditionItemExit` und `variableState.globalState` mit Millisekunden-
+Zeitstempeln. Damit ist ein solcher Sprung direkt sichtbar — deutlich schneller
+als jede Herleitung aus den YAMLs.
+
+### ⚠ Bauregel: kein Expressmodus in Flows mit KI-Node
+
+**Der Schalter „Expressmodus (Vorschau)" am Trigger „Wenn ein Agent den Flow
+aufruft" setzt den Flow von `Stateful` auf `Stateless` — und bricht damit jede
+long-running Connector-Aktion.** Betroffen ist der KI-Baustein
+`shared_agentnode` in `Ticketerstellung`: Er antwortet mit `HTTP 202` +
+`Location` + `Retry-After`, das Ergebnis muss nachgepollt werden. Stateful-Flows
+tun das automatisch, Stateless-Flows nicht — sie werten die 202 als Endergebnis.
+Folge: `structuredOutput` leer, Aktion trotzdem `SUCCEEDED`, E-Mail mit leeren
+Feldern (Firmenname, Ansprechpartner, Telefonnummer, Anrufgrund, Kritikalität,
+KI-Zusammenfassung), während die reinen `triggerBody()`-Felder (Anlage, Rohtext,
+Kanal) gefüllt bleiben.
+
+**Regel:** Expressmodus nur für Flows **ohne** KI-/Langläufer-Aktionen. Reine
+SharePoint-/E-Mail-Flows (`Staging schreiben`) vertragen ihn.
+
+**Fallen bei der Fehlersuche (alle am 2026-09-07 durchlaufen):**
+- Der Schalter sitzt am Trigger und wird von der **Versionshistorie nicht mit
+  zurückgesetzt** — „Wiederherstellen" einer alten Flow-Version behebt es
+  **nicht** und führt in die Irre.
+- Der **Trigger-Typ ist nicht die Ursache**: derselbe Agent-Flow-Trigger
+  funktioniert mit deaktiviertem Expressmodus einwandfrei.
+- Das Symptom wirkt sporadisch („lief mehrfach, dann plötzlich nicht mehr"),
+  ist aber deterministisch — es kippt exakt mit dem Umlegen des Schalters.
+
+**Prüfweg:** Rohdatenausgabe der Aktion `KI-Verarbeitung` — `202` + Body nur
+`{conversationId}` = Expressmodus aktiv. Gegenprobe im Export:
+`metadata.flowSystemMetadata.flowKind` im `workflow.json`. Vollständige
+Herleitung in `ToDos.md` (F5).
 
 ### Variablen-Strategie
 

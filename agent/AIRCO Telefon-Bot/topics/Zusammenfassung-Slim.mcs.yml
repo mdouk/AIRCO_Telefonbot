@@ -67,13 +67,13 @@ beginDialog:
               id: invokeFlowAction_s8uOdc
               input:
                 binding:
-                  text: =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
-                  text_1: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
-                  text_2: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
-                  text_3: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
-                  text_4: =If(IsBlank(Global.KanalLabel), "Telefon", Global.KanalLabel)
-                  text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
-                  text_6: =If(IsBlank(Global.Anrufgrund), "nicht angegeben", Text(Global.Anrufgrund))
+                  text: =Global.Firmenname
+                  text_1: =Global.Ansprechpartner
+                  text_2: =Global.Telefonnummer
+                  text_3: =Global.Anliegen
+                  text_4: =Global.KanalLabel
+                  text_5: =Global.Anlage
+                  text_6: =Text(Global.Anrufgrund)
                   text_7: =System.Conversation.Id
 
               output: {}
@@ -237,16 +237,16 @@ beginDialog:
               value: =true
 
             - kind: InvokeFlowAction
-              id: invokeFlowAction_R0tYAM
+              id: zE6DJh
               input:
                 binding:
-                  text: =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
-                  text_1: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
-                  text_2: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
-                  text_3: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
-                  text_4: =If(IsBlank(Global.KanalLabel), "Telefon", Global.KanalLabel)
-                  text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
-                  text_6: =If(IsBlank(Global.Anrufgrund), "nicht angegeben", Text(Global.Anrufgrund))
+                  text: =Global.Firmenname
+                  text_1: =Global.Ansprechpartner
+                  text_2: =Global.Telefonnummer
+                  text_3: =Global.Anliegen
+                  text_4: =Global.KanalLabel
+                  text_5: =Global.Anlage
+                  text_6: =Text(Global.Anrufgrund)
                   text_7: =System.Conversation.Id
 
               output: {}

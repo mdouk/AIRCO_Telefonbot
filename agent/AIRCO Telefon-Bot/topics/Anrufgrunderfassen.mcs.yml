@@ -5,35 +5,6 @@ beginDialog:
   kind: OnRedirect
   id: main
   actions:
-    - kind: Question
-      id: question_anrufgrund
-      interruptionPolicy:
-        allowInterruption: false
-
-      variable: init:Global.Anrufgrund
-      prompt:
-        text:
-          - |-
-            Was ist der Grund Ihres Anrufs?
-            1 - Störung oder Problem
-            2 - Wartungstermin vereinbaren
-            3 - Ersatzteilbestellung
-            4 - Rückrufbitte
-            5 - Sonstiges
-        speak:
-          - "Was ist der Grund Ihres Anrufs? Sie können sagen: Störung oder Problem, Wartungstermin vereinbaren, Ersatzteilbestellung, Rückrufbitte, oder Sonstiges."
-        allowBargeIn: false
-
-      entity:
-        kind: ClosedListEntityReference
-        entityId: mosaiic_AIRCOTelefonBot.entity.Anrufgrund
-
-      voiceInputSettings:
-        fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
-        defaultValueMissingAction: GoToDialog
-
-      fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
-
     - kind: ConditionGroup
       id: conditionGroup_DklHkA
       conditions:

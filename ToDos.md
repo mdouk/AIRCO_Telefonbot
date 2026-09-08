@@ -93,7 +93,10 @@ Transfer) → **C/D/E** (Flow; D/E brauchen den Kunden-Input aus **F**) → **G*
   - `OnSystemRedirect` („Unterhaltung zurücksetzen"): `ClearAllVariables` + `CancelAllDialogs` + „Wie kann ich Ihnen helfen?" — kein Transfer, aber **⚠️ Praxistest**: falls mitten im Gespräch ausgelöst, gehen alle Variablen verloren
 - [x] Aktiver **„Mitarbeiter-Wunsch"**: Eskalation-Topic deaktiviert (Kundenwunsch 2026-07-15) — kein Eskalationsweg angeboten, damit Anrufer nicht lernen, immer nach einem Menschen zu fragen ✅
 - [x] **Englisch-Sprecher**: Anweisungstext aktualisiert (Transfer-Verweis entfernt, englische Abschluss-Nachricht + Gesprächsende) — erledigt (2026-07-15)
-- [ ] **Englischer Anrufer — Topic** (zurückgestellt): Für zuverlässige Ticket-Erstellung bei englischsprachigen Anrufern ist ein eigenes Topic nötig (Trigger-Phrasen auf Englisch → Caller-ID als Telefonnummer sichern → Flow aufrufen → englische Abschluss-Nachricht → EndConversation). Anweisungstext allein kann keinen Flow aufrufen. Stufe 2 wird ohnehin volle Englisch-Unterstützung bringen — bis dahin zurückgestellt. Trigger-Phrasen noch zu definieren.
+- [ ] **Englischer Anrufer — Zweisprachigkeit** (in Umsetzung seit 2026-09-08): Ersetzt den früheren Ansatz „eigenes Topic mit englischen Trigger-Phrasen". Umgesetzt wird stattdessen ein **Sprach-Fork am Gesprächsanfang** (Taste 1 / „English") mit `System.User.Language = en-US` und einer duplizierten englischen Slim-Kette. **Alles dazu — Entscheidungen, 9 Umsetzungsschritte, Übersetzungstabelle, Testprotokoll, Pflegeregeln — steht in [Konzept-Englisch.md](Konzept-Englisch.md).** Fortschritt dort im Testprotokoll abhaken.
+  - [x] YAML-Notation für `SetVariable` auf `System.User.Language` geklärt (2026-09-08): strukturierter `OptionDataValue` gegen den System-Option-Set `Locale`, Wert `English` (nicht `en-US`) — kein String-Literal, kein Power-Fx-Ausdruck. Vollständig in Konzept-Englisch.md, Schritt 3.
+  - Nebenbefund: `Anrufgrund` hat Ziffern nur als **Synonyme**, kein `dtmfKey` — echter Tastendruck greift im bestehenden Menü vermutlich nicht (Konzept-Englisch.md, Abschnitt 7).
+  - Zurückgestellt: KI-Prompt im Flow `Ticketerstellung` für englischen Freitext.
 - [ ] **Sicherheitsnotfall** (Brand/Rauch) ohne Transfer: weiterhin zurückgestellt
 
 ### C. Power Automate — Flow-Gerüst v2
@@ -383,17 +386,94 @@ Fehler aufgetreten" ab. E-Mail kam trotzdem an (Sicherheitsnetz griff).
   `ConditionGroup` auf `Topic.Grund` umgestellt wird; danach den Staging-Flow
   wieder an den Topic-Anfang setzen.
 
-- [ ] **NEU/OFFEN (2026-09-04) — Fall 3 ist durch den Fix aktuell nicht mehr
-  abgedeckt.** Es gibt nur noch **zwei** Staging-Aufrufpunkte
-  (`Zusammenfassung - slim` Pos. 2 und das Safety-Net in
-  `Ende der Unterhaltung`) statt der im Konzept beschriebenen fünf. Legt ein
-  Anrufer während `Anrufgrund` / `Anlage` / `Anliegen` auf, existiert **kein
-  SharePoint-Datensatz** → der Sweep findet nichts → **der Anruf geht
-  verloren**. Das verletzt die Kundenforderung („sobald Firmenname,
-  Ansprechpartner und Telefonnummer genannt sind, muss garantiert eine E-Mail
-  raus"). Bei 5–10 Min Gesprächsdauer kein Randfall.
-  → Priorität: vor der Hausmesse (16./17.09.). Lösungsweg siehe offene
-  Hypothese oben.
+- [~] **IN ARBEIT (Stand 2026-09-05) — Fall 3 nach dem Reihenfolge-Fix
+  wiederhergestellt, aber ungetestet.** Nach dem Entfernen aller Staging-Aufrufe
+  aus der Fragekette gab es zeitweise nur noch **einen** Aufrufpunkt
+  (`Zusammenfassung - Slim`), womit ein Abbruch zwischen Kundendaten und
+  Zusammenfassung keinen Datensatz hinterließ.
+  **Gegenmaßnahme umgesetzt (per Pull verifiziert):** Die Anrufgrund-Frage wurde
+  in `Kundendaten erfassen` hochgezogen, `Anrufgrund erfassen` auf die reine
+  `ConditionGroup` reduziert, und der Staging-Aufruf sitzt jetzt als letzte
+  Aktion vor dem Redirect. Damit existiert der Datensatz, sobald Kontaktdaten
+  **und** Anrufgrund erfasst sind.
+  ⚠ **Noch nicht getestet.** Der Flow-Knoten steht dort unmittelbar vor einem
+  `BeginDialog`, hinter dem eine `ConditionGroup` auf `Global.Anrufgrund` folgt —
+  strukturell dasselbe Muster, das in `Tests/Test 8` den falschen else-Ast nahm.
+  **Nächster Schritt:** Ein Testanruf mit „Störung". Kommt danach die
+  Anlagenfrage, trägt der Aufbau; kommt die Anliegenfrage, ist der Fork zurück
+  und der Staging-Aufruf muss an dieser Stelle wieder weichen.
+  Restlücke auch im Erfolgsfall: Auflegen **während** der Anrufgrund-Frage
+  (≈ 20–30 s, der Prompt liest fünf Optionen vor). Vom Umfang her vertretbar,
+  aber bewusst zu entscheiden.
+
+- [x] **ERLEDIGT (2026-09-05) — Fehler-Monitoring für die Flows** (war P2 #6 im
+  Code-Review). Try/catch über `runAfter` in allen drei Flows, jeweils
+  `E-Mail senden (V2)` als `Fehleralarm` + `Beenden` (Terminate, Status `Failed`,
+  mit Code und Message). Per Pull in der Rohdefinition verifiziert:
+
+  | Flow | `runAfter` des Alarms | Terminate-Code |
+  |------|----------------------|----------------|
+  | `Staging schreiben` | `Bedingung: [TimedOut, Skipped, Failed]` | `StagingSchreibenFehlgeschlagen` |
+  | `Ticketerstellung` | `Auf_alle_anwenden` **und** `Auf_alle_anwenden_1`, je `[TimedOut, Skipped, Failed]` | `TicketMailFehlgeschlagen` |
+  | `Sweep offene Anrufe` | `Auf alle anwenden: [TimedOut, Skipped, Failed]` | `SweepFehlgeschlagen` |
+
+  **Warum `Ticketerstellung` zwei Vorgänger braucht:** Der Flow hat zwei
+  parallele Endstränge (Erfolgs- und KI-Fehlerast). Ein Alarm an nur einem Ast
+  feuert mit angehaktem *übersprungen* bei **jedem** normalen Lauf, weil der
+  jeweils andere Ast übersprungen wird. Ohne *übersprungen* bleibt dagegen der
+  wichtigste Fall stumm (Erfolgs-Mail scheitert → alles dahinter wird
+  übersprungen, nicht fehlgeschlagen). `runAfter` mit mehreren Vorgängern ist
+  eine **UND**-Bedingung und stellt damit die richtige Frage: „ist KEIN Ast
+  sauber durchgelaufen?"
+
+  Alle Alarm-Mails enthalten die Kontaktdaten, damit sie im Ernstfall selbst als
+  Rückruf-Information taugen — beim Sweep nicht möglich (Wiederholungs-Trigger
+  hat kein `triggerBody()`), dort stattdessen der Verweis auf die SharePoint-Liste.
+
+  ⚠ **Nebenwirkung:** Ein durch den Alarm behandelter Fehler färbt den Lauf grün.
+  Deshalb überall `Beenden` mit `Failed` dahinter.
+
+- [ ] **OFFEN (2026-09-05) — Die drei Alarme sind gebaut, aber keiner ist je
+  gefeuert.** Provozierte Testläufe stehen aus, je Flow einer:
+  - `Staging schreiben`: Filterabfrage in `Elemente abrufen` kaputtmachen →
+    Alarm muss grün sein, Lauf rot. Dabei zusätzlich prüfen, ob die Body-Zeile
+    `@{actions('Elemente_abrufen')?['error']?['message']}` durchgeht oder den
+    Alarm selbst rot färbt — falls letzteres, Zeile ersatzlos streichen.
+  - `Sweep offene Anrufe`: dito, danach Filter zurücksetzen und **einen zweiten,
+    erfolgreichen Lauf** machen (sonst bleibt ein kaputter Filter unbemerkt).
+  - `Ticketerstellung`: ungültige Empfängeradresse in `E-Mail senden bei Erfolg`,
+    Test → Manuell. Danach zurücksetzen und sauberen Lauf ohne Alarm-Mail.
+
+- [ ] **OFFEN (2026-09-05) — Der Ordner `YAML/` ist eine zweite, driftende
+  Quelle.** `YAML/Kundendaten_erfassen.md` kennt die Anrufgrund-Frage und den
+  Staging-Aufruf nicht; `YAML/Anrufgrund erfassen.md` enthält noch die Frage,
+  die längst in `Kundendaten erfassen` sitzt. Seit der Agent per
+  `manage-agent pull` nach `agent/AIRCO Telefon-Bot/` gespiegelt wird, ist das
+  die verlässliche Kopie — `YAML/` kann nur noch auseinanderlaufen und hat in
+  dieser Session bereits zu einer Fehldiagnose auf veraltetem Stand geführt.
+  **Empfehlung:** `YAML/` entweder aus dem Pull neu erzeugen oder als
+  „historischer Arbeitsstand" kennzeichnen und nicht mehr als Referenz nutzen.
+
+- [ ] **OFFEN (2026-09-05) — `Sweep offene Anrufe` gehört nicht zur Lösung.**
+  Der Pull bringt nur vier Workflows mit (`Anliegen weiterleiten`,
+  `Anliegen weiterleiten – slim`, `Staging schreiben`, `Ticketerstellung`).
+  Der Sweep fehlt. Folge: Bei einem Lösungsimport in eine andere Umgebung wäre
+  Fall 3 **still** kaputt, weil der Wächter nicht mitreist — und er ist nicht
+  per Pull prüfbar. Vor der Hausmesse in die Lösung aufnehmen.
+
+- [ ] **OFFEN (2026-09-05) — Blinder Fleck beim Sweep-Monitoring.** Ein Alarm
+  *im* Flow meldet nur, was während eines Laufs passiert. Läuft der Flow gar
+  nicht (deaktiviert, Verbindung abgelaufen, von Power Automate abgeschaltet),
+  bleibt der Posteingang still — und Stille sieht aus wie „alles in Ordnung".
+  Übergangsweise wöchentlich in den Lauf-Verlauf schauen. Für den Dauerbetrieb:
+  Tages-Heartbeat aus dem Sweep (eine Mail pro Tag, deren **Ausbleiben** das
+  Signal ist). Nach der Messe.
+
+- [ ] **OFFEN — Alarm-Empfänger für Go-Live.** Alle drei Alarme gehen aktuell an
+  `michael.doukas@mosaiic.de`. Empfehlung: **nicht** ins Service-Postfach legen —
+  das sind technische Meldungen, die zwischen Kundenvorgängen untergehen.
+  Eigener Verteiler mit Michael + einem AIRCO-Ansprechpartner.
+  Optional: `emailMessage/Importance` von `Normal` auf `High`.
 
 - [ ] **OFFEN (2026-09-04) — Kein Heartbeat in der Korrekturschleife.**
   `GotoAction SLfuCH` zeigt weiterhin auf `question_Qt7GUF` statt auf den
@@ -418,7 +498,36 @@ Fehler aufgetreten" ab. E-Mail kam trotzdem an (Sicherheitsnetz griff).
   ohne Publish sind am Telefon nicht wirksam — mehrere Testanrufe dieser Session
   waren dadurch nicht aussagekräftig.
 
-### F5. Leere E-Mail-Felder 2026-09-04 — Ursache: Stateless-Flow pollt KI nicht
+### F5. Leere E-Mail-Felder — ✅ GELÖST 2026-09-07: Auslöser ist der Expressmodus
+
+> **Auflösung (2026-09-07, vom Nutzer gefunden und verifiziert):** Der Schalter
+> **„Expressmodus (Vorschau)"** am Trigger „Wenn ein Agent den Flow aufruft"
+> schaltet den Flow von `Stateful` auf `Stateless`. Genau das ist der unten
+> beschriebene Mechanismus — der Flow pollt die 202-Antwort des KI-Connectors
+> nicht mehr. **Expressmodus deaktiviert → alles läuft wieder korrekt**
+> (bestätigt per Testanruf). Damit ist die Ursache keine Hypothese mehr, und
+> **Weg A und Weg C unten entfallen ersatzlos** — kein Flow-Neubau nötig.
+>
+> **Beleg aus dem Git-Vergleich:** Im Commit `b5efb64` (04.09.) standen
+> `Ticketerstellung` **und** `Staging schreiben` auf `flowKind: Stateful`;
+> nach dem Aktivieren des Expressmodus am 07.09. beide auf `Stateless`.
+>
+> **Sackgassen dieser Fehlersuche — nicht erneut verfolgen:**
+> - *Flow-Version wiederherstellen*: Der Expressmodus-Schalter sitzt am Trigger
+>   und wird von der Versionshistorie **nicht** mit zurückgesetzt. Das
+>   Wiederherstellen der (funktionierenden) 08:06-Version änderte `flowKind`
+>   nicht und behob nichts — hat die Diagnose massiv verzögert.
+> - *Trigger-Typ*: „Wenn ein Agent den Flow aufruft" ist **nicht** die Ursache.
+>   Derselbe Trigger lief morgens mehrfach korrekt (E-Mail 08:45 vollständig
+>   befüllt, Vorgang `c4f850a6-5a98-402b-b251-578c07625edd`).
+> - *Vermeintliche Sporadik*: Das Symptom wirkt zufällig („lief mehrfach, dann
+>   plötzlich nicht mehr"), ist aber deterministisch an den Schalter gekoppelt.
+>   Eine Erklärung über schwankendes Microsoft-Backend-Verhalten war **falsch**.
+>
+> **Regel daraus** (auch in `CLAUDE.md` als Bauregel): Expressmodus nur für
+> Flows **ohne** KI-/Langläufer-Aktionen.
+
+### F5-Historie. Ursachenanalyse 2026-09-04 — Stateless-Flow pollt KI nicht
 
 **Symptom** (Chat-Test 04.09. 13:29, Momentaufnahme `Tests/Test 7`): E-Mail kam an,
 aber Firmenname, Ansprechpartner, Telefonnummer, Anrufgrund, Kritikalität und
@@ -465,17 +574,16 @@ Damit ist die Hypothese keine mehr. Weitere Belege desselben Laufs:
 Zeitpunkt der E-Mail schlicht nicht.
 
 **Offene Aufgaben:**
-- [ ] Weg A testen (5 Min, Hypothese): `Respond to Copilot` ans Ende hinter
-      `E-Mail senden bei Erfolg` verschieben. Falls es wirkt: Anrufer hört
-      10–20 s Stille — nur als Diagnose brauchbar, nicht als Endlösung.
-- [ ] Weg C (sicher): `Ticketerstellung` als **klassischen Cloud Flow** neu
-      anlegen (Trigger „Wenn Copilot Studio den Flow aufruft"). Eingaben in
-      exakter Reihenfolge: Firmenname, Ansprechpartner, Telefonnummer, Anliegen,
-      KanalLabel, Anlage, Anrufgrund, ConversationId. Danach Tool in CPS
-      aktualisieren + `invokeFlowAction_s8uOdc` in `Zusammenfassung-Slim`
-      umhängen; alten Flow deaktivieren, nicht löschen.
-      (Rückkonvertierung Agent → Cloud ist laut 03.09. nicht vorgesehen —
-      vorher kurz im Portal prüfen.)
+- [x] ~~Weg A testen (5 Min, Hypothese)~~ — **entfällt (2026-09-07)**: Ursache
+      gefunden (Expressmodus), kein Diagnoseumweg mehr nötig.
+- [x] ~~Weg C (sicher): Flow-Neubau als klassischer Cloud Flow~~ — **entfällt
+      (2026-09-07)**: Der Agent-Flow funktioniert mit deaktiviertem
+      Expressmodus einwandfrei. Kein Neubau, kein Umhängen des Tools.
+      *(Ursprünglicher Weg-C-Plan, nur noch als Historie: Neubau als klassischer
+      Cloud Flow mit Trigger „Wenn Copilot Studio den Flow aufruft", Eingaben in
+      der Reihenfolge Firmenname, Ansprechpartner, Telefonnummer, Anliegen,
+      KanalLabel, Anlage, Anrufgrund, ConversationId, danach
+      `invokeFlowAction_s8uOdc` in `Zusammenfassung-Slim` umhängen.)*
 - [x] E-Mail-Template `YAML/Email Body.html` aktualisiert und im Flow eingesetzt:
       Kritikalität in Betreff **und** Body-Zelle wiederhergestellt (war in der
       Cloud-Version verschwunden), ConversationId als „Vorgang" in der Fußzeile.
@@ -486,7 +594,11 @@ Zeitpunkt der E-Mail schlicht nicht.
   und `VarAnsprechpartner` bleiben in Gebrauch, die `runAfter`-Kette bleibt
   unverändert. Folge: 6 von 7 E-Mail-Feldern hängen an der KI — der
   Stateless-Fix ist dadurch **blockierend**, nicht optional.
-- [ ] **Fail-Safe schärfen (Priorität):** Nach `VarKritikalitaet` eine Bedingung
+- [ ] **Fail-Safe schärfen (weiterhin empfohlen, 2026-09-07 neu bewertet):**
+      Nicht mehr blockierend (Ursache ist behoben), aber weiterhin sinnvoll als
+      Netz gegen ein versehentliches erneutes Aktivieren des Expressmodus — dann
+      käme statt einer leeren E-Mail die `[UNBEKANNT - KI-Fehler]`-Mail mit
+      Rohdaten. Nach `VarKritikalitaet` eine Bedingung
       `empty(variables('VarKritikalitaet'))` einziehen → wahr: `E-Mail senden bei
       KI fehlgeschlagen`, falsch: Erfolgszweig. Der bestehende `runAfter`-Zweig
       auf `[FAILED, TIMEDOUT, SKIPPED]` greift bei der 202 **nicht**, weil die
@@ -511,6 +623,28 @@ Zeitpunkt der E-Mail schlicht nicht.
 - [ ] `Global.KanalLabel` steht in `ConversationStart` hart auf „Telefon" —
       Chat-Tests werden dadurch als Telefonanruf protokolliert.
       **Zurückgestellt** (Nutzerentscheidung 2026-09-04).
+
+**Dritte Reproduktion 2026-09-07 (`Tests/Test 10`, Vorgang
+`7d1e785f-b112-4176-b850-4e9cfebb410d`):** Symptom identisch zu Test 7/8 —
+Firmenname, Ansprechpartner, Telefonnummer, Anrufgrund, Kritikalität,
+KI-Zusammenfassung leer, nur Anlage + Rohtext gefüllt. Nutzer hat diesmal
+Ein-/Ausgaben des Knotens `KI-Verarbeitung` direkt aus dem Flow-Run geliefert:
+Eingabe enthält den vollen Agent-Prompt (inkl. `structuredOutputSchema` mit den
+6 erwarteten Feldern), Ausgabe ist erneut nur
+`{"statusCode": 202, "headers": {"Location": "...", "Retry-After": "5"}, "body":
+{"conversationId": "264bd7d0-..."}}`. Bestätigt die Ursache ein drittes Mal,
+keine neue Erkenntnis — **Weg A/Weg C weiterhin offen, noch nicht umgesetzt.**
+
+**Separater Bug gefunden und behoben (2026-09-07):** Im Staging-Aufruf `W0Ffqr`
+in `Kundendaten erfassen` war `text_3` doppelt auf `Global.Ansprechpartner`
+gebunden statt auf `Global.Telefonnummer` (Trigger-Schema von
+`Staging schreiben` bestätigt: `text_3` = Telefonnummer → SharePoint-Spalte
+`item/Telefonnummer`). Dadurch erreichte die Telefonnummer den
+Staging-Datensatz nie. Fix: `text_3: =Global.Telefonnummer` in
+`agent/AIRCO Telefon-Bot/topics/Kundendatenerfassen.mcs.yml`. Die beiden
+anderen Staging-/Ticketerstellung-Bindings (`Zusammenfassung-Slim.mcs.yml`,
+Zeilen 18–20 bzw. 71–73/244–246) waren bereits korrekt — betraf nur diese eine
+Stelle. **Noch offen: Push ins Draft + Testanruf zur Bestätigung.**
 
 ### F6. Sweep abgebrochener Anrufe 2026-09-04 — Spaltenfalle `Anrufgrund0`
 

@@ -63,13 +63,42 @@ beginDialog:
 
       fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
 
+    - kind: Question
+      id: U6OTmJ
+      interruptionPolicy:
+        allowInterruption: false
+
+      variable: Global.Anrufgrund
+      prompt:
+        text:
+          - |-
+            Was ist der Grund Ihres Anrufs?
+            1 - Störung oder Problem
+            2 - Wartungstermin vereinbaren
+            3 - Ersatzteilbestellung
+            4 - Rückrufbitte
+            5 - Sonstiges
+        speak:
+          - "Was ist der Grund Ihres Anrufs? Sie können sagen: Störung oder Problem, Wartungstermin vereinbaren, Ersatzteilbestellung, Rückrufbitte, oder Sonstiges."
+        allowBargeIn: false
+
+      entity:
+        kind: ClosedListEntityReference
+        entityId: mosaiic_AIRCOTelefonBot.entity.Anrufgrund
+
+      voiceInputSettings:
+        fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+        defaultValueMissingAction: GoToDialog
+
+      fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
     - kind: SetVariable
-      id: 2X2Lbc
+      id: EX0bn1
       variable: Global.KanalLabel
       value: Telefon
 
     - kind: InvokeFlowAction
-      id: invokeFlowAction_nOBDGN
+      id: W0Ffqr
       displayName: Staging
       input:
         binding:
@@ -80,7 +109,7 @@ beginDialog:
           text_4: =If(IsBlank(Global.Anrufgrund), "nicht angegeben", Text(Global.Anrufgrund))
           text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
           text_6: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
-          text_7: =If(IsBlank(Global.KanalLabel), "Telefon", Global.KanalLabel)
+          text_7: =Global.KanalLabel
 
       output: {}
       flowId: a0a99959-80a7-f111-b8de-7ced8d476627
