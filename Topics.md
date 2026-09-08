@@ -66,13 +66,13 @@ die Fragereihenfolge — reproduzierbar, nicht sporadisch.
 **Offener Punkt an genau dieser Kette:** Der Staging-Aufruf am Ende von
 `Kundendaten erfassen` steht unmittelbar vor einem `BeginDialog`, hinter dem eine
 `ConditionGroup` auf `Global.Anrufgrund` folgt. Das ist strukturell dasselbe
-Muster, das in `Tests/Test 8` den falschen (else-)Ast nahm. **Noch nicht
-getestet** — siehe ToDos.md.
+Muster, das in `Tests/Test 8` den falschen (else-)Ast nahm. **Anomalie hier
+bestätigt vorhanden (2026-09-08)** — siehe ToDos.md.
 
 > **Umweg bereits probiert und verworfen (2026-09-07 → 2026-09-08):** Der Aufruf
 > war testweise in ein eigenes Redirect-Topic `Staging` ausgelagert
-> (`Kundendaten erfassen → Staging → Anrufgrund erfassen`). Das brachte keine
-> Verbesserung; das Topic wurde wieder gelöscht, der Aufruf sitzt erneut inline.
+> (`Kundendaten erfassen → Staging → Anrufgrund erfassen`). **Die Anomalie blieb
+> bestehen**; das Topic wurde wieder gelöscht, der Aufruf sitzt erneut inline.
 > **Nicht erneut versuchen** — die Auslagerung steht jetzt in der Liste der
 > widerlegten Ansätze (CLAUDE.md, `Architektur.md` §3a). Behalten wurde aus dem
 > Versuch die Verschärfung der Bindings: `IsBlank()`-Guards auf **allen 8**
@@ -132,7 +132,7 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
 - Question → Global.Telefonnummer (StringPrebuiltEntity, allowBargeIn: false)
 - Question → Global.Anrufgrund (ClosedList Anrufgrund)   # 2026-09-05 aus „Anrufgrund erfassen" hierher verschoben
 - SetVariable: Global.KanalLabel = "Telefon"
-- InvokeFlowAction „Staging schreiben" (a0a99959-…)      # id m8Ujcv; ⚠ ungetestet an dieser Position
+- InvokeFlowAction „Staging schreiben" (a0a99959-…)      # id m8Ujcv; ⚠ loest die Reihenfolge-Anomalie aus
     # alle 8 Bindings mit IsBlank()-Guard (2026-09-08)
 - BeginDialog → Anrufgrunderfassen
 ```

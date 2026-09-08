@@ -134,33 +134,41 @@ erneut publiziert worden (`publishedOn` 07.09. 14:31:47). Sechs Abweichungen:
 Abschnitt 3 dokumentierte Portal-Klick vom 08.09. wurde also wieder verworfen —
 es liegt kein Testartefakt herum, das der Fork in Schritt 3 doppeln könnte.
 
-### Schritt 2 — Entity `Sprachwahl` anlegen
+### Schritt 2 — Entity `Sprachwahl` anlegen ✅ erledigt 2026-09-08
 
-Datei: `agent/AIRCO Telefon-Bot/entities/Sprachwahl.mcs.yml`
+Datei: `agent/AIRCO Telefon-Bot/entities/Sprachwahl.mcs.yml` — validiert
+(27 Dateien, 0 Fehler, 0 Warnungen).
 
 ```yaml
 mcs.metadata:
   componentName: Sprachwahl
   description: Auswahl der Gesprächssprache am Gesprächsanfang.
 kind: ClosedListEntity
-smartMatchingEnabled: true
 items:
   - id: englisch
     displayName: englisch
     dtmfKey: Num1
     synonyms:
       - English
-      - Englisch
       - in English
       - eins
       - one
 ```
 
 - `dtmfKey: Num1` macht den **Tastendruck** wirksam — das ist der robuste Pfad.
+  Vom Schema akzeptiert, per Validierung bestätigt.
 - Die Synonyme decken zusätzlich den *gesprochenen* Fall ab.
 - **Kein Deutsch-Item:** Alles, was nicht trifft, bleibt Deutsch.
-- Synonyme müssen untereinander eindeutig sein und dürfen nicht dem
-  `displayName` entsprechen — sonst Publish-Fehler `SynonymsNotUnique`.
+- **`Englisch` ist bewusst *kein* Synonym** — es unterscheidet sich vom
+  `displayName: englisch` nur in der Groß-/Kleinschreibung und riskiert damit
+  den Publish-Fehler `SynonymsNotUnique`. Der `displayName` wird ohnehin
+  gematcht, es geht nichts verloren.
+- **`smartMatchingEnabled` bewusst weggelassen** — weder `Anrufgrund` noch
+  `Korrekturfeld` führen es; der Hauptpfad ist DTMF, nicht Fuzzy-Matching.
+- Die `id` lautet `englisch` statt einer generierten wie `u9xatS`. Das ist
+  zulässig (Schema: frei vergebbar) und **relevant für Schritt 3**: Bedingungen
+  referenzieren die **`id`**, nicht den `displayName` — nachgeprüft an
+  `Anrufgrunderfassen`, das `'…entity.Anrufgrund'.u9xatS` schreibt.
 
 ### Schritt 3 — `ConversationStart.mcs.yml` erweitern
 
