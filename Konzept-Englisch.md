@@ -50,6 +50,7 @@ Gegen das Copilot-Studio-Schema und die Microsoft-Dokumentation geprüft
 | **Die Sprachumschaltung schreibt einen `OptionDataValue`**, keinen String: `kind: OptionDataValue` / `type: {kind: SystemOptionSet, name: Locale}` / `value: English`. Der Wert ist der **Sprachname** (`English`), nicht die Locale (`en-US`) — passend zum `Language`-Enum, wo `English` = LCID 1033 = en-US. | Im Portal geklickt und gepullt, 2026-09-08 |
 | `SetVariable.value` ist im Schema eine `ValueExpression` (String, Number, Bool, Array, **Object**). Das Schema schränkt den Wert nicht ein — bei Option-Set-Variablen daher nie raten, sondern einmal im Portal klicken und pullen. | Schema `SetVariable` / `ValueExpression` |
 | Sprachumschaltung zur Laufzeit erfolgt über `User.Language` (in Power Fx `System.User.Language`), Typ *choice*. | Doku „Make an agent switch to another language" |
+| **Englisch ist als Agent-Sprache bereits aktiviert** — `settings.mcs.yml` führt `language: 1031` (Deutsch, Primärsprache) **und** `supportedLanguages: [1033]` (en-US). Das ist die **Voraussetzung** dafür, dass `System.User.Language = English` überhaupt greift: die Umschaltung kann nur auf eine Sprache zeigen, die der Agent als unterstützt führt. Wäre sie nicht gesetzt, liefe der `SetVariable` ins Leere — Text englisch, Stimme und Erkennung weiter deutsch. **Nicht anfassen, nicht aus dem YAML entfernen.** | Pull 2026-09-08 |
 | Automatische Spracherkennung („dynamic language switching") **steht nicht zur Verfügung** — sie setzt generative Orchestrierung voraus, die hier bewusst aus ist (`GenerativeActionsEnabled: false`). Die manuelle Menü-Auswahl ist damit der richtige und einzige Weg. | Doku + `settings.mcs.yml` |
 | `voiceFont: {}` ist leer — es ist **keine** deutsche Stimme fest gepinnt, die TTS-Stimme folgt der aktiven Sprache. | `settings/mosaiic_AIRCOTelefonBot.settings.Ivr.mcs.yml` |
 
@@ -68,10 +69,11 @@ ConversationStart
        └─ sonst   → BeginDialog Kundendatenerfassen            (DE, unverändert)
 
 KundendatenerfassenEN
-  → AnrufgrunderfassenEN ─┬─ [stoerung | wartung] → AnlagenerfassungEN ─┐
-                          └─ sonst ──────────────────────────────────────┴→ AnliegenerfassenEN
-                                                                            → ZusammenfassungSlimEN
-                                                                              → EndofConversation
+  → StagingEN            (nur InvokeFlowAction a0a99959-…, keine Frage)
+    → AnrufgrunderfassenEN ─┬─ [stoerung | wartung] → AnlagenerfassungEN ─┐
+                            └─ sonst ──────────────────────────────────────┴→ AnliegenerfassenEN
+                                                                              → ZusammenfassungSlimEN
+                                                                                → EndofConversation
 ```
 
 Beide Zweige schreiben in **dieselben** Global-Variablen und rufen **dieselben**
@@ -83,16 +85,55 @@ unverändert.
 ## 5. Umsetzungsschritte
 
 Die Schritte sind einzeln abarbeitbar und für getrennte Sessions geschnitten.
-Sinnvolle Blöcke: **1–3** (Fork), **4** (die fünf Topics), **5–7** (Entities,
+Sinnvolle Blöcke: **1–3** (Fork), **4** (die sechs Topics), **5–7** (Entities,
 Systemtopics, Instructions), **8–9** (Validierung, Deployment), dann Test.
 
 Fortschritt in `ToDos.md` festhalten.
 
-### Schritt 1 — Repo-Sync prüfen
+### Schritt 1 — Repo-Sync prüfen ✅ erledigt 2026-09-08
 
-`git status` und Pull-Abgleich, **bevor** Neues entsteht. Der lokale Stand zeigt
-derzeit zahlreiche gelöschte Topic-Dateien; ein Push ohne Abgleich könnte alte
-Topics wiederbeleben. Ziel: lokaler Stand == Cloud-Stand.
+Ziel war: lokaler Stand == Cloud-Stand, **bevor** Neues entsteht. Erreicht, in
+zwei Etappen — Commits `1ac9eaa` (Sicherungspunkt) und `eac8614` (Cloud-Stand).
+
+**Etappe A — Offline-Abgleich.** Der Arbeitsordner wurde gegen
+`.mcs/botdefinition.json` geprüft, den Cloud-Snapshot des letzten Pulls
+(07.09. 13:09): alle 22 Komponenten (18 Topics, 2 Actions, 2 Entities)
+zeilenweise identisch. Die im ursprünglichen Konzepttext befürchteten
+„gelöschten Topic-Dateien" (`Goodbye`, `Greeting`, `Inbetriebnahme`,
+`StartOver`, `ThankYou`, `Vertragsfrage`, `Zusammenfassung`) sind **korrekte
+Pull-Löschungen** — die Cloud kennt diese Topics nicht mehr. Ein Push kann sie
+nicht wiederbeleben; das Risiko lag allein darin, die Löschungen per
+`git checkout` versehentlich rückgängig zu machen.
+
+> **Methode, wiederverwendbar:** `.mcs/botdefinition.json` ist kein Index — das
+> Feld `components[].dialog` (Topics/Actions) bzw. `.entity` (Entities) trägt
+> das **komplette YAML**. Zusammen mit `displayName` und `description`, die
+> als eigene Felder danebenstehen, ergibt das exakt den lokalen Dateiinhalt
+> inklusive `mcs.metadata:`-Kopf. Ein vollständiger Cloud-Abgleich ist damit
+> **ohne Login** möglich, jederzeit, und kann nichts überschreiben.
+
+> **Warum der Commit *vor* den Pull gehört:** `.mcs/` trägt eine eigene
+> `.gitignore` mit `*` und ist damit nicht versioniert. Git kann Cloud-Drift
+> grundsätzlich nicht erkennen — der einzige versionierte Beweis für
+> „lokal == Cloud" ist ein Commit unmittelbar nach einem Pull. Nur so zeigt
+> der nächste `git diff` den Drift, statt ihn stillschweigend einzumischen.
+
+**Etappe B — Live-Pull.** Er förderte nicht das erwartete Testartefakt zutage,
+sondern **echte Weiterentwicklung**: in der Cloud war nach dem letzten Pull
+erneut publiziert worden (`publishedOn` 07.09. 14:31:47). Sechs Abweichungen:
+
+| # | Änderung | Bedeutung für dieses Konzept |
+|---|---|---|
+| 1 | **NEU `topics/Staging.mcs.yml`** — der Staging-Flowaufruf wurde aus `Kundendaten erfassen` in ein eigenes Redirect-Topic ausgelagert; die Kette lautet jetzt `Kundendatenerfassen → Staging → Anrufgrunderfassen`. Zusätzlich `IsBlank()`-Guards auf **allen 8** Parametern (vorher nur `Anrufgrund`, `Anlage`, `Anliegen`). | **Hoch.** Die Slim-Kette hat ein Glied mehr → Schritt 4 braucht **sechs** statt fünf Topics. Ohne `StagingEN` fällt der englische Zweig nach der Kundendatenerfassung auf Deutsch zurück. |
+| 2 | `settings.mcs.yml`: **`supportedLanguages: [1033]`** ergänzt | **Hoch.** Die Voraussetzung der Sprachumschaltung ist damit bereits erfüllt — siehe Abschnitt 3. |
+| 3 | Flow `Staging schreiben`: `flowKind` **Stateless → Stateful** (Expressmodus abgeschaltet) | Keine. Berührt die Zweisprachigkeit nicht, widerspricht aber der Aussage in CLAUDE.md, dieser Flow vertrage den Expressmodus — dort nachgezogen. |
+| 4 | Flow `Ticketerstellung`: fehlendes Leerzeichen im KI-Prompt korrigiert | Keine. |
+| 5 | `Zusammenfassung-Slim`: `displayName: Staging` am `InvokeFlowAction` ergänzt — der Aufruf bleibt dort **inline** | Gering; beim Kopieren nach `ZusammenfassungSlimEN` mit übernehmen. |
+| 6 | `publishedOn` aktualisiert | Keine. |
+
+**Nicht gefunden:** kein `SetVariable` auf `User.Language` in der Cloud. Der in
+Abschnitt 3 dokumentierte Portal-Klick vom 08.09. wurde also wieder verworfen —
+es liegt kein Testartefakt herum, das der Fork in Schritt 3 doppeln könnte.
 
 ### Schritt 2 — Entity `Sprachwahl` anlegen
 
@@ -212,7 +253,7 @@ Das bestehende `BeginDialog y3pHxU` am Topic-Ende **entfällt** — es geht in
 > `value: ="en-US"`) waren falsch — bei Option-Set-Variablen also nie raten,
 > sondern einmal klicken und pullen.
 
-### Schritt 4 — Die fünf englischen Topics anlegen
+### Schritt 4 — Die sechs englischen Topics anlegen
 
 Jeweils **strukturgleiche** Kopie der Vorlage, nur Texte übersetzt.
 
@@ -223,11 +264,28 @@ Jeweils **strukturgleiche** Kopie der Vorlage, nur Texte übersetzt.
 
 | Neue Datei | Vorlage | Verweist weiter auf |
 |---|---|---|
-| `KundendatenerfassenEN.mcs.yml` | `Kundendatenerfassen.mcs.yml` | `AnrufgrunderfassenEN` |
+| `KundendatenerfassenEN.mcs.yml` | `Kundendatenerfassen.mcs.yml` | **`StagingEN`** |
+| **`StagingEN.mcs.yml`** | **`Staging.mcs.yml`** | `AnrufgrunderfassenEN` |
 | `AnrufgrunderfassenEN.mcs.yml` | `Anrufgrunderfassen.mcs.yml` | `AnlagenerfassungEN` / `AnliegenerfassenEN` |
 | `AnlagenerfassungEN.mcs.yml` | `Anlagenerfassung.mcs.yml` | `AnliegenerfassenEN` |
 | `AnliegenerfassenEN.mcs.yml` | `Anliegenerfassen.mcs.yml` | `ZusammenfassungSlimEN` |
 | `ZusammenfassungSlimEN.mcs.yml` | `Zusammenfassung-Slim.mcs.yml` | `EndofConversation` |
+
+> **`StagingEN` enthält keinen einzigen Text** — nur den `InvokeFlowAction` und
+> ein `BeginDialog`. Zu übersetzen ist daran nichts; zu ändern ist **allein das
+> Sprungziel** am Ende (`Anrufgrunderfassen` → `AnrufgrunderfassenEN`) sowie
+> die beiden Node-`id`s. Die acht `IsBlank()`-Guards und die `flowId`
+> **unverändert** übernehmen.
+>
+> **Warum trotzdem duplizieren und nicht eine `ConditionGroup` auf
+> `Global.Sprache` ans Ende des gemeinsamen `Staging` hängen?** Weil das exakt
+> die dokumentierte Fehlerkonstellation wäre: `InvokeFlowAction` gefolgt von
+> einer `ConditionGroup`, die eine **Global**-Variable liest — der bestätigte
+> Fall aus CLAUDE.md („Flow-Aufruf spaltet den Dialog", 2026-09-04), in dem die
+> Bedingung die Variable noch leer sieht und den `else`-Ast nimmt. Hier wäre
+> der `else`-Ast der **deutsche**, und ein englischer Anrufer landete still auf
+> Deutsch. Duplizieren umgeht das vollständig und folgt ohnehin der
+> Grundentscheidung aus Abschnitt 2.
 
 **Unverändert übernehmen:** alle `Global.`-Variablennamen, beide `flowId`s
 (`a0a99959-…` Staging, `834c8025-…` Ticketerstellung), alle Flow-Bindings,
@@ -327,7 +385,7 @@ Transfer-Verweis.
 ### Schritt 8 — Validierung
 
 `copilot-studio:validate` über alle neuen und geänderten YAMLs: Schema,
-Power Fx, Cross-File-Referenzen — insbesondere die fünf neuen `dialog:`-Verweise
+Power Fx, Cross-File-Referenzen — insbesondere die sechs neuen `dialog:`-Verweise
 und die Entity-Referenz auf `Sprachwahl`.
 
 ### Schritt 9 — Push und Publish
@@ -392,7 +450,7 @@ Admin Center (siehe CLAUDE.md, Deployment-Weg).
 ## 8. Pflegeregeln
 
 1. **Jede Änderung an der Slim-Kette muss in beiden Sprachzweigen nachgezogen
-   werden.** Das ist der Preis der Duplizierung. Betroffen sind die fünf Paare
+   werden.** Das ist der Preis der Duplizierung. Betroffen sind die sechs Paare
    aus Schritt 4.
 2. Neue Systemtopic-Texte immer gleich zweisprachig anlegen.
 3. Neue Closed-List-Items brauchen deutsche **und** englische Synonyme;

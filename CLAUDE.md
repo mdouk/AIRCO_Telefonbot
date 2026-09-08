@@ -123,10 +123,13 @@ Entscheidungspunkte inkl. Eskalationsreihenfolge) steht in
 **[Architektur.md](Architektur.md)** — dort auch als Quelle der Wahrheit
 gepflegt, um Diagramm-Duplikate mit widersprüchlichem Stand zu vermeiden.
 
-Kurzfassung **Stufe 0 „Slim" — die aktiv gebaute Kette** (Stand 2026-09-05,
+Kurzfassung **Stufe 0 „Slim" — die aktiv gebaute Kette** (Stand 2026-09-08,
 per Pull verifiziert):
 `Conversation Start` → `Kundendaten erfassen` (Firmenname, Ansprechpartner,
-Telefonnummer, **Anrufgrund** als Closed List, dann Staging-Flow) →
+Telefonnummer, **Anrufgrund** als Closed List) → **`Staging`** (eigenes
+Redirect-Topic, seit 2026-09-07: enthält **nur** den Staging-Flowaufruf
+`a0a99959-…` mit `IsBlank()`-Guards auf allen 8 Parametern, keine Frage —
+Umsetzung der Bauregel „kein `InvokeFlowAction` im Frageablauf") →
 `Anrufgrund erfassen` (**nur noch Verzweigung, keine Frage**) → bei
 Störung/Wartung `Anlage erfassen`, sonst direkt → `Anliegen erfassen`
 (Freitext) → `Zusammenfassung - Slim` (Staging-Flow, Bestätigung der
@@ -205,6 +208,12 @@ Kanal) gefüllt bleiben.
 
 **Regel:** Expressmodus nur für Flows **ohne** KI-/Langläufer-Aktionen. Reine
 SharePoint-/E-Mail-Flows (`Staging schreiben`) vertragen ihn.
+
+> **Stand 2026-09-08 (Pull):** `Staging schreiben` steht in der Cloud trotzdem
+> auf `flowKind: Stateful` — der Expressmodus wurde dort am 2026-09-07 wieder
+> abgeschaltet. Die Regel oben bleibt richtig (der Flow *verträgt* ihn), aber
+> genutzt wird er nicht mehr. Wer den Flow anfasst: nicht „zurück auf Express"
+> optimieren, ohne den Grund zu kennen.
 
 **Fallen bei der Fehlersuche (alle am 2026-09-07 durchlaufen):**
 - Der Schalter sitzt am Trigger und wird von der **Versionshistorie nicht mit
