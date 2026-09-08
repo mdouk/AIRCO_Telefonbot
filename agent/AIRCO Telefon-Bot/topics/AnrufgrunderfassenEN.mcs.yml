@@ -9,7 +9,7 @@ beginDialog:
       id: conditionGroup_DklHkA_en
       conditions:
         - id: conditionItem_8IyZXO_en
-          condition: =Global.Anrufgrund = 'mosaiic_AIRCOTelefonBot.entity.Anrufgrund'.u9xatS || Global.Anrufgrund = 'mosaiic_AIRCOTelefonBot.entity.Anrufgrund'.gShHbV
+          condition: =Global.AnrufgrundEN = 'mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN'.'8jiEHk' || Global.AnrufgrundEN = 'mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN'.KXrpcq
           displayName: Störung oder Wartung > Anlage fragen
           actions:
             - kind: BeginDialog

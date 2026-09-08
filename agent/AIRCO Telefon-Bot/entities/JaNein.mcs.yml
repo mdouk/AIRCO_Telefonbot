@@ -1,0 +1,27 @@
+mcs.metadata:
+  componentName: JaNein
+  description: Ja/Nein-Bestätigung (deutsche Antwortoption), ersetzt BooleanPrebuiltEntity um den englischen Voice-Auto-Hint zu vermeiden.
+kind: ClosedListEntity
+smartMatchingEnabled: true
+items:
+  - id: aJ8mN2
+    displayName: ja
+    synonyms:
+      - korrekt
+      - stimmt
+      - passt
+      - genau
+      - richtig
+      - das stimmt
+      - ist richtig
+      - jawohl
+
+  - id: bK9pQ4
+    displayName: nein
+    synonyms:
+      - falsch
+      - nicht korrekt
+      - stimmt nicht
+      - stimmt nicht so
+      - das ist falsch
+      - nicht richtig

@@ -81,7 +81,7 @@ beginDialog:
       interruptionPolicy:
         allowInterruption: false
 
-      variable: Global.Anrufgrund
+      variable: Global.AnrufgrundEN
       prompt:
         text:
           - |-
@@ -97,7 +97,8 @@ beginDialog:
 
       entity:
         kind: ClosedListEntityReference
-        entityId: mosaiic_AIRCOTelefonBot.entity.Anrufgrund
+        sensitivityLevel: None
+        entityId: mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN
 
       voiceInputSettings:
         fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
@@ -119,7 +120,7 @@ beginDialog:
           text_1: =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
           text_2: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
           text_3: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
-          text_4: =If(IsBlank(Global.Anrufgrund), "nicht angegeben", Text(Global.Anrufgrund))
+          text_4: =If(IsBlank(Global.AnrufgrundEN), "nicht angegeben", Text(Global.AnrufgrundEN))
           text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
           text_6: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
           text_7: =If(IsBlank(Global.KanalLabel), "nicht angegeben", Global.KanalLabel)

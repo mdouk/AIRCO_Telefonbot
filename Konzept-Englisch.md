@@ -170,6 +170,45 @@ items:
   referenzieren die **`id`**, nicht den `displayName` — nachgeprüft an
   `Anrufgrunderfassen`, das `'…entity.Anrufgrund'.u9xatS` schreibt.
 
+> ### ⚠ Überarbeitet 2026-09-08 (nach Test-Chat-Beobachtung): explizites
+> `deutsch`-Item statt reinem Fallback, DTMF-Zuordnung getauscht
+>
+> Beim Testen im Chat zeigte sich, dass eine nicht erkannte Eingabe (z. B.
+> „weiter") **nicht sofort** zu `elseActions` führt, sondern erst nach
+> Ausschöpfen von `repeatCount` (Question-Node-Default: **2** Wiederholungen,
+> siehe Schema-Lookup) — die Frage wird also bis zu dreimal gestellt, bevor
+> auf Deutsch weitergemacht wird. Das ist kein Bug, sondern die Kehrseite von
+> „kein Deutsch-Item, alles andere ist Fallback" (Zeile 161 oben).
+>
+> Entscheidung: **Deutsch bekommt ein eigenes Entity-Item**, damit „weiter"
+> sofort als gültiger Treffer zählt statt als unerkannte Eingabe. Gleichzeitig
+> wurde die DTMF-Zuordnung getauscht (**1 = Deutsch, 2 = Englisch**), passend
+> zur neuen Prompt-Formulierung. `elseActions` bleibt zusätzlich als Netz für
+> wirklich unerkannte Eingaben bestehen (z. B. Stille, falsche Taste).
+>
+> ```yaml
+> items:
+>   - id: deutsch
+>     displayName: deutsch
+>     dtmfKey: Num1
+>     synonyms: [German, weiter, eins, one]
+>   - id: englisch
+>     displayName: englisch
+>     dtmfKey: Num2
+>     synonyms: [English, in English, zwei, two]
+> ```
+>
+> Neue Prompt-Formulierung (`ConversationStart.mcs.yml`):
+> `text: "Für Deutsch geben Sie bitte die 1 ein, für Englisch die 2. For
+> English, please enter 2."` / `speak: "Für Deutsch drücken Sie die Eins. For
+> English, press two."`
+>
+> Die `ConditionGroup`-Bedingung (`= '…Sprachwahl'.englisch`) bleibt
+> unverändert gültig — sie prüft weiterhin die `id` `englisch`, nur deren
+> DTMF-Zuordnung hat sich geändert. **Quelle der Wahrheit ab jetzt die
+> Dateien selbst**, nicht mehr der Codeblock unten in Schritt 2/3 (dort nur
+> zur historischen Nachvollziehbarkeit belassen).
+
 ### Schritt 3 — `ConversationStart.mcs.yml` erweitern ✅ erledigt 2026-09-08
 
 **Bereits im Portal umgesetzt vorgefunden** (nicht von diesem Schritt gebaut,

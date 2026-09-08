@@ -3,11 +3,20 @@ mcs.metadata:
   description: Auswahl der Gesprächssprache am Gesprächsanfang.
 kind: ClosedListEntity
 items:
+  - id: deutsch
+    displayName: deutsch
+    dtmfKey: Num1
+    synonyms:
+      - German
+      - weiter
+      - eins
+      - one
+
   - id: englisch
     displayName: englisch
-    dtmfKey: Num1
+    dtmfKey: Num2
     synonyms:
       - English
       - in English
-      - eins
-      - one
+      - zwei
+      - two

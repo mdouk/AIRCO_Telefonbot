@@ -23,9 +23,9 @@ beginDialog:
       variable: Topic.Sprachwahl
       prompt:
         text:
-          - Für Englisch geben Sie bitte die 1 ein. For English, please enter 1.
+          - Für Deutsch geben Sie bitte die 1 ein, für Englisch die 2. For English, please enter 2.
         speak:
-          - Für Englisch drücken Sie die Eins. For English, press one.
+          - Für Deutsch drücken Sie die Eins. For English, press two.
         allowBargeIn: true
 
       entity:

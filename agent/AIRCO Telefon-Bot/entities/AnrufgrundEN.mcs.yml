@@ -1,0 +1,48 @@
+mcs.metadata:
+  componentName: Anrufgrund EN
+  description: Why did the customer call?
+kind: ClosedListEntity
+items:
+  - id: 8jiEHk
+    displayName: problem
+    synonyms:
+      - 1
+      - one
+      - not working
+      - failure
+      - breakdown
+      - malfunction
+
+  - id: KXrpcq
+    displayName: mainentance
+    synonyms:
+      - 2
+      - two
+      - servicing
+      - service appointment
+
+  - id: yc12cg
+    displayName: spare parts
+    synonyms:
+      - spare part
+      - parts
+      - order parts
+      - three
+      - order
+      - 3
+
+  - id: g6Wk6n
+    displayName: callback
+    synonyms:
+      - call me back
+      - call back
+      - four
+      - 4
+
+  - id: tpthRC
+    displayName: other
+    synonyms:
+      - general question
+      - something else
+      - five
+      - 5

@@ -41,7 +41,7 @@ beginDialog:
 
             Ist das so korrekt?
         speak:
-          - Ich fasse Ihre Angaben zusammen. Sie rufen für die Firma {Global.Firmenname} an. Ihr Name lautet {Global.Ansprechpartner} und Sie sind unter {Global.Telefonnummer} erreichbar. Ist das so korrekt?
+          - Ich fasse Ihre Angaben zusammen. Sie rufen für die Firma {Global.Firmenname} an. Ihr Name lautet {Global.Ansprechpartner} und Sie sind unter {Global.TelefonGesprochen} erreichbar. Ist das so korrekt?
         allowBargeIn: false
 
       entity: BooleanPrebuiltEntity
@@ -205,12 +205,23 @@ beginDialog:
                             speak:
                               - Wie ist Ihre richtige Telefonnummer?
 
-                          entity: StringPrebuiltEntity
+                          entity: PhoneNumberPrebuiltEntity
                           voiceInputSettings:
                             fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
                             defaultValueMissingAction: GoToDialog
 
                           fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
+                        - kind: SetVariable
+                          id: BrNrJj
+                          variable: Global.TelefonGesprochen
+                          value: |-
+                            =Trim(
+                                  Concat(
+                                      Sequence(Len(Global.Telefonnummer)),
+                                      Mid(Global.Telefonnummer, Value, 1) & " "
+                                  )
+                              )
 
                   elseActions:
                     - kind: SendActivity
@@ -224,6 +235,23 @@ beginDialog:
                     - kind: GotoAction
                       id: rlmkpf
                       actionId: question_ODxM04
+
+                - kind: InvokeFlowAction
+                  id: 5UKhu9
+                  displayName: Staging
+                  input:
+                    binding:
+                      text: =System.Conversation.Id
+                      text_1: =If(IsBlank(Global.Firmenname), "nicht angegeben", Global.Firmenname)
+                      text_2: =If(IsBlank(Global.Ansprechpartner), "nicht angegeben", Global.Ansprechpartner)
+                      text_3: =If(IsBlank(Global.Telefonnummer), "nicht angegeben", Global.Telefonnummer)
+                      text_4: =If(IsBlank(Global.Anrufgrund), "nicht angegeben", Text(Global.Anrufgrund))
+                      text_5: =If(IsBlank(Global.Anlage), "nicht erfasst", Global.Anlage)
+                      text_6: =If(IsBlank(Global.Anliegen), "nicht erfasst", Global.Anliegen)
+                      text_7: =If(IsBlank(Global.KanalLabel), "Telefon", Global.KanalLabel)
+
+                  output: {}
+                  flowId: a0a99959-80a7-f111-b8de-7ced8d476627
 
                 - kind: GotoAction
                   id: SLfuCH
