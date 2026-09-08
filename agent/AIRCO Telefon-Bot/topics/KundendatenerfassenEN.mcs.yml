@@ -1,21 +1,21 @@
 mcs.metadata:
-  componentName: Kundendaten erfassen
+  componentName: Kundendaten erfassen EN
 kind: AdaptiveDialog
 beginDialog:
   kind: OnRedirect
   id: main
   actions:
     - kind: Question
-      id: question_qMVPee
+      id: question_qMVPee_en
       interruptionPolicy:
         allowInterruption: false
 
       variable: Global.Firmenname
       prompt:
         text:
-          - Für welche Firma kontaktieren Sie uns?
+          - Which company are you calling for?
         speak:
-          - Für welche Firma rufen Sie an?
+          - Which company are you calling for?
         allowBargeIn: false
 
       entity: StringPrebuiltEntity
@@ -26,16 +26,16 @@ beginDialog:
       fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
 
     - kind: Question
-      id: question_H0ONs7
+      id: question_H0ONs7_en
       interruptionPolicy:
         allowInterruption: false
 
-      variable: init:Global.Ansprechpartner
+      variable: Global.Ansprechpartner
       prompt:
         text:
-          - Wie ist Ihr Name?
+          - May I have your name, please?
         speak:
-          - Wie ist Ihr Name?
+          - May I have your name, please?
         allowBargeIn: false
 
       entity: StringPrebuiltEntity
@@ -46,16 +46,16 @@ beginDialog:
       fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
 
     - kind: Question
-      id: 9CvROV
+      id: 9CvROV_en
       interruptionPolicy:
         allowInterruption: false
 
       variable: Global.Telefonnummer
       prompt:
         text:
-          - Unter welcher Nummer können wir Sie erreichen?
+          - At which number can we reach you?
         speak:
-          - Wie ist Ihre Telefonnummer?
+          - What is your phone number?
         allowBargeIn: false
 
       entity: PhoneNumberPrebuiltEntity
@@ -66,7 +66,7 @@ beginDialog:
       fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
 
     - kind: SetVariable
-      id: setVariable_dvKuWV
+      id: setVariable_dvKuWV_en
       variable: Global.TelefonGesprochen
       value: |-
         =Trim(
@@ -77,7 +77,7 @@ beginDialog:
           )
 
     - kind: Question
-      id: U6OTmJ
+      id: U6OTmJ_en
       interruptionPolicy:
         allowInterruption: false
 
@@ -85,14 +85,14 @@ beginDialog:
       prompt:
         text:
           - |-
-            Was ist der Grund Ihres Anrufs?
-            1 - Störung oder Problem
-            2 - Wartungstermin vereinbaren
-            3 - Ersatzteilbestellung
-            4 - Rückrufbitte
-            5 - Sonstiges
+            What is the reason for your call?
+            1 - Malfunction or problem
+            2 - Schedule a maintenance appointment
+            3 - Spare parts order
+            4 - Request a callback
+            5 - Something else
         speak:
-          - "Was ist der Grund Ihres Anrufs? Sie können sagen: Störung oder Problem, Wartungstermin vereinbaren, Ersatzteilbestellung, Rückrufbitte, oder Sonstiges."
+          - "What is the reason for your call? You can say: malfunction or problem, schedule a maintenance appointment, spare parts order, request a callback, or something else."
         allowBargeIn: false
 
       entity:
@@ -106,12 +106,12 @@ beginDialog:
       fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
 
     - kind: SetVariable
-      id: 2wyZbs
+      id: 2wyZbs_en
       variable: Global.KanalLabel
       value: Telefon
 
     - kind: InvokeFlowAction
-      id: m8Ujcv
+      id: m8Ujcv_en
       displayName: Staging
       input:
         binding:
@@ -128,8 +128,8 @@ beginDialog:
       flowId: a0a99959-80a7-f111-b8de-7ced8d476627
 
     - kind: BeginDialog
-      id: lzTpPJ
-      dialog: mosaiic_AIRCOTelefonBot.topic.Anrufgrunderfassen
+      id: lzTpPJ_en
+      dialog: mosaiic_AIRCOTelefonBot.topic.AnrufgrunderfassenEN
 
 inputType: {}
 outputType: {}

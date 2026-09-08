@@ -231,6 +231,20 @@ SharePoint-/E-Mail-Flows (`Staging schreiben`) vertragen ihn.
 `metadata.flowSystemMetadata.flowKind` im `workflow.json`. Vollständige
 Herleitung in `ToDos.md` (F5).
 
+### ⚠ Bauregel: `init:`-Präfix ist Pro-Variable, nicht Pro-Topic
+
+Der `init:`-Präfix vor einer globalen Variable (z. B. `init:Global.Anliegen`)
+darf für dieselbe Variable **nur an einer einzigen Stelle im gesamten Agenten**
+stehen — nicht einmal pro Topic, das die Variable befüllt. Zwei Topics, die
+dieselbe `Global.`-Variable je mit `init:` deklarieren (typischer Fall bei
+duplizierten Sprachzweigen, siehe `Konzept-Englisch.md`), erzeugen den
+Validierungsfehler `DuplicateVariableInitializer`. Fix: `init:` nur in der
+zuerst geschriebenen Deklaration behalten, in allen weiteren Vorkommen der
+Variable schlicht `variable: Global.…` ohne Präfix setzen — die Bedeutung
+(Variable existiert bereits global) bleibt gleich. Entdeckt 2026-09-08 beim
+Befüllen der englischen Pendants zu `Kundendatenerfassen` und
+`Anliegenerfassen`.
+
 ### Variablen-Strategie
 
 ```

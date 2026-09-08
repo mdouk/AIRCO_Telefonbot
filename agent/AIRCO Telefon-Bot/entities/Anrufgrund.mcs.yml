@@ -14,6 +14,10 @@ items:
       - Ausfall
       - Problem
       - Störung
+      - malfunction
+      - breakdown
+      - failure
+      - not working
 
   - id: gShHbV
     displayName: wartung
@@ -24,6 +28,9 @@ items:
       - zwei
       - Termin
       - Service
+      - maintenance
+      - service appointment
+      - servicing
 
   - id: pcaRDr
     displayName: ersatzteil
@@ -37,6 +44,10 @@ items:
       - Teile
       - bestellen
       - Bestellung
+      - spare part
+      - spare parts
+      - parts
+      - order parts
 
   - id: jMUZBn
     displayName: rueckruf
@@ -46,6 +57,9 @@ items:
       - Rückrufbitte
       - zurückrufen
       - Rückruf
+      - callback
+      - call me back
+      - call back
 
   - id: qa3pK2
     displayName: sonstiges
@@ -54,3 +68,6 @@ items:
       - fünf
       - anderes Thema
       - allgemeine Frage
+      - other
+      - something else
+      - general question

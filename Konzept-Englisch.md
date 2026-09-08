@@ -170,10 +170,21 @@ items:
   referenzieren die **`id`**, nicht den `displayName` — nachgeprüft an
   `Anrufgrunderfassen`, das `'…entity.Anrufgrund'.u9xatS` schreibt.
 
-### Schritt 3 — `ConversationStart.mcs.yml` erweitern
+### Schritt 3 — `ConversationStart.mcs.yml` erweitern ✅ erledigt 2026-09-08
 
-Zwischen der bestehenden Willkommensnachricht (`sendMessage_M0LuhV`) und dem
-bestehenden `BeginDialog` (`y3pHxU`) einfügen:
+**Bereits im Portal umgesetzt vorgefunden** (nicht von diesem Schritt gebaut,
+sondern beim Pull entdeckt) — funktional exakt wie unten geplant: Sprachfrage
+mit Entity `Sprachwahl`, `ConditionGroup` mit `SetMultipleVariables`
+(`System.User.Language` + `Global.Sprache`) und `BeginDialog` nach
+`KundendatenerfassenEN` im Treffer-Zweig, `elseActions` nach
+`Kundendatenerfassen` (DE) unverändert. Einzige Abweichung zum Entwurf:
+`SetVariable` + `SetVariable` wurden im Portal zu einem `SetMultipleVariables`
+mit `assignments:` zusammengefasst — inhaltsgleich. Validiert (32 Dateien,
+0 Fehler).
+
+Ursprünglicher Entwurf (zwischen der bestehenden Willkommensnachricht
+`sendMessage_M0LuhV` und dem ehemaligen `BeginDialog` `y3pHxU` einzufügen),
+zur Nachvollziehbarkeit belassen:
 
 ```yaml
     - kind: Question
@@ -260,7 +271,55 @@ Das bestehende `BeginDialog y3pHxU` am Topic-Ende **entfällt** — es geht in
 > `value: ="en-US"`) waren falsch — bei Option-Set-Variablen also nie raten,
 > sondern einmal klicken und pullen.
 
-### Schritt 4 — Die fünf englischen Topics anlegen
+### Schritt 4 — Die fünf englischen Topics anlegen ✅ erledigt 2026-09-08
+
+Der Nutzer hatte im Portal fünf leere Platzhalter-Topics angelegt
+(`Kundendaten erfassen EN`, `Anrufgrund erfassen EN`, `Anlage erfassen EN`,
+`Anliegen erfassen EN`, `Zusammenfassung EN`) und `Zusammenfassung - Slim` in
+`Zusammenfassung` umbenennen wollen. Nach Pull zeigte sich: die Umbenennung
+kam **nicht** in der Cloud an — die Datei heißt weiterhin
+`Zusammenfassung-Slim.mcs.yml` / `componentName: Zusammenfassung - Slim`,
+unverändert zum Stand vor diesem Schritt. **Offen — im Portal gegenprüfen,**
+ob die Umbenennung dort verworfen wurde oder noch nicht synchron ist. Die
+Dateibenennung `ZusammenfassungEN.mcs.yml` (statt `ZusammenfassungSlimEN`) ist
+davon unabhängig korrekt, da der Nutzer das Topic bereits so benannt hatte.
+
+Alle fünf Topics wurden mit **strukturgleichem** Inhalt zur jeweiligen
+Vorlage befüllt, nur Texte übersetzt (Übersetzungstabelle unten), Node-`id`s
+mit Suffix `_en` neu vergeben, `BeginDialog`-Ziele auf die EN-Kette
+umgebogen. Vier der fünf Platzhalter trugen als Trigger `kind:
+OnRecognizedIntent` mit leerem `intent: {}` (Portal-Default für neue Topics,
+„Ausdrücke" im UI) statt `kind: OnRedirect` wie ihre deutschen Pendants —
+beim Befüllen auf `OnRedirect` korrigiert, sonst wären sie eigenständig
+per Trigger-Phrase aufrufbar gewesen statt ausschließlich per `BeginDialog`.
+`KundendatenerfassenEN` hatte bereits korrekt `OnRedirect` (passend zum
+`BeginDialog` aus `ConversationStart`).
+
+**Validierungsfehler beim ersten Durchlauf:** `DuplicateVariableInitializer`
+auf `Global.Ansprechpartner` (in `KundendatenerfassenEN`) und
+`Global.Anliegen` (in `AnliegenerfassenEN`). Ursache: der `init:`-Präfix
+darf pro globaler Variable nur an **einer** Stelle im gesamten Agenten stehen
+— die deutschen Topics deklarieren ihn für diese beiden Variablen bereits.
+Fix: in beiden EN-Topics `init:` entfernt, nur `variable: Global.…` gesetzt
+(Bedeutung unverändert — die Variable existiert bereits global). **Neue
+Erkenntnis für CLAUDE.md / künftige Duplizierungen:** `init:` ist keine
+Pro-Topic-, sondern eine Pro-Variable-Eigenschaft über den ganzen Agenten.
+
+Nach Fix: **32 Dateien, 0 Fehler, 0 Warnungen** validiert.
+
+> **Nachgezogen (2026-09-08, zweiter Pull):** Zwischen dem ersten Befüllen der
+> EN-Topics und diesem Pull wurde die **deutsche** Kette in der Cloud
+> weiterentwickelt — Telefonnummer-Frage in `Kundendatenerfassen` und im
+> Korrekturzweig von `Zusammenfassung-Slim` von `StringPrebuiltEntity` auf
+> `PhoneNumberPrebuiltEntity` umgestellt, plus neue Variable
+> `Global.TelefonGesprochen` (buchstabiert die Nummer Ziffer für Ziffer,
+> Power-Fx `Trim(Concat(Sequence(Len(...)), Mid(...,1) & " "))`), die in der
+> Vorlese-Zusammenfassung anstelle von `Global.Telefonnummer` steht (nur im
+> `speak`-Text, der `text`-Text zeigt weiterhin `{Global.Telefonnummer}`).
+> Gemäß Pflegeregel 1 identisch in `KundendatenerfassenEN` und
+> `ZusammenfassungEN` nachgezogen: gleiche Entity-Umstellung, gleiche neue
+> `SetVariable`-Aktion an derselben Position, `speak` auf
+> `{Global.TelefonGesprochen}`. Erneut validiert: 32 Dateien, 0 Fehler.
 
 Jeweils **strukturgleiche** Kopie der Vorlage, nur Texte übersetzt.
 
@@ -322,9 +381,18 @@ Für die englische Stimme ist dieser Alias falsch. In den englischen
 `speak`-Texten `AIRCO` zunächst **ohne** `<sub>` belassen und **am Telefon
 abhören**; falls nötig `<sub alias="air co">AIRCO</sub>` setzen.
 
-### Schritt 5 — Entities um englische Synonyme erweitern
+### Schritt 5 — Entities um englische Synonyme erweitern ✅ erledigt 2026-09-08
 
-`entities/Anrufgrund.mcs.yml` — je Item ergänzen:
+Wie geplant: bestehende Entities **erweitert**, keine neuen `_EN`-Entities
+angelegt — `Global.Anrufgrund` ist eine einzige globale Variable, die von
+beiden Sprachzweigen geschrieben wird und deren Typ an den Options-Set der
+Entity gebunden ist; eine zweite Entity hätte einen zweiten, inkompatiblen
+Typ erzeugt. `displayName` bleibt unangetastet (Flow-Vertrag über
+`Text(Global.Anrufgrund)`), nur Synonyme ergänzt — exakt wie unten geplant,
+keine Kollisionen mit bestehenden deutschen Synonymen (`Problem` deckte den
+Störungsfall bereits ab, s.u.). Validiert: 32 Dateien, 0 Fehler, 0 Warnungen.
+
+`entities/Anrufgrund.mcs.yml` — je Item ergänzt:
 
 | Item | Neue Synonyme |
 |---|---|
@@ -334,7 +402,7 @@ abhören**; falls nötig `<sub alias="air co">AIRCO</sub>` setzen.
 | `rueckruf` | callback, call me back, call back |
 | `sonstiges` | other, something else, general question |
 
-`entities/Korrekturfeld.mcs.yml` — für die drei in der Slim-Kette genutzten Items:
+`entities/Korrekturfeld.mcs.yml` — für die drei in der Slim-Kette genutzten Items ergänzt:
 
 | Item | Neue Synonyme |
 |---|---|

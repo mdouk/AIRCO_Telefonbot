@@ -15,6 +15,57 @@ beginDialog:
           - Willkommen beim technischen Service der Firma <sub alias="Airko">AIRCO</sub> Systems GmbH. Sie sprechen mit unserem digitalen Service-Assistenten. Zur Bearbeitung Ihres Anliegens wird dieses Gespräch transkribiert und verarbeitet.
         allowBargeIn: false
 
-    - kind: BeginDialog
-      id: y3pHxU
-      dialog: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen
+    - kind: Question
+      id: question_9fI3eo
+      interruptionPolicy:
+        allowInterruption: false
+
+      variable: Topic.Sprachwahl
+      prompt:
+        text:
+          - Für Englisch geben Sie bitte die 1 ein. For English, please enter 1.
+        speak:
+          - Für Englisch drücken Sie die Eins. For English, press one.
+        allowBargeIn: true
+
+      entity:
+        kind: ClosedListEntityReference
+        sensitivityLevel: None
+        entityId: mosaiic_AIRCOTelefonBot.entity.Sprachwahl
+
+      voiceInputSettings:
+        fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen
+        defaultValueMissingAction: GoToDialog
+
+      fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen
+
+    - kind: ConditionGroup
+      id: conditionGroup_FDLIaV
+      conditions:
+        - id: conditionItem_P810UA
+          condition: =Topic.Sprachwahl = 'mosaiic_AIRCOTelefonBot.entity.Sprachwahl'.englisch
+          displayName: Englisch gewählt
+          actions:
+            - kind: SetMultipleVariables
+              id: setVariable_aym5pY
+              assignments:
+                - variable: System.User.Language
+                  value:
+                    kind: OptionDataValue
+                    type:
+                      kind: SystemOptionSet
+                      name: Locale
+
+                    value: English
+
+                - variable: Global.Sprache
+                  value: Englisch
+
+            - kind: BeginDialog
+              id: Q7RLUY
+              dialog: mosaiic_AIRCOTelefonBot.topic.KundendatenerfassenEN
+
+      elseActions:
+        - kind: BeginDialog
+          id: heIXod
+          dialog: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen

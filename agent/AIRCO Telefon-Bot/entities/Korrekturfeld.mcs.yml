@@ -14,6 +14,9 @@ items:
       - mein Name
       - Ansprechperson
       - der Ansprechpartner
+      - the contact
+      - contact person
+      - my name
 
   - id: KJwQ9x
     displayName: Firmenname
@@ -28,6 +31,9 @@ items:
       - der Firmenname
       - die Firma
       - Firma
+      - company name
+      - the company
+      - company
 
   - id: swLyyJ
     displayName: Telefonnummer
@@ -36,6 +42,9 @@ items:
       - Rufnummer
       - Telefonnumer
       - Nummer
+      - phone number
+      - the number
+      - telephone number
 
   - id: gjJ4ZJ
     displayName: Inbetriebnahme
