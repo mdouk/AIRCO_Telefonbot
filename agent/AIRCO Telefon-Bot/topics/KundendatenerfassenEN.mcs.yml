@@ -111,6 +111,40 @@ beginDialog:
       variable: Global.KanalLabel
       value: Telefon
 
+    - kind: ConditionGroup
+      id: conditionGroup_DklHkA_en
+      conditions:
+        - id: conditionItem_8IyZXO_en
+          condition: =Global.AnrufgrundEN = 'mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN'.'8jiEHk' || Global.AnrufgrundEN = 'mosaiic_AIRCOTelefonBot.entity.AnrufgrundEN'.KXrpcq
+          displayName: Störung oder Wartung > Anlage fragen
+          actions:
+            - kind: Question
+              id: question_Xnm8Nm_en
+              interruptionPolicy:
+                allowInterruption: false
+
+              variable: Global.Anlage
+              prompt:
+                text:
+                  - Please tell us the system designation, the serial number and the year of manufacture.
+                speak:
+                  - Please tell us the system designation, the serial number and the year of manufacture.
+                allowBargeIn: false
+
+              entity:
+                kind: StringPrebuiltEntity
+                sensitivityLevel: None
+
+              voiceInputSettings:
+                fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+                defaultValueMissingAction: GoToDialog
+
+              holdSettings:
+                kind: UserRequestedHoldSettings
+                holdPrompts:
+
+              fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
     - kind: InvokeFlowAction
       id: m8Ujcv_en
       displayName: Staging
@@ -128,9 +162,29 @@ beginDialog:
       output: {}
       flowId: a0a99959-80a7-f111-b8de-7ced8d476627
 
+    - kind: Question
+      id: question_RZHeKB_en
+      interruptionPolicy:
+        allowInterruption: false
+
+      variable: Global.Anliegen
+      prompt:
+        text:
+          - Please describe your request now.
+        speak:
+          - Please describe your request now.
+        allowBargeIn: false
+
+      entity: StringPrebuiltEntity
+      voiceInputSettings:
+        fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+        defaultValueMissingAction: GoToDialog
+
+      fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
+
     - kind: BeginDialog
-      id: lzTpPJ_en
-      dialog: mosaiic_AIRCOTelefonBot.topic.AnrufgrunderfassenEN
+      id: uFP7SX_en
+      dialog: mosaiic_AIRCOTelefonBot.topic.ZusammenfassungEN
 
 inputType: {}
 outputType: {}
