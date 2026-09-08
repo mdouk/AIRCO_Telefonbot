@@ -238,9 +238,12 @@ gestellte Frage.
 Belegt in `Tests/Test 6`, `Test 8` und `Test 9`; behoben durch Entfernen aller
 Staging-Aufrufe aus der Fragekette (Nachweis: Reihenfolge sofort korrekt, im
 Chat **und** am Telefon). Widerlegte Erklärungsversuche, die nicht erneut
-verfolgt werden sollten: Position des Knotens im Topic, `Respond to Copilot` als
-erste Flow-Aktion, `flowKind: Stateless`, Topic- statt Global-Variable in der
-Bedingung. Details in `ToDos.md`, Abschnitt „Reihenfolge-Anomalie".
+verfolgt werden sollten: Position des Knotens im Topic, **Auslagerung des
+Aufrufs in ein eigenes Redirect-Topic** (am 2026-09-07 als Topic `Staging`
+gebaut, am 2026-09-08 wieder gelöscht — brachte keine Verbesserung),
+`Respond to Copilot` als erste Flow-Aktion, `flowKind: Stateless`, Topic- statt
+Global-Variable in der Bedingung. Details in `ToDos.md`, Abschnitt
+„Reihenfolge-Anomalie".
 
 Die einzige nachweislich unschädliche Position ist die in
 `Zusammenfassung - Slim`: Dort ist die **nächste Frage im Graphen ohnehin die,
@@ -251,7 +254,7 @@ landet also dort, wo der Dialog hinwollte.
 
 | Ort | Zweck | Risiko |
 |-----|-------|--------|
-| `Kundendaten erfassen`, letzte Aktion vor dem Redirect | Kontaktdaten + Anrufgrund sichern | ⚠ **ungetestet** — Flow steht direkt vor einem `BeginDialog`, dahinter folgt eine `ConditionGroup` auf `Global.Anrufgrund`. Das ist das Muster, das in `Test 8` den falschen Ast nahm. |
+| `Kundendaten erfassen`, letzte Aktion vor dem Redirect | Kontaktdaten + Anrufgrund sichern | ⚠ **ungetestet** — Flow steht direkt vor einem `BeginDialog`, dahinter folgt eine `ConditionGroup` auf `Global.Anrufgrund`. Das ist das Muster, das in `Test 8` den falschen Ast nahm. **Umweg bereits probiert:** Auslagerung in ein eigenes Redirect-Topic `Staging` (2026-09-07) brachte keine Verbesserung und wurde am 2026-09-08 zurückgenommen — nicht erneut versuchen. Behalten wurden daraus die `IsBlank()`-Guards auf allen 8 Parametern. |
 | `Zusammenfassung - Slim`, Position 2 | vollständiger Datensatz vor der Bestätigung | ✅ erprobt |
 
 ### Unterschiede zu Stufe 1

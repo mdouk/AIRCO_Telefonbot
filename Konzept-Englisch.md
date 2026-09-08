@@ -68,12 +68,11 @@ ConversationStart
        │            BeginDialog KundendatenerfassenEN
        └─ sonst   → BeginDialog Kundendatenerfassen            (DE, unverändert)
 
-KundendatenerfassenEN
-  → StagingEN            (nur InvokeFlowAction a0a99959-…, keine Frage)
-    → AnrufgrunderfassenEN ─┬─ [stoerung | wartung] → AnlagenerfassungEN ─┐
-                            └─ sonst ──────────────────────────────────────┴→ AnliegenerfassenEN
-                                                                              → ZusammenfassungSlimEN
-                                                                                → EndofConversation
+KundendatenerfassenEN   (4 Fragen → SetVariable KanalLabel → InvokeFlowAction Staging)
+  → AnrufgrunderfassenEN ─┬─ [stoerung | wartung] → AnlagenerfassungEN ─┐
+                          └─ sonst ──────────────────────────────────────┴→ AnliegenerfassenEN
+                                                                            → ZusammenfassungSlimEN
+                                                                              → EndofConversation
 ```
 
 Beide Zweige schreiben in **dieselben** Global-Variablen und rufen **dieselben**
@@ -85,7 +84,7 @@ unverändert.
 ## 5. Umsetzungsschritte
 
 Die Schritte sind einzeln abarbeitbar und für getrennte Sessions geschnitten.
-Sinnvolle Blöcke: **1–3** (Fork), **4** (die sechs Topics), **5–7** (Entities,
+Sinnvolle Blöcke: **1–3** (Fork), **4** (die fünf Topics), **5–7** (Entities,
 Systemtopics, Instructions), **8–9** (Validierung, Deployment), dann Test.
 
 Fortschritt in `ToDos.md` festhalten.
@@ -124,7 +123,7 @@ erneut publiziert worden (`publishedOn` 07.09. 14:31:47). Sechs Abweichungen:
 
 | # | Änderung | Bedeutung für dieses Konzept |
 |---|---|---|
-| 1 | **NEU `topics/Staging.mcs.yml`** — der Staging-Flowaufruf wurde aus `Kundendaten erfassen` in ein eigenes Redirect-Topic ausgelagert; die Kette lautet jetzt `Kundendatenerfassen → Staging → Anrufgrunderfassen`. Zusätzlich `IsBlank()`-Guards auf **allen 8** Parametern (vorher nur `Anrufgrund`, `Anlage`, `Anliegen`). | **Hoch.** Die Slim-Kette hat ein Glied mehr → Schritt 4 braucht **sechs** statt fünf Topics. Ohne `StagingEN` fällt der englische Zweig nach der Kundendatenerfassung auf Deutsch zurück. |
+| 1 | ~~**NEU `topics/Staging.mcs.yml`**~~ — der Staging-Flowaufruf war aus `Kundendaten erfassen` in ein eigenes Redirect-Topic ausgelagert worden. **Am 08.09. wieder rückgängig gemacht:** die Auslagerung brachte keine Verbesserung, das Topic wurde gelöscht, der `InvokeFlowAction` sitzt wieder in `Kundendaten erfassen` — unmittelbar nach der Anrufgrund-Frage, vor dem `BeginDialog`. **Behalten wurde** die Verschärfung aus dem Versuch: `IsBlank()`-Guards auf **allen 8** Parametern (vorher nur `Anrufgrund`, `Anlage`, `Anliegen`). | Keine mehr. Die Kette ist wieder fünfgliedrig; Schritt 4 bleibt bei **fünf** Topics. `KundendatenerfassenEN` trägt den Flowaufruf mit — Position exakt spiegeln. |
 | 2 | `settings.mcs.yml`: **`supportedLanguages: [1033]`** ergänzt | **Hoch.** Die Voraussetzung der Sprachumschaltung ist damit bereits erfüllt — siehe Abschnitt 3. |
 | 3 | Flow `Staging schreiben`: `flowKind` **Stateless → Stateful** (Expressmodus abgeschaltet) | Keine. Berührt die Zweisprachigkeit nicht, widerspricht aber der Aussage in CLAUDE.md, dieser Flow vertrage den Expressmodus — dort nachgezogen. |
 | 4 | Flow `Ticketerstellung`: fehlendes Leerzeichen im KI-Prompt korrigiert | Keine. |
@@ -253,7 +252,7 @@ Das bestehende `BeginDialog y3pHxU` am Topic-Ende **entfällt** — es geht in
 > `value: ="en-US"`) waren falsch — bei Option-Set-Variablen also nie raten,
 > sondern einmal klicken und pullen.
 
-### Schritt 4 — Die sechs englischen Topics anlegen
+### Schritt 4 — Die fünf englischen Topics anlegen
 
 Jeweils **strukturgleiche** Kopie der Vorlage, nur Texte übersetzt.
 
@@ -264,28 +263,20 @@ Jeweils **strukturgleiche** Kopie der Vorlage, nur Texte übersetzt.
 
 | Neue Datei | Vorlage | Verweist weiter auf |
 |---|---|---|
-| `KundendatenerfassenEN.mcs.yml` | `Kundendatenerfassen.mcs.yml` | **`StagingEN`** |
-| **`StagingEN.mcs.yml`** | **`Staging.mcs.yml`** | `AnrufgrunderfassenEN` |
+| `KundendatenerfassenEN.mcs.yml` | `Kundendatenerfassen.mcs.yml` | `AnrufgrunderfassenEN` |
 | `AnrufgrunderfassenEN.mcs.yml` | `Anrufgrunderfassen.mcs.yml` | `AnlagenerfassungEN` / `AnliegenerfassenEN` |
 | `AnlagenerfassungEN.mcs.yml` | `Anlagenerfassung.mcs.yml` | `AnliegenerfassenEN` |
 | `AnliegenerfassenEN.mcs.yml` | `Anliegenerfassen.mcs.yml` | `ZusammenfassungSlimEN` |
 | `ZusammenfassungSlimEN.mcs.yml` | `Zusammenfassung-Slim.mcs.yml` | `EndofConversation` |
 
-> **`StagingEN` enthält keinen einzigen Text** — nur den `InvokeFlowAction` und
-> ein `BeginDialog`. Zu übersetzen ist daran nichts; zu ändern ist **allein das
-> Sprungziel** am Ende (`Anrufgrunderfassen` → `AnrufgrunderfassenEN`) sowie
-> die beiden Node-`id`s. Die acht `IsBlank()`-Guards und die `flowId`
-> **unverändert** übernehmen.
->
-> **Warum trotzdem duplizieren und nicht eine `ConditionGroup` auf
-> `Global.Sprache` ans Ende des gemeinsamen `Staging` hängen?** Weil das exakt
-> die dokumentierte Fehlerkonstellation wäre: `InvokeFlowAction` gefolgt von
-> einer `ConditionGroup`, die eine **Global**-Variable liest — der bestätigte
-> Fall aus CLAUDE.md („Flow-Aufruf spaltet den Dialog", 2026-09-04), in dem die
-> Bedingung die Variable noch leer sieht und den `else`-Ast nimmt. Hier wäre
-> der `else`-Ast der **deutsche**, und ein englischer Anrufer landete still auf
-> Deutsch. Duplizieren umgeht das vollständig und folgt ohnehin der
-> Grundentscheidung aus Abschnitt 2.
+> **`KundendatenerfassenEN` trägt den Staging-Flowaufruf mit.** Er steht in der
+> Vorlage nach der `SetVariable`-Zuweisung `Global.KanalLabel = Telefon` und
+> unmittelbar vor dem `BeginDialog` — **exakt diese Position beibehalten**,
+> nicht ans Topic-Ende oder in ein eigenes Topic verschieben (beides ist
+> widerlegt, siehe CLAUDE.md). Zu ändern sind allein die Node-`id`s und das
+> Sprungziel des `BeginDialog`. Die acht `IsBlank()`-Guards, die `flowId`
+> `a0a99959-…` und alle acht Bindings **unverändert** übernehmen — der
+> Flow-Vertrag ist sprachneutral.
 
 **Unverändert übernehmen:** alle `Global.`-Variablennamen, beide `flowId`s
 (`a0a99959-…` Staging, `834c8025-…` Ticketerstellung), alle Flow-Bindings,
@@ -385,7 +376,7 @@ Transfer-Verweis.
 ### Schritt 8 — Validierung
 
 `copilot-studio:validate` über alle neuen und geänderten YAMLs: Schema,
-Power Fx, Cross-File-Referenzen — insbesondere die sechs neuen `dialog:`-Verweise
+Power Fx, Cross-File-Referenzen — insbesondere die fünf neuen `dialog:`-Verweise
 und die Entity-Referenz auf `Sprachwahl`.
 
 ### Schritt 9 — Push und Publish
@@ -450,7 +441,7 @@ Admin Center (siehe CLAUDE.md, Deployment-Weg).
 ## 8. Pflegeregeln
 
 1. **Jede Änderung an der Slim-Kette muss in beiden Sprachzweigen nachgezogen
-   werden.** Das ist der Preis der Duplizierung. Betroffen sind die sechs Paare
+   werden.** Das ist der Preis der Duplizierung. Betroffen sind die fünf Paare
    aus Schritt 4.
 2. Neue Systemtopic-Texte immer gleich zweisprachig anlegen.
 3. Neue Closed-List-Items brauchen deutsche **und** englische Synonyme;

@@ -126,11 +126,9 @@ gepflegt, um Diagramm-Duplikate mit widersprüchlichem Stand zu vermeiden.
 Kurzfassung **Stufe 0 „Slim" — die aktiv gebaute Kette** (Stand 2026-09-08,
 per Pull verifiziert):
 `Conversation Start` → `Kundendaten erfassen` (Firmenname, Ansprechpartner,
-Telefonnummer, **Anrufgrund** als Closed List) → **`Staging`** (eigenes
-Redirect-Topic, seit 2026-09-07: enthält **nur** den Staging-Flowaufruf
-`a0a99959-…` mit `IsBlank()`-Guards auf allen 8 Parametern, keine Frage —
-Umsetzung der Bauregel „kein `InvokeFlowAction` im Frageablauf") →
-`Anrufgrund erfassen` (**nur noch Verzweigung, keine Frage**) → bei
+Telefonnummer, **Anrufgrund** als Closed List, dann `SetVariable KanalLabel`
+und der Staging-Flowaufruf `a0a99959-…` mit `IsBlank()`-Guards auf allen
+8 Parametern) → `Anrufgrund erfassen` (**nur noch Verzweigung, keine Frage**) → bei
 Störung/Wartung `Anlage erfassen`, sonst direkt → `Anliegen erfassen`
 (Freitext) → `Zusammenfassung - Slim` (Staging-Flow, Bestätigung der
 3 Kontaktfelder, Korrekturschleife ≤ 3) → Flow `Ticketerstellung` →
@@ -174,6 +172,10 @@ doppelt gestellte Frage. Reproduzierbar, nicht sporadisch, im Testpanel **und**
 am Telefon (`Tests/Test 6`, `Test 8`, `Test 9`).
 
 Widerlegt und **nicht erneut zu verfolgen**: Position des Knotens im Topic,
+**Auslagerung des Aufrufs in ein eigenes Redirect-Topic** (am 2026-09-07 als
+Topic `Staging` gebaut, am 2026-09-08 wieder gelöscht — brachte keine
+Verbesserung; der Aufruf sitzt wieder in `Kundendaten erfassen`, die
+`IsBlank()`-Guards auf allen 8 Parametern wurden aus dem Versuch behalten),
 `Respond to Copilot` als erste Flow-Aktion, `flowKind: Stateless`, Umstellung
 der Bedingung auf eine Topic-Variable, Expressmodus.
 

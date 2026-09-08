@@ -69,6 +69,15 @@ die Fragereihenfolge — reproduzierbar, nicht sporadisch.
 Muster, das in `Tests/Test 8` den falschen (else-)Ast nahm. **Noch nicht
 getestet** — siehe ToDos.md.
 
+> **Umweg bereits probiert und verworfen (2026-09-07 → 2026-09-08):** Der Aufruf
+> war testweise in ein eigenes Redirect-Topic `Staging` ausgelagert
+> (`Kundendaten erfassen → Staging → Anrufgrund erfassen`). Das brachte keine
+> Verbesserung; das Topic wurde wieder gelöscht, der Aufruf sitzt erneut inline.
+> **Nicht erneut versuchen** — die Auslagerung steht jetzt in der Liste der
+> widerlegten Ansätze (CLAUDE.md, `Architektur.md` §3a). Behalten wurde aus dem
+> Versuch die Verschärfung der Bindings: `IsBlank()`-Guards auf **allen 8**
+> Parametern statt zuvor nur auf `Anrufgrund`, `Anlage`, `Anliegen`.
+
 **Aktuelle flowIds:**
 
 | Flow | flowId | aufgerufen aus |
@@ -123,7 +132,8 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
 - Question → Global.Telefonnummer (StringPrebuiltEntity, allowBargeIn: false)
 - Question → Global.Anrufgrund (ClosedList Anrufgrund)   # 2026-09-05 aus „Anrufgrund erfassen" hierher verschoben
 - SetVariable: Global.KanalLabel = "Telefon"
-- InvokeFlowAction „Staging schreiben" (a0a99959-…)      # ⚠ ungetestet an dieser Position
+- InvokeFlowAction „Staging schreiben" (a0a99959-…)      # id m8Ujcv; ⚠ ungetestet an dieser Position
+    # alle 8 Bindings mit IsBlank()-Guard (2026-09-08)
 - BeginDialog → Anrufgrunderfassen
 ```
 
