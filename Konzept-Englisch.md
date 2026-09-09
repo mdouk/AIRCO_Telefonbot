@@ -315,12 +315,27 @@ Das bestehende `BeginDialog y3pHxU` am Topic-Ende **entfällt** — es geht in
 Der Nutzer hatte im Portal fünf leere Platzhalter-Topics angelegt
 (`Kundendaten erfassen EN`, `Anrufgrund erfassen EN`, `Anlage erfassen EN`,
 `Anliegen erfassen EN`, `Zusammenfassung EN`) und `Zusammenfassung - Slim` in
-`Zusammenfassung` umbenennen wollen. Nach Pull zeigte sich: die Umbenennung
-kam **nicht** in der Cloud an — die Datei heißt weiterhin
-`Zusammenfassung-Slim.mcs.yml` / `componentName: Zusammenfassung - Slim`,
-unverändert zum Stand vor diesem Schritt. **Offen — im Portal gegenprüfen,**
-ob die Umbenennung dort verworfen wurde oder noch nicht synchron ist. Die
-Dateibenennung `ZusammenfassungEN.mcs.yml` (statt `ZusammenfassungSlimEN`) ist
+`Zusammenfassung` umbenennen wollen. Beim Pull an diesem Tag war die
+Umbenennung noch nicht sichtbar.
+
+> ### ✅ Nachtrag 2026-09-09 — die Umbenennung ist angekommen
+>
+> Der oben notierte offene Punkt ist erledigt: `componentName` lautet
+> **`Zusammenfassung`**. Der Wechsel kam mit Commit `34a43d5`
+> (`- componentName: Zusammenfassung - Slim` / `+ componentName:
+> Zusammenfassung`) in den Pull-Stand — er war beim damaligen Pull nur noch
+> nicht durch.
+>
+> **⚠ Nur der Anzeigename hat sich geändert.** Unverändert bleiben:
+> * die Datei `Zusammenfassung-Slim.mcs.yml`
+> * der `schemaName` `mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim`
+>
+> Genau auf diesen `schemaName` zeigen die `BeginDialog`-Sprünge in
+> `Kundendatenerfassen.mcs.yml` und `Anliegenerfassen.mcs.yml`. Diese
+> Referenzen **nicht** „passend zum neuen Namen" umschreiben — das bricht die
+> Kette. Anzeigename ≠ Schemaname.
+
+Die Dateibenennung `ZusammenfassungEN.mcs.yml` (statt `ZusammenfassungSlimEN`) ist
 davon unabhängig korrekt, da der Nutzer das Topic bereits so benannt hatte.
 
 Alle fünf Topics wurden mit **strukturgleichem** Inhalt zur jeweiligen

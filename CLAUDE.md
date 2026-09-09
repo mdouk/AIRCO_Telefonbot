@@ -145,7 +145,18 @@ als Closed List (`Global.Anrufgrund` bzw. `Global.AnrufgrundEN`),
 > die einzige nachweislich funktionierende; sie nicht umstellen. Siehe
 > Bauregel unten.
 
-Inaktiv: `Inbetriebnahme`, `Vertragsfrage`, `Zusammenfassung` (Nicht-Slim).
+Inaktiv: `Inbetriebnahme`, `Vertragsfrage` — beides **Stufe-1-Entwurfsmaterial
+in `Topics.md`, keine Topics im Agenten**. Ein Nicht-Slim-Topic
+`Zusammenfassung` existiert im Agenten **nicht** (nur als Altstand in
+`Backup/Zusammenfassung.md`).
+
+> **⚠ Anzeigename ≠ Schemaname (seit `34a43d5`):** Das Topic heißt im Studio
+> inzwischen schlicht **`Zusammenfassung`** — Datei und `schemaName` sind aber
+> unverändert `Zusammenfassung-Slim.mcs.yml` bzw.
+> `mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim`. Genau darauf zeigen die
+> `BeginDialog`-Sprünge aus `Kundendatenerfassen.mcs.yml` und
+> `Anliegenerfassen.mcs.yml`. Diese Referenzen **nicht** an den neuen
+> Anzeigenamen angleichen — das bricht die Kette.
 **Tot (nicht mehr aufgerufen, nicht gelöscht):** `Anrufgrund erfassen`,
 `Anlage erfassen`, `Anliegen erfassen` und die EN-Pendants
 `Anrufgrund erfassen EN`, `Anlage erfassen EN`, `Anliegen erfassen EN` — ihr

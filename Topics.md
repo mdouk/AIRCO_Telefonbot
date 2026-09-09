@@ -104,7 +104,17 @@ bestätigt vorhanden (2026-09-08)** — siehe ToDos.md.
 | ~~Anliegen weiterleiten – slim~~ | ~~`019885f0-…`~~ | **von keinem Topic mehr** — abgelöst |
 
 **Inaktive Topics** (aus Stufe 1, laufen in Stufe 0 nicht mehr mit):
-`Inbetriebnahme`, `Vertragsfrage`, `Zusammenfassung` (die Nicht-Slim-Variante).
+`Inbetriebnahme`, `Vertragsfrage` — beides existiert **nur als Entwurf in
+diesem Dokument**, nicht als Topic im Agenten. Eine Nicht-Slim-Variante
+`Zusammenfassung` gibt es im Agenten **nicht** (nur als Altstand in
+`Backup/Zusammenfassung.md`).
+
+> **⚠ Anzeigename ≠ Schemaname (seit Commit `34a43d5`):** Das Topic heißt im
+> Studio jetzt **`Zusammenfassung`**, Datei und `schemaName` bleiben aber
+> `Zusammenfassung-Slim.mcs.yml` /
+> `mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim` — die Tabelle oben
+> benennt es deshalb weiterhin so. Die `BeginDialog`-Referenzen nicht an den
+> Anzeigenamen angleichen.
 
 ### Topic: Conversation Start — Stufe 0 (identisch mit Stufe 1)
 
