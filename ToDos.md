@@ -1100,10 +1100,38 @@ der Messe** (bräche die Bindungen in mehreren `InvokeFlowAction`-Nodes).
         der Ansprechpartnername?").
       `Global.Telefonnummer` wird unverändert erfasst und geht an beide Flows
       (Staging + Ticketerstellung) — nur die Ansage ist weg.
+- [x] **In die Cloud gepusht und publiziert (2026-09-09, 17:52:41Z).** Ablauf:
+      Fresh-Clone-Abgleich (keine Fremdänderung — die sechs vermeintlichen
+      Abweichungen waren Zeilenenden LF/CRLF, plus `publishedOn`), Push
+      zunächst mit `ConcurrencyVersionMismatch` abgelehnt (das Publish um
+      12:14 hatte die RowVersions in der Cloud gehoben, unser `.mcs/`-Stand
+      war vom 08.09.), Sync-Metadaten aus dem Fresh-Clone übernommen —
+      **kein `pull`**, der hätte die Änderungen überschrieben —, zweiter Push
+      erfolgreich, per zweitem Fresh-Clone gegengeprüft (Cloud == Workspace,
+      0 Treffer für `PhoneNumberPrebuiltEntity` und `TelefonGesprochen`,
+      17 Topic-Dateien), dann Publish.
 - [ ] **Offen: Testanruf mit dem neuen Stand** (DE + EN). Zu prüfen: Nummer
       wird angenommen, egal wie sie formuliert ist; Zusammenfassung nennt nur
       Firma + Name; Korrekturschleife funktioniert mit den zwei verbliebenen
       Optionen; E-Mail enthält die Telefonnummer weiterhin.
+- [ ] **Entity `Korrekturfeld` aufräumen — bewusst zurückgestellt, offen.**
+      Die Closed List trägt weiterhin den Wert `swLyyJ` „Telefonnummer",
+      obwohl der zugehörige Korrekturzweig am 2026-09-09 gelöscht wurde.
+      **Auswirkung heute:** Sagt ein Anrufer trotzdem „die Telefonnummer war
+      falsch", matcht die Entity, aber keine `ConditionGroup` greift → der
+      `elseActions`-Zweig meldet „Das habe ich leider nicht verstanden." und
+      die Frage wird wiederholt (max. 3×, dann Ticketerstellung + Ende).
+      Kein Absturz, kein Datenverlust.
+      **Warum zurückgestellt:** Der Bot liest die Nummer nicht mehr vor, der
+      Anrufer hat also keinen Anlass, sie zu beanstanden. Ausserdem trägt die
+      Entity seit Stufe 1 ohnehin zwei weitere unbehandelte Werte
+      (`gjJ4ZJ` Inbetriebnahme, `YvfEJQ` Wartungsvertrag) — „Telefonnummer"
+      ist damit der dritte, kein neuer Sonderfall.
+      **Wenn doch aufgeräumt wird:** `swLyyJ` aus
+      `entities/Korrekturfeld.mcs.yml` entfernen und vorher prüfen, dass der
+      Key nirgends mehr in einer `condition:` steht (aktuell: nirgends —
+      `grep -rn swLyyJ agent/`). Erst dann pushen; ein referenzierter,
+      gelöschter Entity-Key ist ein Validierungsfehler.
 - **Nicht mehr nötig:** Auswertung des Rohtexts aus `Tests/Test 15` als
       Vorbedingung für eine Nachbearbeitung — die Nachbearbeitung entfällt mit
       der Entscheidung oben. Der Trace bleibt als Beleg für den Bug erhalten.
