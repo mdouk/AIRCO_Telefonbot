@@ -58,23 +58,12 @@ beginDialog:
           - Wie ist Ihre Telefonnummer?
         allowBargeIn: false
 
-      entity: PhoneNumberPrebuiltEntity
+      entity: StringPrebuiltEntity
       voiceInputSettings:
         fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
         defaultValueMissingAction: GoToDialog
 
       fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
-
-    - kind: SetVariable
-      id: setVariable_dvKuWV
-      variable: Global.TelefonGesprochen
-      value: |-
-        =Trim(
-              Concat(
-                  Sequence(Len(Global.Telefonnummer)),
-                  Mid(Global.Telefonnummer, Value, 1) & " "
-              )
-          )
 
     - kind: Question
       id: U6OTmJ

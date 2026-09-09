@@ -39,11 +39,10 @@ beginDialog:
             Let me summarise your details:
             - Company: {Global.Firmenname}
             - Contact: {Global.Ansprechpartner}
-            - Phone number: {Global.Telefonnummer}
 
             Is that correct?
         speak:
-          - Let me summarise your details. You are calling for {Global.Firmenname}. Your name is {Global.Ansprechpartner} and we can reach you at {Global.TelefonGesprochen}. Is that correct?
+          - Let me summarise your details. You are calling for {Global.Firmenname} and your name is {Global.Ansprechpartner}. Is that correct? Please answer with yes or no.
         allowBargeIn: false
 
       entity: BooleanPrebuiltEntity
@@ -113,9 +112,9 @@ beginDialog:
                   variable: init:Topic.Korrekturfeld
                   prompt:
                     text:
-                      - Which detail was incorrect? The company name, the contact name, or the phone number?
+                      - Which detail was incorrect? The company name or the contact name?
                     speak:
-                      - Which detail was incorrect? The company name, the contact name, or the phone number?
+                      - Which detail was incorrect? The company name or the contact name?
 
                   entity:
                     kind: ClosedListEntityReference
@@ -186,44 +185,6 @@ beginDialog:
                             defaultValueMissingAction: GoToDialog
 
                           fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
-
-                    - id: conditionItem_nV5Ax7_en
-                      condition: =Topic.Korrekturfeld = 'mosaiic_AIRCOTelefonBot.entity.Korrekturfeld'.swLyyJ
-                      actions:
-                        - kind: SetVariable
-                          id: setVariable_j62k3e_en
-                          variable: Global.Telefonnummer
-                          value: =Blank()
-
-                        - kind: Question
-                          id: question_Q8Yy2q_en
-                          interruptionPolicy:
-                            allowInterruption: true
-
-                          variable: Global.Telefonnummer
-                          prompt:
-                            text:
-                              - What is your correct phone number?
-                            speak:
-                              - What is your correct phone number?
-
-                          entity: PhoneNumberPrebuiltEntity
-                          voiceInputSettings:
-                            fallbackDialogOnSilence: mosaiic_AIRCOTelefonBot.topic.EndofConversation
-                            defaultValueMissingAction: GoToDialog
-
-                          fallbackDialogOnInvalidEntity: mosaiic_AIRCOTelefonBot.topic.EndofConversation
-
-                        - kind: SetVariable
-                          id: BrNrJj_en
-                          variable: Global.TelefonGesprochen
-                          value: |-
-                            =Trim(
-                                  Concat(
-                                      Sequence(Len(Global.Telefonnummer)),
-                                      Mid(Global.Telefonnummer, Value, 1) & " "
-                                  )
-                              )
 
                   elseActions:
                     - kind: SendActivity

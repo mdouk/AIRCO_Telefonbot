@@ -31,7 +31,7 @@ ist verworfen.
 > `manage-agent` gespiegelt). Der frühere Ordner `YAML/Slim/` existiert nicht
 > mehr; die alten Arbeitskopien liegen als historischer Stand in `Backup/`.
 
-### ⚠ Ist-Stand der Kette (2026-09-08, per Fresh-Clone verifiziert)
+### ⚠ Ist-Stand der Kette (2026-09-09)
 
 Die Topic-Beschreibungen weiter unten sind älter und teils überholt.
 **Maßgeblich ist diese Kette:**
@@ -46,8 +46,7 @@ Start der Unterhaltung
   → Kundendaten erfassen  /  Kundendaten erfassen EN   ← ALLES in EINEM Topic
         Q1 Global.Firmenname            (StringPrebuilt)
         Q2 init:Global.Ansprechpartner  (nur DE; EN ohne init:)
-        Q3 Global.Telefonnummer         (DE: PhoneNumberPrebuilt)
-        SetVariable Global.TelefonGesprochen  (Ziffern einzeln, für TTS)
+        Q3 Global.Telefonnummer         (StringPrebuilt, DE + EN)
         Q4 Global.Anrufgrund / Global.AnrufgrundEN   (ClosedList, 5 Optionen)
         SetVariable Global.KanalLabel = "Telefon"
         ConditionGroup: Störung (u9xatS / 8jiEHk) oder Wartung (gShHbV / KXrpcq)
@@ -58,6 +57,8 @@ Start der Unterhaltung
         SetVariable Topic.Korrekturversuche = 0
         InvokeFlowAction "Staging schreiben"
         Q init:Topic.korrekt  ("Ist das so korrekt?" / "Is that correct?")
+              bestätigt nur Firmenname + Ansprechpartner
+              (Telefonnummer wird NICHT vorgelesen)
         ja   → FlowAufgerufen = true → InvokeFlowAction "Ticketerstellung" → Ende
         nein → Korrekturschleife (≤ 3) → GotoAction question_Qt7GUF(_en)
                nach 3 Versuchen → Ticketerstellung → Ende
@@ -66,11 +67,13 @@ Start der Unterhaltung
                     Text(Global.AnrufgrundEN), Text(Global.Anrufgrund))
 ```
 
-> **Merge 2026-09-08:** `Anrufgrund erfassen`, `Anlage erfassen` und
-> `Anliegen erfassen` sind als eigenständige Topics **aus der Kette
-> verschwunden** — je DE und EN. Sie existieren noch als Dateien, werden aber
-> nicht mehr aufgerufen. Auslöser war die Reihenfolge-Anomalie im englischen
-> Zweig (`Tests/Test 12`/`13`), Bestätigung des Fixes in `Tests/Test 14`.
+> **Merge 2026-09-08, Löschung 2026-09-09:** `Anrufgrund erfassen`,
+> `Anlage erfassen` und `Anliegen erfassen` sind als eigenständige Topics
+> **aus der Kette verschwunden** — je DE und EN. Auslöser war die
+> Reihenfolge-Anomalie im englischen Zweig (`Tests/Test 12`/`13`), Bestätigung
+> des Fixes in `Tests/Test 14`. Am **2026-09-09** wurden die sechs Dateien
+> zusätzlich **gelöscht** (Altstand: Tag
+> `stand-2026-09-09-vor-telefonnummer-umbau`).
 > Die Abschnitte „Topic: Anlage erfassen" und „Topic: Anliegen erfassen" weiter
 > unten beschreiben also **Inhalt, der jetzt inline liegt** — die Fragen,
 > Entities und Bedingungs-IDs stimmen weiterhin, nur der Topic-Zuschnitt nicht.
@@ -134,7 +137,11 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
 3. **`Global.KanalLabel` wird hardcodiert** auf `"Telefon"` gesetzt — kein
    Bedingungsblock. Wenn der Chat-Kanal in Zukunft hinzukommt, wird die
    Bedingung `Activity.ChannelId = "directline"` → `"Chat"` ergänzt.
-4. **`Global.TelefonnummerGesprochen` neu (2026-08-25, getestet, ✅ erfolgreich)**:
+4. ~~**`Global.TelefonnummerGesprochen` neu (2026-08-25)**~~ — **hinfällig seit
+   2026-09-09.** Die Nachfolgevariable `Global.TelefonGesprochen` wurde mit dem
+   Wegfall der Telefonnummer-Ansage in der Zusammenfassung ersatzlos entfernt.
+   Der folgende Absatz bleibt als Begründung stehen, warum eine solche
+   Ziffern-Aufbereitung überhaupt nötig gewesen wäre:
    SetVariable-Node direkt nach der Telefonnummer-Frage berechnet eine
    Ziffern-mit-Leerzeichen-Variante der Nummer für die Sprachausgabe.
    **Root Cause**: Azure-Neural-TTS liest eine zusammenhängende Ziffernfolge ohne
@@ -152,17 +159,25 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
    Zusammenfassung verwendet (siehe unten); `text`-Feld, Flow-Input und E-Mail
    bleiben bei der unformatierten `Global.Telefonnummer`.
 
-**YAML-Stand (2026-09-02):**
+**YAML-Stand (2026-09-09):**
 ```yaml
 - Question → Global.Firmenname (StringPrebuiltEntity, allowBargeIn: false)
 - Question → init:Global.Ansprechpartner (StringPrebuiltEntity, allowBargeIn: false)
 - Question → Global.Telefonnummer (StringPrebuiltEntity, allowBargeIn: false)
+    # 2026-09-09 von PhoneNumberPrebuiltEntity zurueckgebaut, siehe ToDos F8
 - Question → Global.Anrufgrund (ClosedList Anrufgrund)   # 2026-09-05 aus „Anrufgrund erfassen" hierher verschoben
 - SetVariable: Global.KanalLabel = "Telefon"
-- InvokeFlowAction „Staging schreiben" (a0a99959-…)      # id m8Ujcv; ⚠ loest die Reihenfolge-Anomalie aus
+- ConditionGroup: Stoerung/Wartung → Question Global.Anlage   # inline seit 2026-09-08
+- InvokeFlowAction „Staging schreiben" (a0a99959-…)      # id m8Ujcv
     # alle 8 Bindings mit IsBlank()-Guard (2026-09-08)
-- BeginDialog → Anrufgrunderfassen
+- Question → init:Global.Anliegen (StringPrebuiltEntity)      # inline seit 2026-09-08
+    # ⚠ muss unmittelbar nach dem Flowaufruf stehen
+- BeginDialog → Zusammenfassung-Slim
 ```
+
+> **Entfallen 2026-09-09:** der `SetVariable`-Node `Global.TelefonGesprochen`
+> zwischen Telefonnummer- und Anrufgrund-Frage — er diente ausschließlich der
+> Ziffernaussprache in der Zusammenfassung, die es nicht mehr gibt.
 
 **Warum die Anrufgrund-Frage hier steht (2026-09-05):** Fall 3 verlangt, dass ab
 den drei Kontaktfeldern ein SharePoint-Datensatz existiert. Der einzige
@@ -177,7 +192,7 @@ Flow → BeginDialog) trägt, ist noch nicht getestet.**
 - `Global.TelefonnummerGesprochen` + SetVariable-Node **entfernt**: speak-Feld der Zusammenfassung nutzt jetzt `{Global.Telefonnummer}` direkt; TTS liest den Rohtext korrekt vor, da er bereits als gesprochen gespeichert ist.
 - `allowBargeIn: false` in allen prompt-Feldern ergänzt.
 
-### Topic: Anlage erfassen — Stufe 0 (NEU)
+### ~~Topic: Anlage erfassen~~ — Stufe 0 *(Topic gelöscht 2026-09-09, Inhalt inline in „Kundendaten erfassen")*
 
 - **Trigger**: `OnRedirect` (von „Kundendaten erfassen")
 - **Topic-ID im Dialog**: `mosaiic_AIRCOTelefonBot.topic.Anlagenerfassung`
@@ -194,14 +209,14 @@ Flow → BeginDialog) trägt, ist noch nicht getestet.**
 
 - **Node 2 — BeginDialog**: → `mosaiic_AIRCOTelefonBot.topic.Anliegenerfassen`
 
-### Topic: Anliegen erfassen — Stufe 0
+### ~~Topic: Anliegen erfassen~~ — Stufe 0 *(Topic gelöscht 2026-09-09, Inhalt inline in „Kundendaten erfassen")*
 
 Identisch mit Stufe 1, **einzige Änderung**: letzter Node redirectet zu
 `mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim` (statt `Zusammenfassung`).
 
 ### Topic: Zusammenfassung & Bestätigung (Slim) — Stufe 0
 
-- **Trigger**: `OnRedirect` (von „Anliegen erfassen")
+- **Trigger**: `OnRedirect` (von „Kundendaten erfassen" / „Kundendaten erfassen EN")
 - **Topic-ID im Dialog**: `mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim`
 - **flowIds (Stand 2026-09-05)**: `a0a99959-80a7-f111-b8de-7ced8d476627`
   („Staging schreiben", Position 2 im Topic) und
@@ -217,30 +232,48 @@ Identisch mit Stufe 1, **einzige Änderung**: letzter Node redirectet zu
    > Ich fasse Ihre Angaben zusammen:
    > - Firma: {Global.Firmenname}
    > - Ansprechpartner: {Global.Ansprechpartner}
-   > - Telefonnummer: {Global.Telefonnummer}
    >
    > Ist das so korrekt?
    > ```
-   > **speak**: Ich fasse Ihre Angaben zusammen. Sie rufen für die Firma {Global.Firmenname} an. Ihr Name lautet {Global.Ansprechpartner} und Sie sind unter {Global.Telefonnummer} erreichbar. Ist das so korrekt?
-   > → gebunden an `init:Topic.korrekt` (BooleanPrebuiltEntity)
+   > **speak**: Ich fasse Ihre Angaben zusammen. Sie rufen für die Firma {Global.Firmenname} an und Ihr Name lautet {Global.Ansprechpartner}. Ist das so korrekt? Bitte antworten Sie mit Ja oder Nein.
+   > → gebunden an `init:Topic.korrekt` (DE: ClosedList `JaNein`; EN: `BooleanPrebuiltEntity`)
    
-   - **Anlage und Anliegen werden nicht vorgelesen** — nur die 3 Kontaktfelder werden bestätigt.
+   EN-Pendant (`Zusammenfassung EN`, `question_Qt7GUF_en`):
+   
+   > **speak**: Let me summarise your details. You are calling for {Global.Firmenname} and your name is {Global.Ansprechpartner}. Is that correct? Please answer with yes or no.
+   
+   - **Nur Firmenname + Ansprechpartner werden bestätigt** — Telefonnummer, Anlage und Anliegen werden nicht vorgelesen.
    - **Kein Node 0b / keine 4-Varianten-Condition** — da Inbetriebnahme und Vertrag entfallen.
-   - **`{Global.Telefonnummer}` direkt im `speak`-Feld** (2026-09-02 geändert): Da die Telefonnummer jetzt als `StringPrebuiltEntity` (Rohtext, so wie gesprochen) gespeichert wird, liest TTS sie korrekt vor — `{Global.TelefonnummerGesprochen}` ist damit hinfällig und wurde entfernt.
+   - **Telefonnummer raus (2026-09-09):** Vorher stand `{Global.TelefonGesprochen}`
+     im `speak`-Feld (Ziffern einzeln, damit TTS nicht „einhundertdreiund…“
+     sagt). Weil `Global.Telefonnummer` als `StringPrebuiltEntity` den
+     **Rohtext der Äußerung** enthält („meine Nummer lautet plus neun und
+     vierzig …“), klang jede Ansage falsch — vorgelesen wurde ja auch der
+     Einleitungssatz des Anrufers. Die Nummer wird deshalb gar nicht mehr
+     bestätigt; sie geht unverändert an Staging- und Ticketerstellungs-Flow.
+     `Global.TelefonGesprochen` ist damit ersatzlos entfallen.
 
-2. **Korrekturfeld-Entity auf 3 Optionen reduziert** (Inbetriebnahme + Vertrag entfernt):
+2. **Korrekturschleife auf 2 Optionen reduziert** (2026-09-09; vorher 3, davor 5):
    
-   > Welche Angabe war nicht korrekt? Der Firmenname, der Ansprechpartnername oder die Telefonnummer?
+   > Welche Angabe war nicht korrekt? Der Firmenname oder der Ansprechpartnername?
+   > *(EN: Which detail was incorrect? The company name or the contact name?)*
    > → `init:Topic.Korrekturfeld` (ClosedListEntityReference: `mosaiic_AIRCOTelefonBot.entity.Korrekturfeld`)
    
-   | Entity-Wert | Condition-Key |
-   |-------------|---------------|
-   | Firmenname | `KJwQ9x` |
-   | Ansprechpartner | `md1vGC` |
-   | Telefonnummer | `swLyyJ` |
+   | Entity-Wert | Condition-Key | im Topic behandelt? |
+   |-------------|---------------|---------------------|
+   | Firmenname | `KJwQ9x` | ja |
+   | Ansprechpartner | `md1vGC` | ja |
+   | Telefonnummer | `swLyyJ` | **nein — Zweig `conditionItem_nV5Ax7(_en)` am 2026-09-09 gelöscht** |
+   | Inbetriebnahme | `gjJ4ZJ` | nein (Stufe-1-Rest) |
+   | Wartungsvertrag | `YvfEJQ` | nein (Stufe-1-Rest) |
    
-   Gleiche Entity (`Korrekturfeld`) wie Stufe 1 — Werte YvfEJQ (Vertrag) und gjJ4ZJ (Inbetriebnahme)
-   werden schlicht nicht mehr abgefragt. Entity selbst muss nicht geändert werden.
+   **Die Entity selbst bleibt unverändert.** Sie trägt seit jeher nicht
+   behandelte Werte (Inbetriebnahme, Wartungsvertrag) mit; `Telefonnummer` ist
+   jetzt der dritte. Sagt ein Anrufer trotzdem „die Telefonnummer", greift der
+   `elseActions`-Zweig („Das habe ich leider nicht verstanden.") und die Frage
+   wird wiederholt. Das ist bewusst in Kauf genommen: Die Nummer wird nicht
+   mehr vorgelesen, der Anrufer hat also keinen Anlass, sie zu beanstanden.
+   Ein Eingriff in die Entity hätte dagegen alle Condition-Keys berührt.
 
 3. **Fallback bei unerkannter Angabe**: Vereinfacht gegenüber Stufe 1 —
    

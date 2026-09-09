@@ -374,6 +374,15 @@ Nach Fix: **32 Dateien, 0 Fehler, 0 Warnungen** validiert.
 > `ZusammenfassungEN` nachgezogen: gleiche Entity-Umstellung, gleiche neue
 > `SetVariable`-Aktion an derselben Position, `speak` auf
 > `{Global.TelefonGesprochen}`. Erneut validiert: 32 Dateien, 0 Fehler.
+>
+> **⚠ Am 2026-09-09 vollständig zurückgenommen — in beiden Sprachen.** Die
+> Umstellung auf `PhoneNumberPrebuiltEntity` war eine Regression gegenüber
+> dem 2026-09-02 bewusst gewählten `StringPrebuiltEntity` und beendete am
+> Telefon reproduzierbar den Anruf (`Tests/Test 15`, ToDos F8). Beide
+> Sprachzweige stehen wieder auf `StringPrebuiltEntity`;
+> `Global.TelefonGesprochen` und die Telefonnummer-Ansage in der
+> Zusammenfassung sind ersatzlos entfallen. Pflegeregel 1 gilt weiter — der
+> Rückbau wurde in DE und EN identisch gemacht.
 
 Jeweils **strukturgleiche** Kopie der Vorlage, nur Texte übersetzt.
 
@@ -400,7 +409,8 @@ Jeweils **strukturgleiche** Kopie der Vorlage, nur Texte übersetzt.
 > `Test 13`: Sprung mitten ins deutsche `Anliegen erfassen`).
 >
 > **Auflösung:** `AnrufgrunderfassenEN`, `AnlageerfassenEN` und
-> `AnliegenerfassenEN` wurden **inline in `KundendatenerfassenEN` gezogen**;
+> `AnliegenerfassenEN` wurden **inline in `KundendatenerfassenEN` gezogen**
+> (und am 2026-09-09 als Dateien gelöscht);
 > dasselbe danach für den deutschen Zweig. Beide `Kundendaten erfassen`-Topics
 > enthalten jetzt die vollständige Erfassung inkl. Anrufgrund-Verzweigung,
 > Anlage- und Anliegen-Frage und springen direkt in die Zusammenfassung.

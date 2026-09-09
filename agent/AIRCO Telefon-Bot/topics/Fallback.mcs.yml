@@ -16,23 +16,15 @@ beginDialog:
               id: sendActivity_edXoXa_en
               activity:
                 text:
-                  - I'm sorry, I didn't understand that. I'll go ahead and take down your request anyway.
+                  - I'm sorry, I didn't understand that.
                 speak:
-                  - I'm sorry, I didn't understand that. I'll go ahead and take down your request anyway.
-
-            - kind: BeginDialog
-              id: GqSwCg_en
-              dialog: mosaiic_AIRCOTelefonBot.topic.AnliegenerfassenEN
+                  - I'm sorry, I didn't understand that.
 
       elseActions:
         - kind: SendActivity
           id: sendActivity_edXoXa
           activity:
             text:
-              - Entschuldigung, das habe ich nicht richtig verstanden. Ich nehme Ihr Anliegen gerne trotzdem auf.
+              - Entschuldigung, das habe ich nicht richtig verstanden.
             speak:
-              - Entschuldigung, das habe ich nicht richtig verstanden. Ich nehme Ihr Anliegen gerne trotzdem auf.
-
-        - kind: BeginDialog
-          id: GqSwCg
-          dialog: mosaiic_AIRCOTelefonBot.topic.Anliegenerfassen
+              - Entschuldigung, das habe ich nicht richtig verstanden.

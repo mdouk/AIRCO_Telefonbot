@@ -28,7 +28,8 @@ die Roadmap der Ausbaustufen in [Architektur.md](Architektur.md).
 | **Sprachfork am Gesprächsanfang** (NEU, 2026-09-08) | **erledigt** — `Start der Unterhaltung` fragt nach der Begrüßung die Sprache ab (Entity `Sprachwahl`, **DTMF 1 = Deutsch / 2 = Englisch**, `readOutOptions: false`). Bei Englisch: `System.User.Language = English` + `Global.Sprache = "Englisch"`, dann `Kundendaten erfassen EN`; sonst `Kundendaten erfassen`. **Blank = Deutsch** ist die Konvention für alle Verzweigungen. Stille/unerkannt führt hier bewusst **nicht** zu `EndofConversation`, sondern nach Deutsch. |
 | **Kundendaten erfassen EN** (NEU, 2026-09-08) | **erledigt + getestet** (`Tests/Test 14`) — strukturgleich zum deutschen Topic, komplette Erfassung inline in *einem* Topic (Anrufgrund-Verzweigung, Anlage- und Anliegen-Frage). Eigene Entity `AnrufgrundEN` + eigene Variable `Global.AnrufgrundEN`. Staging-Flowaufruf direkt vor der Anliegen-Frage — Position nicht verschieben (Bauregel). |
 | **Zusammenfassung EN** (NEU, 2026-09-08) | **erledigt** — `ZusammenfassungEN.mcs.yml`, strukturgleich zu `Zusammenfassung - Slim`: Staging-Flow, Bestätigung der 3 Kontaktfelder, Korrekturschleife ≤ 3, dann `Ticketerstellung` → `Ende der Unterhaltung`. Alle drei `text_6`-Bindungen lesen `Global.AnrufgrundEN`. |
-| **Topic-Merge DE + EN** (2026-09-08) | **erledigt + beide Sprachen getestet** — `Anrufgrund/Anlage/Anliegen erfassen` sind in beiden Sprachen **inline** in `Kundendaten erfassen` gewandert; die sechs alten Topics existieren noch, werden aber nicht mehr aufgerufen. Details im Struktur-Update-Block unten. |
+| **Topic-Merge DE + EN** (2026-09-08) | **erledigt + beide Sprachen getestet** — `Anrufgrund/Anlage/Anliegen erfassen` sind in beiden Sprachen **inline** in `Kundendaten erfassen` gewandert. Die sechs alten Topics wurden am **2026-09-09 gelöscht** (Altstand: Tag `stand-2026-09-09-vor-telefonnummer-umbau`). Details im Struktur-Update-Block unten. |
+| **Telefonnummer-Rückbau + Aufräumen** (NEU, 2026-09-09) | **lokal erledigt, validiert (28 Dateien, 0 Fehler) — ⚠ noch nicht in die Cloud gepusht und nicht publiziert.** Drei Änderungen: (1) Telefonnummer-Frage in beiden Sprachen zurück auf `StringPrebuiltEntity` (`PhoneNumberPrebuiltEntity` beendete am Telefon den Anruf, siehe F8). (2) Zusammenfassung bestätigt nur noch **Firmenname + Ansprechpartner** — Telefonnummer wird nicht mehr vorgelesen; `Global.TelefonGesprochen` und der Korrekturzweig „Telefonnummer" ersatzlos entfernt. (3) Die sechs verwaisten Topics gelöscht; `Fallback` verweist nicht mehr auf sie und sendet nur noch die Entschuldigung (DE/EN). |
 | **Zweisprachigkeit — Rest** | **offen** — Systemtopics (`Fallback`, `Silence`, `UnrecognizedSpeech`, `UnknownDtmfKey`, Safety-Net-Text in `Ende der Unterhaltung`) sind weiterhin **nur deutsch**; `agent.mcs.yml`-Instructions unangepasst; KI-Prompt im Flow `Ticketerstellung` nicht auf englischen Freitext vorbereitet. **Publish steht ebenfalls noch aus** (bisher nur Draft-Push). Siehe Schritt 6–9 weiter unten. |
 
 > ### ⚠ Struktur-Update 2026-09-08 — Topic-Merge in beiden Sprachen
@@ -1034,9 +1035,9 @@ Eine zwischen den Flows kopierte Bindung schreibt still ins falsche Feld -
 alles Strings, der Bot meldet nichts. **Angleichen der Reihenfolgen erst nach
 der Messe** (bräche die Bindungen in mehreren `InvokeFlowAction`-Nodes).
 
-### F8. Telefonnummer-Frage: PhoneNumberPrebuiltEntity-Regression (2026-09-09)
+### F8. Telefonnummer-Frage: PhoneNumberPrebuiltEntity-Regression — ✅ GELÖST 2026-09-09
 
-- [ ] **Bug bestätigt, Fix noch nicht umgesetzt.** Testanruf: Anrufer sagt „meine
+- [x] **Bug bestätigt und behoben (2026-09-09).** Testanruf: Anrufer sagt „meine
       Telefonnummer lautet plus neun und vierzig viermal die sieben hundert
       drei" — Bot wiederholt die Frage 3× und legt danach auf (Absturz in
       `EndofConversation` über `fallbackDialogOnInvalidEntity`).
@@ -1053,14 +1054,36 @@ der Messe** (bräche die Bindungen in mehreren `InvokeFlowAction`-Nodes).
       `PhoneNumberPrebuiltEntity` bietet keine Tuning-Optionen (nur
       `sensitivityLevel`, `includeMetadata`, `allowMultipleValues`,
       `dtmfOptions`) — keine Möglichkeit, das Recognizer-Verhalten zu verbessern.
-      **Geplanter Fix:** Beide Stellen zurück auf `StringPrebuiltEntity` (wie
-      2026-09-02), validieren, pushen, publishen.
-- [ ] **Vorbedingung für den Fix: Rohtext aus `Tests/Test 15` auswerten.**
-      Michael stellt den Trace-Ordner des Testanrufs bereit
-      (`Tests/Test 15/dialog.json` o. ä.), um zu sehen, was genau als
-      `Global.Telefonnummer`-Rohtext von der Spracherkennung transkribiert wurde
-      — Grundlage für die Frage, ob zusätzlich zum reinen `StringPrebuiltEntity`-Fix
-      noch eine leichte Nachbearbeitung sinnvoll ist.
+      **Umgesetzter Fix (2026-09-09):** Beide Stellen zurück auf
+      `StringPrebuiltEntity` (wie 2026-09-02) — plus die beiden
+      Korrekturzweig-Fragen in `Zusammenfassung-Slim` und `ZusammenfassungEN`,
+      die denselben Entity-Typ trugen. `PhoneNumberPrebuiltEntity` kommt im
+      ganzen Agenten nicht mehr vor. Validiert: **28 Dateien, 0 Fehler,
+      0 Warnungen.** Die Regel steht jetzt als Bauregel in `CLAUDE.md`, damit
+      sie nicht ein drittes Mal zurückgedreht wird.
+- [x] **Zweite Entscheidung (2026-09-09): Telefonnummer wird nicht mehr
+      vorgelesen.** Weil `StringPrebuiltEntity` die **gesamte Äußerung** roh
+      speichert („meine Telefonnummer lautet eins zwei drei …“), klang jede
+      Ansage in der Zusammenfassung falsch — vorgelesen wurde auch der
+      Einleitungssatz. Statt die Nummer aufzubereiten, bestätigt die
+      Zusammenfassung jetzt nur noch **Firmenname + Ansprechpartner**.
+      Entfallen sind damit:
+      - `Global.TelefonGesprochen` (SetVariable in beiden `Kundendaten
+        erfassen`-Topics und im Korrekturzweig beider Zusammenfassungen),
+      - die Telefonnummer-Zeile in `text` und `speak` beider Zusammenfassungen,
+      - der Korrekturzweig `conditionItem_nV5Ax7(_en)` samt Frage „Wie ist Ihre
+        richtige Telefonnummer?" / „What is your correct phone number?",
+      - die Option „Telefonnummer" aus der Korrekturfrage („Der Firmenname oder
+        der Ansprechpartnername?").
+      `Global.Telefonnummer` wird unverändert erfasst und geht an beide Flows
+      (Staging + Ticketerstellung) — nur die Ansage ist weg.
+- [ ] **Offen: Testanruf mit dem neuen Stand** (DE + EN). Zu prüfen: Nummer
+      wird angenommen, egal wie sie formuliert ist; Zusammenfassung nennt nur
+      Firma + Name; Korrekturschleife funktioniert mit den zwei verbliebenen
+      Optionen; E-Mail enthält die Telefonnummer weiterhin.
+- **Nicht mehr nötig:** Auswertung des Rohtexts aus `Tests/Test 15` als
+      Vorbedingung für eine Nachbearbeitung — die Nachbearbeitung entfällt mit
+      der Entscheidung oben. Der Trace bleibt als Beleg für den Bug erhalten.
 - **Diskutierte, aber zurückgestellte Idee — Live-KI-Bereinigung im Gespräch**
   (`InvokeAIBuilderModelAction` oder ein ausgekoppelter `InvokeFlowAction`
   direkt nach der Telefonnummer-Frage, analog zur bestehenden KI-Verarbeitung
@@ -1072,7 +1095,9 @@ der Messe** (bräche die Bindungen in mehreren `InvokeFlowAction`-Nodes).
   die bestehende Korrekturschleife in „Zusammenfassung" (Vorlesen +
   „Ist das so korrekt?") strukturell bereits abdeckt.
 - **Alternative, risikoärmere Idee — synchrones Power-Fx-„Skript" statt KI:**
-  Eine reine `SetVariable`-Formel (wie die bestehende
+  *(mit der Entscheidung oben ebenfalls hinfällig — bleibt als Notiz, falls die
+  Nummer später doch einmal aufbereitet werden soll.)*
+  Eine reine `SetVariable`-Formel (wie die frühere
   `Global.TelefonGesprochen`-Ziffernvorlese-Logik) läuft synchron im selben
   Dialog-Turn, ohne Async-/Reihenfolge-Risiko. Kann Formatierung normalisieren
   (Trennzeichen, „plus" → „+", Landesvorwahl), aber keine freien

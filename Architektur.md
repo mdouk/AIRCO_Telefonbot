@@ -215,6 +215,17 @@ Copilot Studio auch das akustische Barge-in betrifft oder nur den Themenwechsel.
 > eine Frage ist, genügt nicht. Der englische Zweig hat das reproduziert
 > (`Tests/Test 12`/`13`), der Fix ist in `Tests/Test 14` bestätigt.
 
+> **Änderung 2026-09-09 — Telefonnummer + Aufräumen.** Drei Dinge:
+> (1) Die Telefonnummer-Frage steht in beiden Sprachzweigen wieder auf
+> `StringPrebuiltEntity` — `PhoneNumberPrebuiltEntity` hatte am Telefon
+> gesprochene Nummern abgelehnt und den Anruf beendet (`Tests/Test 15`,
+> ToDos F8). (2) Die Zusammenfassung liest die Nummer **nicht mehr vor**;
+> bestätigt werden nur noch Firmenname und Ansprechpartner. Damit entfielen
+> die Hilfsvariable `Global.TelefonGesprochen` und der Korrekturzweig
+> „Telefonnummer". (3) Die sechs verwaisten Topics aus dem Merge
+> (`Anrufgrund erfassen`, `Anlage erfassen`, `Anliegen erfassen` je DE/EN)
+> sind gelöscht; `Fallback` verweist nicht mehr auf sie.
+
 ```mermaid
 flowchart TD
     Anruf["Anrufer wählt AIRCO-Festnetznummer"] --> Teams["Microsoft Teams Phone"]
@@ -222,7 +233,7 @@ flowchart TD
     Start -->|"englisch"| KundeEN["<b>Kundendaten erfassen EN</b>"]
     Start -->|"deutsch / Stille / unerkannt"| Kunde["<b>Kundendaten erfassen</b>"]
 
-    Kunde --> Block["Q1 Firmenname · Q2 Ansprechpartner · Q3 Telefonnummer<br/>SetVariable TelefonGesprochen<br/>Q4 Anrufgrund (Closed List)<br/>SetVariable KanalLabel"]
+    Kunde --> Block["Q1 Firmenname · Q2 Ansprechpartner · Q3 Telefonnummer<br/>(alle drei StringPrebuiltEntity)<br/>Q4 Anrufgrund (Closed List)<br/>SetVariable KanalLabel"]
     KundeEN --> Block
 
     Block --> Grund{"ConditionGroup<br/>(im selben Topic)"}
@@ -231,9 +242,9 @@ flowchart TD
     Anlage --> Staging["InvokeFlowAction 'Staging schreiben'<br/>a0a99959-…"]
     Staging --> Anliegen["Q Anliegen<br/>(Freitext → Global.Anliegen)<br/><i>muss direkt nach dem Flowaufruf stehen</i>"]
 
-    Anliegen --> Summe["<b>Zusammenfassung - Slim</b> / <b>Zusammenfassung EN</b><br/>InvokeFlowAction 'Staging schreiben'<br/>Bestätigung nur der 3 Kontaktfelder"]
+    Anliegen --> Summe["<b>Zusammenfassung - Slim</b> / <b>Zusammenfassung EN</b><br/>InvokeFlowAction 'Staging schreiben'<br/>Bestätigung nur Firmenname + Ansprechpartner<br/>(Telefonnummer wird nicht vorgelesen)"]
 
-    Summe -->|"widerspricht (≤ 3 Versuche)"| Korrektur["Korrektur-Frage:<br/>Firmenname, Ansprechpartner oder Telefonnummer?"]
+    Summe -->|"widerspricht (≤ 3 Versuche)"| Korrektur["Korrektur-Frage:<br/>Firmenname oder Ansprechpartner?"]
     Korrektur --> Summe
     Summe -->|"bestätigt oder 3 Versuche erschöpft"| Ticket["InvokeFlowAction<br/><b>'Ticketerstellung'</b><br/>834c8025-…<br/>KI-Zusammenfassung + Kritikalität + E-Mail"]
 
@@ -457,7 +468,7 @@ Einbindung werden mit der Kundenlieferung entschieden (Abschnitt 9).
 | E6 | **Bestätigung / Korrektur** | Bot, Topic „Zusammenfassung & Bestätigung" | Anrufer bestätigt → Flow; widerspricht → Closed-List-Frage nach dem falschen Feld, gezielte Korrektur-Nachfrage direkt im Topic, danach erneutes Vorlesen; max. 2 Korrekturversuche, danach in v2 **kein Transfer** → Flow trotzdem auslösen (mit Hinweis „vom Anrufer nicht final bestätigt") + Gesprächsende | angepasst (v2) |
 | E7 | **KI-Verarbeitung (Zusammenfassung + Kritikalität)** | Power Automate | Ein Structured-Output-Node (GPT-4.1) liefert `zusammenfassung` + `kritikalitaet` (Enum) in einem Aufruf → VarZusammenfassung / VarKritikalitaet. **Kategorie-Klassifizierung A–F** bleibt Stufe-2-Material. | erledigt (2026-07-20) |
 | E8 | **E-Mail-Routing** | Power Automate | Inline-`if()` im Empfänger-Feld einer einzigen E-Mail-Aktion: Kritisch→PostfachA, Hoch→B, Mittel→C, Rest→D. Betreff = `[Kritikalität] - Firma: Firmenname`. Fallback-Node „E-Mail senden 2" bei KI-Ausfall (Configure run after: Failed/TimedOut/Skipped). Postfach-Adressen fehlen noch (wartet auf AIRCO). | erledigt bis auf Postfach-Adressen |
-| E11 | **Fallback / kein Thema erkannt** (Testfeedback #17 „Themenerkennung") | Bot, System-Topic „Fallback" (separat von `OnUnrecognizedSpeech` — greift, wenn die Spracherkennung erfolgreich war, aber kein Topic-Trigger passt) | Entschieden (2026-08-25): keine Rückfrage-Schleife und kein Versuchszähler — kurze Entschuldigung, danach direkter Redirect zu Topic „Anliegen erfassen" (Annahme: Anrufer hat trotzdem ein Servicefall, nur unpassend formuliert). Vorhandenen Escalate-Verweis im Standard-Fallback-Topic entfernen, analog zu den bereits deaktivierten System-Topics (Abschnitt 7 / ToDos.md Zeile 87–92). | entschieden, Umsetzung + Praxistest offen |
+| E11 | **Fallback / kein Thema erkannt** (Testfeedback #17 „Themenerkennung") | Bot, System-Topic „Fallback" (separat von `OnUnrecognizedSpeech` — greift, wenn die Spracherkennung erfolgreich war, aber kein Topic-Trigger passt) | Entschieden (2026-08-25): keine Rückfrage-Schleife und kein Versuchszähler — kurze Entschuldigung, danach direkter Redirect zu Topic „Anliegen erfassen". **Revidiert 2026-09-09:** Mit der Löschung der verwaisten Topics ist auch der Redirect entfallen; „Fallback" sendet nur noch die Entschuldigung (DE/EN je nach `Global.Sprache`) und kehrt in den laufenden Dialog zurück. Praktisch folgenlos, weil das Topic gar nicht auslösbar ist (alle Fragen `allowInterruption: false`, `GenerativeActionsEnabled: false`). Escalate-Verweis war bereits entfernt. | umgesetzt 2026-09-09; Praxistest weiterhin offen (nur relevant, falls Interruptions je aktiviert werden) |
 
 Die 4-stufige Kritikalität (Kritisch/Hoch/Mittel/Niedrig) wird in v2 **von der
 KI im Flow** vergeben und steuert das E-Mail-Routing (E7/E8). Sie tritt damit
@@ -493,8 +504,8 @@ Global Variables   (überall verfügbar)
 ├── Global.Ansprechpartner       (Topic „Kundendaten erfassen")
 ├── Global.Telefonnummer         (Topic „Kundendaten erfassen")
 ├── Global.KanalLabel            (Topic „Kundendaten erfassen"; „Telefon" / „Chat")
-├── Global.Anlage                (Topic „Anlage erfassen", Freitext: Bezeichnung + SN + Baujahr)
-└── Global.Anliegen              (Topic „Anliegen erfassen", Freitext)
+├── Global.Anlage                (inline in „Kundendaten erfassen", Freitext: Bezeichnung + SN + Baujahr)
+└── Global.Anliegen              (inline in „Kundendaten erfassen", Freitext)
 ```
 
 Entfallen in Stufe 0: `Global.Inbetriebnahme`, `Global.VertragVorhanden` (keine Boolean-Fragen).

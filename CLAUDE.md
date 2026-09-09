@@ -134,8 +134,8 @@ Korrekturschleife ≤ 3) → Flow `Ticketerstellung` → `Ende der Unterhaltung`
 
 **`Kundendaten erfassen` / `Kundendaten erfassen EN` enthalten seit
 2026-09-08 die komplette Erfassung in *einem* Topic**: Firmenname,
-Ansprechpartner, Telefonnummer, `SetVariable TelefonGesprochen`, **Anrufgrund**
-als Closed List (`Global.Anrufgrund` bzw. `Global.AnrufgrundEN`),
+Ansprechpartner, Telefonnummer (alle drei `StringPrebuiltEntity`),
+**Anrufgrund** als Closed List (`Global.Anrufgrund` bzw. `Global.AnrufgrundEN`),
 `SetVariable KanalLabel`, ConditionGroup (bei Störung/Wartung inline die
 **Anlage**-Frage), dann der Staging-Flowaufruf `a0a99959-…` mit
 `IsBlank()`-Guards auf allen 8 Parametern, dann die **Anliegen**-Frage
@@ -153,17 +153,27 @@ in `Topics.md`, keine Topics im Agenten**. Ein Nicht-Slim-Topic
 > **⚠ Anzeigename ≠ Schemaname (seit `34a43d5`):** Das Topic heißt im Studio
 > inzwischen schlicht **`Zusammenfassung`** — Datei und `schemaName` sind aber
 > unverändert `Zusammenfassung-Slim.mcs.yml` bzw.
-> `mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim`. Genau darauf zeigen die
-> `BeginDialog`-Sprünge aus `Kundendatenerfassen.mcs.yml` und
-> `Anliegenerfassen.mcs.yml`. Diese Referenzen **nicht** an den neuen
-> Anzeigenamen angleichen — das bricht die Kette.
-**Tot (nicht mehr aufgerufen, nicht gelöscht):** `Anrufgrund erfassen`,
-`Anlage erfassen`, `Anliegen erfassen` und die EN-Pendants
-`Anrufgrund erfassen EN`, `Anlage erfassen EN`, `Anliegen erfassen EN` — ihr
-Inhalt steckt jetzt inline in den beiden `Kundendaten erfassen`-Topics.
-`Fallback` zeigt zwar noch auf `Anliegen erfassen`, ist aber selbst nicht
-auslösbar (alle Fragen `allowInterruption: false`, `GenerativeActionsEnabled:
-false`), daher ebenfalls toter Pfad.
+> `mosaiic_AIRCOTelefonBot.topic.Zusammenfassung-Slim`. Genau darauf zeigt der
+> `BeginDialog`-Sprung aus `Kundendatenerfassen.mcs.yml`. Diese Referenz
+> **nicht** an den neuen Anzeigenamen angleichen — das bricht die Kette.
+
+**Gelöscht am 2026-09-09:** die sechs verwaisten Topics `Anrufgrund erfassen`,
+`Anlage erfassen`, `Anliegen erfassen` und ihre EN-Pendants
+`Anrufgrund erfassen EN`, `Anlage erfassen EN`, `Anliegen erfassen EN`. Ihr
+Inhalt steckt seit dem Merge vom 2026-09-08 inline in den beiden
+`Kundendaten erfassen`-Topics; die Dateien wurden nur noch mitgeschleppt.
+Historischer Inhalt: Commit `af8cc56` bzw. Tag
+`stand-2026-09-09-vor-telefonnummer-umbau`.
+
+> **Mit gelöscht wurde der einzige verbliebene Verweis darauf:** `Fallback`
+> zeigte per `BeginDialog` noch auf `Anliegen erfassen` / `Anliegen erfassen
+> EN`. Beide Sprünge sind entfernt — `Fallback` sendet jetzt nur noch die
+> Entschuldigung („Entschuldigung, das habe ich nicht richtig verstanden.“ /
+> „I'm sorry, I didn't understand that.“) ohne Weiterleitung. Der Zusatz „Ich
+> nehme Ihr Anliegen gerne trotzdem auf.“ ist mit entfallen, weil er nach dem
+> Wegfall des Redirects nichts mehr beschrieben hätte. Das Topic ist ohnehin
+> nicht auslösbar (alle Fragen `allowInterruption: false`,
+> `GenerativeActionsEnabled: false`).
 
 Kurzfassung **Stufe 1 (v2, 2026-07-14)** — Topics vorhanden, aber nicht aktiv:
 `Conversation Start` → `Kundendaten erfassen` → `Inbetriebnahme` („Wurde die
@@ -321,6 +331,39 @@ Variable schlicht `variable: Global.…` ohne Präfix setzen — die Bedeutung
 (Variable existiert bereits global) bleibt gleich. Entdeckt 2026-09-08 beim
 Befüllen der englischen Pendants zu `Kundendatenerfassen` und
 `Anliegenerfassen`.
+
+### ⚠ Bauregel: Telefonnummer immer als `StringPrebuiltEntity`
+
+**Die Telefonnummer-Frage darf kein `PhoneNumberPrebuiltEntity` verwenden.**
+Prebuilt-Entities sind Validatoren: Findet der Recognizer im transkribierten
+Text kein akzeptiertes Nummernmuster, liefert er nichts zurück, die Frage gilt
+als unbeantwortet, und nach drei Versuchen greift
+`fallbackDialogOnInvalidEntity` → der Anruf endet. Am Telefon kommen aber
+regelmäßig Formulierungen an wie „plus neun und vierzig viermal die sieben
+hundert drei“ — daran scheitert der Recognizer reproduzierbar
+(`Tests/Test 15`).
+
+Der Entity-Typ bietet **keine Tuning-Optionen** (nur `sensitivityLevel`,
+`includeMetadata`, `allowMultipleValues`, `dtmfOptions`) — es gibt also keinen
+Weg, ihn nachsichtiger zu machen. Richtig ist `StringPrebuiltEntity`: es
+validiert nicht und übernimmt die **gesamte Äußerung** roh.
+
+**Diese Entscheidung wurde bereits zweimal getroffen** (2026-09-02 und
+2026-09-09) und dazwischen einmal versehentlich per `pull` zurückgedreht. Wer
+an der Frage arbeitet: nicht erneut auf `PhoneNumberPrebuiltEntity`
+„optimieren“. Herleitung in `ToDos.md` (F8).
+
+> **Folgeentscheidung 2026-09-09 — Telefonnummer nicht mehr vorlesen.** Weil
+> die Rohtranskription beliebig ausfallen kann, klingt jedes Vorlesen der
+> Nummer in der Zusammenfassung schlecht („eins zwei drei vier fünf sechs
+> sieben“ oder Schlimmeres). Die Zusammenfassung bestätigt deshalb nur noch
+> **Firmenname + Ansprechpartner**. Damit entfielen: die Hilfsvariable
+> `Global.TelefonGesprochen` (reine TTS-Aufbereitung, hatte nur diesen einen
+> Konsumenten), die Telefonnummer-Zeile im `text`/`speak` beider
+> Zusammenfassungs-Topics und der komplette Korrekturzweig
+> `conditionItem_nV5Ax7(_en)` samt Frage „Wie ist Ihre richtige
+> Telefonnummer?“. `Global.Telefonnummer` selbst bleibt unverändert erfasst und
+> geht an beide Flows (Staging + Ticketerstellung).
 
 ### Variablen-Strategie
 
