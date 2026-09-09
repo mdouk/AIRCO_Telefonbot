@@ -173,7 +173,9 @@ Transfer) → **C/D/E** (Flow; D/E brauchen den Kunden-Input aus **F**) → **G*
   - [x] **Schritt 7 — `agent.mcs.yml`-Instructions angepasst (2026-09-09).** Satz „Das Gespräch wird ausschließlich auf Deutsch geführt... leite direkt an einen Mitarbeiter weiter" (doppelt veraltet: kein Transfer mehr, Englisch jetzt unterstützt) ersetzt durch: „Das Gespräch wird auf Deutsch oder Englisch geführt, je nach der Sprachwahl des Anrufers zu Beginn des Gesprächs. Bleibe während des gesamten Gesprächs bei der gewählten Sprache." Validiert: 34 Dateien, 0 Fehler, 0 Warnungen. Noch nicht gepusht.
   - [x] **Schritt 8 — Validierung + Push in den Draft (2026-09-08).** `manage-agent validate`: **0 Fehler / 0 Warnungen über alle 34 `.mcs.yml`-Dateien**; `syncPush` mit `status 200 / isSuccess: true`. Vorher waren 130 falsche `NotFound`-Fehler aufgetreten — Ursache war ein veralteter lokaler Stand aus einem Stale-Pull, **nicht** fehlerhaftes YAML (siehe CLAUDE.md, „Werkzeugfalle").
   - [x] **Schritt 9 — Test beider Sprachzweige (2026-09-08).** Englisch: `Tests/Test 14`, Trace durchgehend `topicId = …KundendatenerfassenEN`, kein Topic-Sprung. Deutsch: im Anschluss erfolgreich durchlaufen. Beide Zweige bestätigt.
-  - [ ] **Publish steht noch aus.** Bisher wurde ausschließlich in den **Draft** gepusht. Für Teams/Telefonie ist zusätzlich nötig: Publish → Lösung als nicht verwaltete Lösung exportieren → Upload im Teams Admin Center → Registrierung in „Agents & Queues".
+  - [x] **Publish erfolgt (2026-09-09, 12:00:45Z).** Draft mit den Schritt-6/7-Änderungen (5 Systemtopics + agent.mcs.yml) live veröffentlicht, keine Fehler.
+  - [x] **Export + Teams-Admin-Center-Upload + Agents-&-Queues-Registrierung erledigt (2026-09-09, Michael).** Telefonkanal trägt damit den neuen Stand.
+  - [ ] **Testanruf beider Sprachzweige — noch ausstehend.** Gezielt die geänderten Systemtopics auslösen: Englisch wählen + Themenfremdes sagen (sollte in `AnliegenerfassenEN` landen, nicht im deutschen Fallback-Pfad), Stille abwarten („Are you still there?"), Anruf vorzeitig nach Kundendaten beenden (Safety-Net-Text auf Englisch + korrekte `Global.AnrufgrundEN`-Mail).
 - [ ] **Sicherheitsnotfall** (Brand/Rauch) ohne Transfer: weiterhin zurückgestellt
 
 ### C. Power Automate — Flow-Gerüst v2
@@ -1031,6 +1033,52 @@ stimmt **nur `text_5`** überein:
 Eine zwischen den Flows kopierte Bindung schreibt still ins falsche Feld -
 alles Strings, der Bot meldet nichts. **Angleichen der Reihenfolgen erst nach
 der Messe** (bräche die Bindungen in mehreren `InvokeFlowAction`-Nodes).
+
+### F8. Telefonnummer-Frage: PhoneNumberPrebuiltEntity-Regression (2026-09-09)
+
+- [ ] **Bug bestätigt, Fix noch nicht umgesetzt.** Testanruf: Anrufer sagt „meine
+      Telefonnummer lautet plus neun und vierzig viermal die sieben hundert
+      drei" — Bot wiederholt die Frage 3× und legt danach auf (Absturz in
+      `EndofConversation` über `fallbackDialogOnInvalidEntity`).
+      **Root Cause:** `Kundendatenerfassen.mcs.yml:61` und
+      `KundendatenerfassenEN.mcs.yml:61` nutzen `entity: PhoneNumberPrebuiltEntity`
+      für die Telefonnummer-Frage. Das ist eine **Regression** — dieser
+      Entity-Typ wurde bereits am 2026-09-02 zugunsten von `StringPrebuiltEntity`
+      verworfen, weil er ausländische/dialektale Nummern ablehnte (siehe
+      Stufe-0-Statustabelle oben, Zeile „Kundendaten erfassen"). Beim Pull vom
+      2026-09-08 („Zweiter Pull vor Schritt 5") wurde `PhoneNumberPrebuiltEntity`
+      unkommentiert aus der Cloud übernommen und dabei auch in den neuen
+      englischen Zweig repliziert — die 2026-09-02-Warnung wurde nicht
+      gegengeprüft. Schema-Check (`copilot-studio:lookup-schema`) bestätigt:
+      `PhoneNumberPrebuiltEntity` bietet keine Tuning-Optionen (nur
+      `sensitivityLevel`, `includeMetadata`, `allowMultipleValues`,
+      `dtmfOptions`) — keine Möglichkeit, das Recognizer-Verhalten zu verbessern.
+      **Geplanter Fix:** Beide Stellen zurück auf `StringPrebuiltEntity` (wie
+      2026-09-02), validieren, pushen, publishen.
+- [ ] **Vorbedingung für den Fix: Rohtext aus `Tests/Test 15` auswerten.**
+      Michael stellt den Trace-Ordner des Testanrufs bereit
+      (`Tests/Test 15/dialog.json` o. ä.), um zu sehen, was genau als
+      `Global.Telefonnummer`-Rohtext von der Spracherkennung transkribiert wurde
+      — Grundlage für die Frage, ob zusätzlich zum reinen `StringPrebuiltEntity`-Fix
+      noch eine leichte Nachbearbeitung sinnvoll ist.
+- **Diskutierte, aber zurückgestellte Idee — Live-KI-Bereinigung im Gespräch**
+  (`InvokeAIBuilderModelAction` oder ein ausgekoppelter `InvokeFlowAction`
+  direkt nach der Telefonnummer-Frage, analog zur bestehenden KI-Verarbeitung
+  in `Ticketerstellung`): **nicht weiterverfolgt.** Beide Wege gehören zur
+  `AsyncAction`-Familie wie `InvokeFlowAction` — genau die Nodes, die in diesem
+  Projekt die meisten dokumentierten Fehler verursacht haben (Reihenfolge-
+  Anomalie, F4-Absturz, F5-Stateless-Bug, F7-0-Timing). Zusätzliches Risiko
+  (Timeout/Fehler mitten im Gespräch) und spürbare Latenz für einen Nutzen, den
+  die bestehende Korrekturschleife in „Zusammenfassung" (Vorlesen +
+  „Ist das so korrekt?") strukturell bereits abdeckt.
+- **Alternative, risikoärmere Idee — synchrones Power-Fx-„Skript" statt KI:**
+  Eine reine `SetVariable`-Formel (wie die bestehende
+  `Global.TelefonGesprochen`-Ziffernvorlese-Logik) läuft synchron im selben
+  Dialog-Turn, ohne Async-/Reihenfolge-Risiko. Kann Formatierung normalisieren
+  (Trennzeichen, „plus" → „+", Landesvorwahl), aber keine freien
+  Formulierungen wie „viermal die sieben hundert drei" semantisch auflösen —
+  dafür bräuchte es weiterhin KI, nur nicht zwingend live. Konkreter
+  Ausdrucksentwurf hängt an `Tests/Test 15` (siehe oben).
 
 ### G. Test / Go-Live
 - [x] **End-to-End-Test**: `FlowActionBadGateway`-Timeout durch `Respond to the agent` direkt nach dem Trigger behoben (siehe F2, 2026-08-25) — Testanrufe laufen seither zuverlässig durch.
