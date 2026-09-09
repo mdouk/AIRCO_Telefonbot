@@ -212,6 +212,29 @@ Transfer) → **C/D/E** (Flow; D/E brauchen den Kunden-Input aus **F**) → **G*
 - [x] **LLM = GPT-4.1**: **Entscheidung (2026-08-25): bewusst nicht erneut geprüft.** Michael möchte die aktuell funktionierende Konfiguration nicht durch eine Kontrolle in den Copilot-Studio-Einstellungen riskieren. Bleibt unverändert, solange alles läuft — bei künftigen Problemen mit der Sprachausgabe als erste Stelle zum Prüfen im Hinterkopf behalten.
 - [x] **`Respond to agent` direkt nach Trigger** im Flow: Fix für `FlowActionBadGateway`-Timeout — umgesetzt im Slim-Flow (2026-08-18) **und im Stufe-1-Flow (2026-08-25)**. Testanruf bestätigt: kein Hänger/Fehlercode mehr, E-Mail kommt zuverlässig an → behebt Testfeedback #15 und #18 (siehe „Testing-Feedback" unten).
 - ~~**Re-Zusammenfassung `text`-Feld**~~ — **entfällt (2026-09-04)**: betraf ausschließlich das Stufe-1-Topic „Zusammenfassung" (nicht Slim). Dieses Topic ist abgelöst und wird nicht mehr umgesetzt — nur noch die Slim-Variante ist relevant, die den Punkt ohnehin nicht betrifft (siehe Topics.md).
+- [ ] **Freitextfelder werden ungeprüft in die E-Mail interpoliert** (notiert
+      2026-09-09, aus einem Security-Review des Telefonnummer-Commits). Der
+      Bot erfasst sechs Felder als `StringPrebuiltEntity`, also als **rohen
+      Text ohne jede Validierung**: Firmenname, Ansprechpartner, Telefonnummer,
+      Anlage, Anliegen. Alle landen im Flow `Ticketerstellung` und von dort per
+      `@{variables('Var…')}` **unescaped** im HTML-Body der E-Mail (siehe
+      `Email Body.html`, z. B. Zeile 39) sowie im Prompt des KI-Nodes.
+      **Einordnung — bewusst nicht sofort gefixt:**
+      - Das ist **kein Nebeneffekt des Rückbaus vom 2026-09-09**. Die
+        Telefonnummer war schon vor dem 2026-09-08 `StringPrebuiltEntity`; sie
+        reiht sich nur wieder in die fünf anderen Felder ein, die es immer
+        waren. Auch mit `PhoneNumberPrebuiltEntity` wäre nichts gewonnen — die
+        anderen fünf Felder sind der größere Angriffspunkt.
+      - **Am Telefon praktisch nicht ausnutzbar:** Azure Speech-to-Text liefert
+        Wörter, keine spitzen Klammern. Relevant wird es erst, wenn der
+        **Chat-Kanal** dazukommt (`Global.KanalLabel` ist heute hart auf
+        „Telefon" gesetzt) — dann kann ein Absender Markup einschleusen.
+      - Realistischer Schaden: manipulierte Darstellung/Links in einer internen
+        E-Mail, und **Prompt Injection** in den KI-Node, der Zusammenfassung und
+        Kritikalität erzeugt → falsches Postfach-Routing.
+      **Fix gehört in den Flow, nicht in den Bot:** HTML-Escaping der
+      `Var…`-Variablen vor der Interpolation und eine Abgrenzung des
+      Nutzertexts im KI-Prompt. Vor Aktivierung des Chat-Kanals erledigen.
 - [x] **Feedback-Tracking**: `Daten\Airco_Telefonbot_Feedback_260825.xlsx` (Dateiname am 2026-08-25 aktualisiert/bestätigt) — Tester tragen Bugs / Änderungswünsche mit Beschreibung, E-Mail-Referenz, Name und Datum ein. Spalte „Anmerkung mosaiic" für Rückmeldungen reserviert.
 
 ### F3. Testing-Feedback — `Daten\Airco_Telefonbot_Feedback_260825.xlsx` (Stand 2026-08-25)
