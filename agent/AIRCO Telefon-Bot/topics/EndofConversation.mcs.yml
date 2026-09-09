@@ -36,13 +36,28 @@ beginDialog:
               output: {}
               flowId: 834c8025-3da8-f111-b8dd-70a8a52f67fc
 
-            - kind: SendActivity
-              id: BsLiWe
-              activity:
-                text:
-                  - Vielen Dank, ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
-                speak:
-                  - Vielen Dank, ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
+            - kind: ConditionGroup
+              id: conditionGroup_endSprache
+              conditions:
+                - id: conditionItem_endSpracheEN
+                  condition: =Global.Sprache = "Englisch"
+                  actions:
+                    - kind: SendActivity
+                      id: BsLiWe_en
+                      activity:
+                        text:
+                          - Thank you. I have forwarded your request. A member of our team will contact you shortly. Goodbye.
+                        speak:
+                          - Thank you. I have forwarded your request. A member of our team will contact you shortly. Goodbye.
+
+              elseActions:
+                - kind: SendActivity
+                  id: BsLiWe
+                  activity:
+                    text:
+                      - Vielen Dank, ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
+                    speak:
+                      - Vielen Dank, ich habe Ihr Anliegen weitergeleitet. Ein Mitarbeiter wird sich zeitnah bei Ihnen melden. Auf Wiederhören!
 
     - kind: EndConversation
       id: endConversation_1

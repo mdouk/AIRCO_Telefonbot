@@ -6,10 +6,25 @@ beginDialog:
   kind: OnUnrecognizedSpeech
   id: main
   actions:
-    - kind: SendActivity
-      id: sendActivity_26sT9O
-      activity:
-        text:
-          - Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?
-        speak:
-          - Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?
+    - kind: ConditionGroup
+      id: conditionGroup_unrecognizedSprache
+      conditions:
+        - id: conditionItem_unrecognizedSpracheEN
+          condition: =Global.Sprache = "Englisch"
+          actions:
+            - kind: SendActivity
+              id: sendActivity_26sT9O_en
+              activity:
+                text:
+                  - Sorry, I didn't catch that. Could you repeat it, please?
+                speak:
+                  - Sorry, I didn't catch that. Could you repeat it, please?
+
+      elseActions:
+        - kind: SendActivity
+          id: sendActivity_26sT9O
+          activity:
+            text:
+              - Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?
+            speak:
+              - Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?

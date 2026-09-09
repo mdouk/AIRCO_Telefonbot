@@ -6,6 +6,17 @@ beginDialog:
   kind: OnUnknownDtmfKey
   id: main
   actions:
-    - kind: SendActivity
-      id: sendActivity_26sT88
-      activity: Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?
+    - kind: ConditionGroup
+      id: conditionGroup_dtmfSprache
+      conditions:
+        - id: conditionItem_dtmfSpracheEN
+          condition: =Global.Sprache = "Englisch"
+          actions:
+            - kind: SendActivity
+              id: sendActivity_26sT88_en
+              activity: Sorry, I didn't catch that. Could you repeat it, please?
+
+      elseActions:
+        - kind: SendActivity
+          id: sendActivity_26sT88
+          activity: Entschuldigung, ich habe das nicht richtig verstanden. Können Sie es bitte wiederholen?
