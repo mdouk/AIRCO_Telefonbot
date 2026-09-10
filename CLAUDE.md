@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > zusammengefasst und mit einer **Kritikalität** (Kritisch/Hoch/Mittel/Niedrig)
 > versehen, die das E-Mail-Routing an **4 Postfächer** steuert. Die komplette
 > v1-Lösung (mit Prio-Filter + Transfer) liegt im Ordner
-> `Lösung mit Produktionsstillstand` (**nicht bearbeiten**). Bot + Flow sind als
+> `Archiv/Lösung mit Produktionsstillstand` (**nicht bearbeiten**). Bot + Flow sind als
 > Solution 1.1.0.0 dupliziert. Die Aussagen unten sind bereits auf v2
 > aktualisiert.
 
@@ -148,7 +148,7 @@ Ansprechpartner, Telefonnummer (alle drei `StringPrebuiltEntity`),
 Inaktiv: `Inbetriebnahme`, `Vertragsfrage` — beides **Stufe-1-Entwurfsmaterial
 in `Topics.md`, keine Topics im Agenten**. Ein Nicht-Slim-Topic
 `Zusammenfassung` existiert im Agenten **nicht** (nur als Altstand in
-`Backup/Zusammenfassung.md`).
+`Archiv/Alte Yamls/Zusammenfassung.md`).
 
 > **⚠ Anzeigename ≠ Schemaname (seit `34a43d5`):** Das Topic heißt im Studio
 > inzwischen schlicht **`Zusammenfassung`** — Datei und `schemaName` sind aber
@@ -274,7 +274,7 @@ das startet eine frische LSP-Session ohne übernommenen Zustand — und dann
 node …/manage-agent.bundle.js clone --workspace "<temp>" \
   --tenant-id … --environment-id … --environment-url … \
   --agent-mgmt-url … --agent-id …
-diff -rq "<temp>/AIRCO Telefon-Bot" "agent/AIRCO Telefon-Bot" | grep -v "\.mcs[/\\]"
+diff -rq "<temp>/AIRCO Telefon-Bot" "Archiv/agent/AIRCO Telefon-Bot" | grep -v "\.mcs[/\\]"
 ```
 
 **Regel:** Wenn das Werkzeug einer eigenen Beobachtung im Portal widerspricht,

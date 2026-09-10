@@ -136,7 +136,7 @@ es liegt kein Testartefakt herum, das der Fork in Schritt 3 doppeln könnte.
 
 ### Schritt 2 — Entity `Sprachwahl` anlegen ✅ erledigt 2026-09-08
 
-Datei: `agent/AIRCO Telefon-Bot/entities/Sprachwahl.mcs.yml` — validiert
+Datei: `Archiv/agent/AIRCO Telefon-Bot/entities/Sprachwahl.mcs.yml` — validiert
 (27 Dateien, 0 Fehler, 0 Warnungen).
 
 ```yaml
@@ -560,6 +560,7 @@ Admin Center (siehe CLAUDE.md, Deployment-Weg).
 | 9 | Englischer Anruf, Auflegen nach der Telefonnummer | Safety-Net greift, E-Mail kommt an, Abschiedstext englisch | ☐ |
 | 10 | Trace-Export (`dialog.json`), englischer Durchlauf | Keine Reihenfolge-Anomalie; Fragen in erwarteter Reihenfolge | ☐ |
 | 11 | **Deutscher Regressionsdurchlauf** | Unverändert wie vor der Änderung | ☐ |
+| 12 | **Echter Anruf, Englisch → auflegen → erneuter Anruf, Deutsch** | Kein Override-Leck mehr: STT erkennt Deutsch korrekt (Fix §7) | ✅ 2026-09-10, positiv |
 
 ---
 
@@ -586,10 +587,26 @@ Admin Center (siehe CLAUDE.md, Deployment-Weg).
   Englische Anliegen werden vermutlich verarbeitet, aber ungeprüft.
   Bewusst zurückgestellt.
 
-- **`User.Language` persistiert als Override pro Nutzer** und hebt
+- ~~**`User.Language` persistiert als Override pro Nutzer** und hebt
   browserbasierte Spracherkennung auf; `/debug clearstate` setzt zurück. Für
   Telefonie voraussichtlich irrelevant (je Anruf neue Konversation), beim Testen
-  im Panel aber zu beachten.
+  im Panel aber zu beachten.~~ — **Widerlegt und behoben, 2026-09-09/10.** Der
+  Verdacht „für Telefonie irrelevant" war falsch: Ein echter Anruf auf Deutsch
+  (Taste 1) lieferte an den Flow phonetisch-englisch verzerrte Transkriptionen
+  der deutschen Antworten (z. B. „Test fiama" statt „Testfirma") — Text/Sprache
+  des Bots waren korrekt Deutsch (feste YAML-Strings), aber die STT-Erkennung
+  lief auf Englisch. Ursache: `elseActions` in `ConversationStart.mcs.yml`
+  setzte `System.User.Language` **nicht** zurück, sondern verließ sich auf den
+  Default. Ein zuvor gesetzter Englisch-Override (früherer Test-/Anrufdurchlauf
+  mit Taste 2) blieb dadurch über den Anruf hinweg bestehen. **Fix:**
+  `elseActions` bekam ein eigenes `SetMultipleVariables` — symmetrisch zum
+  Englisch-Zweig — mit `System.User.Language = German` (`OptionDataValue`,
+  `SystemOptionSet Locale`; per Portal-Klick + Pull verifiziert, kein
+  Publish-Fehler) und `Global.Sprache = "Deutsch"` (statt `Blank()` — bewusste
+  Abweichung von der Blank-Konvention für Symmetrie zu `"Englisch"`; bricht
+  nichts, da alle Bedingungen im Projekt ausschließlich `= "Englisch"` prüfen).
+  Per echtem Regressionsanruf (Englisch → auflegen → erneut anrufen, Deutsch
+  wählen) bestätigt: Ergebnis positiv.
 
 - ~~Offene Syntaxfrage `System.User.Language`~~ — **geklärt 2026-09-08**, siehe
   Schritt 3. Kein Blocker mehr.

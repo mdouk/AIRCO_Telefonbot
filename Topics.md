@@ -14,7 +14,7 @@ ist verworfen.
 > Priorisierung erfolgt nachgelagert **per KI im Power-Automate-Flow**
 > (Zusammenfassung + Kritikalität → E-Mail-Routing an 4 Postfächer, siehe
 > Architektur.md Abschnitt 4). Die vollständigen v1-Topics liegen im Ordner
-> `Lösung mit Produktionsstillstand`. Angepasste Stellen unten sind mit
+> `Archiv/Lösung mit Produktionsstillstand`. Angepasste Stellen unten sind mit
 > „**v2:**" markiert; obsolete v1-Detailblöcke bleiben als Referenz stehen.
 
 ---
@@ -27,9 +27,9 @@ ist verworfen.
 > Die Zusammenfassung bestätigt nur die 3 Kontaktfelder; Anlage und Anliegen
 > gehen unbestätigt in den Flow „Anliegen weiterleiten – slim".
 > Die PPTX-Bezeichnung für diese Variante ist **„Stufe 0"** (Folie 8, 18.08.2026).
-> **Quelle der Wahrheit: `agent/AIRCO Telefon-Bot/topics/`** (per
+> **Quelle der Wahrheit: `Archiv/agent/AIRCO Telefon-Bot/topics/`** (per
 > `manage-agent` gespiegelt). Der frühere Ordner `YAML/Slim/` existiert nicht
-> mehr; die alten Arbeitskopien liegen als historischer Stand in `Backup/`.
+> mehr; die alten Arbeitskopien liegen als historischer Stand in `Archiv/Alte Yamls/`.
 
 ### ⚠ Ist-Stand der Kette (2026-09-09)
 
@@ -110,7 +110,7 @@ bestätigt vorhanden (2026-09-08)** — siehe ToDos.md.
 `Inbetriebnahme`, `Vertragsfrage` — beides existiert **nur als Entwurf in
 diesem Dokument**, nicht als Topic im Agenten. Eine Nicht-Slim-Variante
 `Zusammenfassung` gibt es im Agenten **nicht** (nur als Altstand in
-`Backup/Zusammenfassung.md`).
+`Archiv/Alte Yamls/Zusammenfassung.md`).
 
 > **⚠ Anzeigename ≠ Schemaname (seit Commit `34a43d5`):** Das Topic heißt im
 > Studio jetzt **`Zusammenfassung`**, Datei und `schemaName` bleiben aber
@@ -454,7 +454,7 @@ SendActivity + InvokeFlowAction + BeginDialog → EndofConversation.
 > Filter, kein Transfer). Die Priorisierung übernimmt die KI im Flow
 > (Architektur.md Abschnitt 4); im v2-Ablauf springt „Vertragsfrage" direkt zu
 > „Anliegen erfassen". Der folgende Abschnitt bleibt als **v1-Referenz** (auch
-> im Backup-Ordner `Lösung mit Produktionsstillstand`) und ist für den v2-Bau
+> im Ordner `Archiv/Lösung mit Produktionsstillstand`) und ist für den v2-Bau
 > irrelevant.
 
 #### v1-Referenz (obsolet)
@@ -792,7 +792,7 @@ SendActivity + InvokeFlowAction + BeginDialog → EndofConversation.
   KI wertet den Freitext ohne diesen Kontext aus, was für Stufe 1 akzeptabel
   ist.
 
-  *(v1-Referenzblock mit Geschäftszeiten-Prüfung + TransferConversationV2 entfernt — ist in `Lösung mit Produktionsstillstand` archiviert)*
+  *(v1-Referenzblock mit Geschäftszeiten-Prüfung + TransferConversationV2 entfernt — ist in `Archiv/Lösung mit Produktionsstillstand` archiviert)*
 
 - **Korrektur-Schleife bewusst begrenzt**: Max. 3 Korrekturversuche
   (`Topic.Korrekturversuche > 3` → Abschluss ohne Bestätigung; **v2:** kein

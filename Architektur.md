@@ -21,7 +21,7 @@ Abgrenzung zu den anderen Projektdateien:
 > einer **Kritikalität** (Kritisch/Hoch/Mittel/Niedrig) versehen, die das
 > E-Mail-Routing an vier verschiedene Postfächer steuert. Die vollständige
 > **v1-Lösung (mit Produktionsstillstand-Filter und Transfer)** ist unverändert
-> im Ordner **`Lösung mit Produktionsstillstand`** gesichert. Umstellungsstand
+> im Ordner **`Archiv/Lösung mit Produktionsstillstand`** gesichert. Umstellungsstand
 > dieses Dokuments: Abschnitte 0, 1, 3, 4, 5, 6, 7, 9 = v2; Abschnitt 2
 > (Englisch-Sprecher-Regel) hat noch einen offenen v2-Punkt; Abschnitt 8 ist
 > Zielbild Stufe 2+ und bleibt unverändert.
@@ -38,7 +38,7 @@ der ursprünglichen Konzeption ist Stufe-2-Material (siehe Abschnitt 8,
 | Stufe | Inhalt | Nutzen | Status |
 |-------|--------|--------|--------|
 | **0** ⬅ **neue Variante „Slim" (2026-08-18)** | Wie Stufe 1, aber **ohne** Inbetriebnahme- und Vertragsfrage; stattdessen eine neue Frage zur **Anlagenbeschreibung** (Anlagenbezeichnung + Seriennummer + Baujahr, Freitext → `Global.Anlage`). Kundendaten + Anlage + Anliegen werden als **6 Text-Inputs** (keine Booleans) an den Flow „Anliegen weiterleiten – slim" übergeben. Zusammenfassung bestätigt nur die 3 Kontaktfelder (Anlage + Anliegen gehen unbestätigt in den Flow). Läuft parallel zu Stufe 1 als eigenständige Variante. | Schnellerer Gesprächseinstieg; Anlageninformation für den Innendienst ohne Boolean-Fragen; Feedback-Grundlage für Anpassung | Topics + Flow implementiert (2026-08-18); Test ausstehend |
-| **1** (v2, 2026-07-14) | Erkennung Vertrag vorhanden/nicht vorhanden und Inbetriebnahme (je Ja/Nein-Frage, Selbstauskunft); Anliegen als **Freitext** erfassen; **kein** Prio-Filter, **keine** Eskalation/Transfer. Der Power-Automate-Flow verarbeitet den Freitext **per KI**: intelligente Kurz-Zusammenfassung + abgeleitete **Kritikalität** (Kritisch/Hoch/Mittel/Niedrig) anhand einer vom Kunden bereitgestellten Störungs-/Anliegenliste. Zusammenfassung + Kritikalität stehen im **E-Mail-Betreff**; das Routing geht je Kritikalität an **eines von vier Postfächern**. (v1-Variante mit Produktionsstillstand-Filter + Transfer → Ordner `Lösung mit Produktionsstillstand`) | Aufwandsreduzierung Hotline, automatische Priorisierung, Nutzerfreundlichkeit, Erfahrungen sammeln | implementiert; Teams-Phone-Verbindung ausstehend |
+| **1** (v2, 2026-07-14) | Erkennung Vertrag vorhanden/nicht vorhanden und Inbetriebnahme (je Ja/Nein-Frage, Selbstauskunft); Anliegen als **Freitext** erfassen; **kein** Prio-Filter, **keine** Eskalation/Transfer. Der Power-Automate-Flow verarbeitet den Freitext **per KI**: intelligente Kurz-Zusammenfassung + abgeleitete **Kritikalität** (Kritisch/Hoch/Mittel/Niedrig) anhand einer vom Kunden bereitgestellten Störungs-/Anliegenliste. Zusammenfassung + Kritikalität stehen im **E-Mail-Betreff**; das Routing geht je Kritikalität an **eines von vier Postfächern**. (v1-Variante mit Produktionsstillstand-Filter + Transfer → Ordner `Archiv/Lösung mit Produktionsstillstand`) | Aufwandsreduzierung Hotline, automatische Priorisierung, Nutzerfreundlichkeit, Erfahrungen sammeln | implementiert; Teams-Phone-Verbindung ausstehend |
 | **1.5** | Anlage Ticket in **Planner / SharePoint-Liste** (statt nur E-Mail) | Strukturierte Ticketverfolgung ohne ERP-Abhängigkeit | offen |
 | **1.6** | Anlage Ticket in **Odoo** (Connector zu definieren) | Tickets direkt im ERP, kein Medienbruch | offen |
 | **2** | Ergänzung um **Hauptkategorien** im Gespräch + kategoriespezifische Datenerfassung (z. B. Seriennummer, Wartungsarbeiten, …) | Präzisere Tickets, weniger Rückfragen durch den Innendienst | offen |
@@ -342,7 +342,7 @@ Querschnitts-Verhalten (gilt in jedem Topic, nicht je Node eingezeichnet):
 > **v2-Hinweis:** Der Node-Typ **„Unterhaltung übertragen"** (Transfer an eine
 > externe Telefonnummer) entfällt in v2 vollständig. Der gesamte
 > Eskalations-/Transfer-Zweig aus v1 (inkl. Geschäftszeiten-Prüfung und
-> Zielrufnummer) ist im Backup-Ordner „Lösung mit Produktionsstillstand"
+> Zielrufnummer) ist im Ordner „Archiv/Lösung mit Produktionsstillstand"
 > dokumentiert und wird hier nicht weiter gepflegt.
 
 ---
@@ -460,7 +460,7 @@ Einbindung werden mit der Kundenlieferung entschieden (Abschnitt 9).
 |---|--------------------|-----|-------|--------|
 | E10 | **Inbetriebnahme** | Bot, Topic „Inbetriebnahme" | Ja/Nein-Frage „Wurde die Anlage in den letzten 12 Monaten in Betrieb genommen?" (Selbstauskunft); Info wird an den Flow weitergeleitet und in Node 1 der Zusammenfassung mit vorgelesen | entschieden |
 | E2 | **Vertragsfrage** | Bot, Topic „Vertragsfrage" | Ja/Nein-Frage (Selbstauskunft); Verifikation durch Innendienst beim Bearbeiten | offen |
-| ~~E1~~ | **Prio-Filter** (Produktionsstillstand) | — | **Entfällt in v2 (2026-07-14)** — kein Prio-Filter, keine Frage „Steht Ihre Produktion still?" mehr. Die Priorisierung erfolgt nachgelagert per KI im Flow (siehe E7/E8). Vollständige v1-Logik (Geschäftszeiten-Prüfung + Transfer) im Backup-Ordner „Lösung mit Produktionsstillstand" | entfällt in v2 |
+| ~~E1~~ | **Prio-Filter** (Produktionsstillstand) | — | **Entfällt in v2 (2026-07-14)** — kein Prio-Filter, keine Frage „Steht Ihre Produktion still?" mehr. Die Priorisierung erfolgt nachgelagert per KI im Flow (siehe E7/E8). Vollständige v1-Logik (Geschäftszeiten-Prüfung + Transfer) im Ordner „Archiv/Lösung mit Produktionsstillstand" | entfällt in v2 |
 | E3 | **Sicherheits-Eskalation** | Bot, querschnittlich | Brand/Rauch erkannt → in v1 sofortiger Transfer; **in v2 kein Transfer verfügbar**. Vorläufiger Default: dringlicher Hinweis an den Anrufer + höchste Kritikalität in der E-Mail. Behandlung + Erkennungsmechanismus offen | **offen (v2)** — Topic noch nicht gebaut |
 | E4 | **Unerkannte Eingabe / Stille** | Bot, querschnittlich | Stille: System-Topic „Stille-Erkennung" → „Sind Sie noch da?" → bei erneuter Stille: Ansage + `EndConversation` (kein Transfer). Unerkannte Eingabe: System-Topic „Spracheingabe nicht erkannt" → „Können Sie es bitte wiederholen?" (1 Wiederholung); zweiter Fehlversuch löst in v2 **keinen Transfer** mehr aus → vorläufiger Default: Entschuldigung + ggf. weiter zum Flow / Gesprächsende (offen, siehe Abschnitt 9) | angepasst (v2) |
 | E9 | **Aktiver Mitarbeiter-Wunsch (Interruption)** | Bot, querschnittlich (Trigger-Phrase „Ich möchte mit einem Mitarbeiter sprechen") | In v1 → Transfer. **In v2 kein Live-Transfer**: Bot weist freundlich darauf hin, dass er das Anliegen aufnimmt und ein Mitarbeiter sich meldet, und erfasst weiter. Genaue Formulierung/Verhalten offen | **offen (v2)** |
@@ -548,7 +548,7 @@ Reaktion übernimmt der Innendienst über das Postfach, nicht ein Live-Transfer.
 Die vollständigen v1-Eskalationswege (Produktionsstillstand, Sicherheitsproblem,
 2× unerkannte Eingabe, 3× Widerspruch, aktiver Mitarbeiter-Wunsch — jeweils
 inkl. Geschäftszeiten-Prüfung, Empfänger und offener Zielrufnummer) sind im
-Backup-Ordner „Lösung mit Produktionsstillstand" gesichert.
+Ordner „Archiv/Lösung mit Produktionsstillstand" gesichert.
 
 **Offene Nebenwirkungen** (früher über den Transfer gelöst, jetzt neu zu
 entscheiden — siehe Abschnitt 9): Verhalten bei Sicherheitsnotfall,

@@ -9,7 +9,7 @@ die Roadmap der Ausbaustufen in [Architektur.md](Architektur.md).
 > **kein Prio-Filter, keine Eskalation/Transfer**; stattdessen KI-Verarbeitung
 > (Zusammenfassung + Kritikalität) im Power-Automate-Flow und Routing an
 > **4 Postfächer**. v1-Stand vollständig im Ordner
-> `Lösung mit Produktionsstillstand`. Bot + Flow bereits dupliziert
+> `Archiv/Lösung mit Produktionsstillstand`. Bot + Flow bereits dupliziert
 > (Solution 1.1.0.0, 2026-07-14).
 
 ## Stufe 0 „Slim" — Status (2026-08-18)
@@ -17,12 +17,12 @@ die Roadmap der Ausbaustufen in [Architektur.md](Architektur.md).
 | Baustein | Status |
 |----------|--------|
 | Conversation Start | **erledigt** — identisch mit Stufe 1 (YAML: `YAML/Slim/Start der Unterhaltung.md`) |
-| Kundendaten erfassen | **erledigt** — redirectet zu `Anlagenerfassung`; Caller-ID-Block entfernt (2026-08-20); Telefonnummer immer manuell; `KanalLabel` hardcodiert `"Telefon"`. **(2026-09-02, Robustheit-Fix):** Alle 3 Entities auf `StringPrebuiltEntity` umgestellt (Firmenname bereits, jetzt auch Ansprechpartner + Telefonnummer) — `PersonNamePrebuiltEntity` übersetzte Namen ins Englische, `PhoneNumberPrebuiltEntity` lehnte ausländische/dialektale Nummern ab. `Global.TelefonnummerGesprochen` + zugehöriger `SetVariable`-Node entfernt (nicht mehr benötigt: speak-Feld der Zusammenfassung nutzt jetzt `{Global.Telefonnummer}` direkt, TTS liest Rohtext korrekt vor). `allowBargeIn: false` in allen prompt-Feldern gesetzt. (YAML: `Backup/Kundendaten_erfassen.md`) |
-| **Anrufgrund erfassen** (NEU, 2026-09-02) | **erledigt** — neues Topic zwischen `Kundendaten erfassen` und `Anlage erfassen`. ClosedList-Entity `mosaiic_AIRCOTelefonBot.entity.Anrufgrund` angelegt (5 Items + Synonyme inkl. Zahlen 1–5; „Sonstiges" als Synonym entfernt, da Duplikat des Item-Namens). Condition-IDs: `u9xatS` = stoerung, `gShHbV` = wartung. Nur bei Störung/Wartung folgt `Anlage erfassen`; sonst direkt `Anliegen erfassen`. `Kundendaten erfassen` redirectet jetzt auf dieses Topic. `Global.Anrufgrund` als `text_6` in beide InvokeFlowAction-Nodes der Zusammenfassung + Sicherheitsnetz eingetragen. (YAML: `Backup/Anrufgrund erfassen.md`, `Email Body.html`) |
-| **Anlage erfassen** (NEU) | **erledigt** — neues Topic: eine Frage (StringPrebuiltEntity, `allowInterruption: false`): „Bitte teilen Sie uns die Anlagenbezeichnung, Seriennummer und das Baujahr mit." → `Global.Anlage`; redirectet zu `Anliegenerfassen`. **(2026-09-02):** `allowBargeIn: false` ergänzt — verhindert Doppel-Frage durch TTS-Echo im Voice-Kanal. (YAML: `Backup/Anlage erfassen.md`) |
+| Kundendaten erfassen | **erledigt** — redirectet zu `Anlagenerfassung`; Caller-ID-Block entfernt (2026-08-20); Telefonnummer immer manuell; `KanalLabel` hardcodiert `"Telefon"`. **(2026-09-02, Robustheit-Fix):** Alle 3 Entities auf `StringPrebuiltEntity` umgestellt (Firmenname bereits, jetzt auch Ansprechpartner + Telefonnummer) — `PersonNamePrebuiltEntity` übersetzte Namen ins Englische, `PhoneNumberPrebuiltEntity` lehnte ausländische/dialektale Nummern ab. `Global.TelefonnummerGesprochen` + zugehöriger `SetVariable`-Node entfernt (nicht mehr benötigt: speak-Feld der Zusammenfassung nutzt jetzt `{Global.Telefonnummer}` direkt, TTS liest Rohtext korrekt vor). `allowBargeIn: false` in allen prompt-Feldern gesetzt. (YAML: `Archiv/Alte Yamls/Kundendaten_erfassen.md`) |
+| **Anrufgrund erfassen** (NEU, 2026-09-02) | **erledigt** — neues Topic zwischen `Kundendaten erfassen` und `Anlage erfassen`. ClosedList-Entity `mosaiic_AIRCOTelefonBot.entity.Anrufgrund` angelegt (5 Items + Synonyme inkl. Zahlen 1–5; „Sonstiges" als Synonym entfernt, da Duplikat des Item-Namens). Condition-IDs: `u9xatS` = stoerung, `gShHbV` = wartung. Nur bei Störung/Wartung folgt `Anlage erfassen`; sonst direkt `Anliegen erfassen`. `Kundendaten erfassen` redirectet jetzt auf dieses Topic. `Global.Anrufgrund` als `text_6` in beide InvokeFlowAction-Nodes der Zusammenfassung + Sicherheitsnetz eingetragen. (YAML: `Archiv/Alte Yamls/Anrufgrund erfassen.md`, `Archiv/Email Body.html`) |
+| **Anlage erfassen** (NEU) | **erledigt** — neues Topic: eine Frage (StringPrebuiltEntity, `allowInterruption: false`): „Bitte teilen Sie uns die Anlagenbezeichnung, Seriennummer und das Baujahr mit." → `Global.Anlage`; redirectet zu `Anliegenerfassen`. **(2026-09-02):** `allowBargeIn: false` ergänzt — verhindert Doppel-Frage durch TTS-Echo im Voice-Kanal. (YAML: `Archiv/Alte Yamls/Anlage erfassen.md`) |
 | Anliegen erfassen | **erledigt** — identisch mit Stufe 1; redirectet zu `Zusammenfassung-Slim` statt `Zusammenfassung` (YAML: `YAML/Slim/Anliegen erfassen.md`) |
 | Zusammenfassung & Bestätigung (Slim) | **erledigt** — vereinfacht: Summary + Frage in einem einzigen Question Node kombiniert; bestätigt nur Kontaktdaten (Anlage + Anliegen unbestätigt); Korrekturfeld-Entity auf 3 Optionen reduziert (Firmenname / Ansprechpartner / Telefonnummer); Fallback bei nicht erkannter Angabe: Zähler inkrementieren + zurück zur Korrekturfeld-Frage (korrigiert 2026-08-18); flowId: `019885f0-e29a-f111-b8db-7ced8d476627`. **(2026-09-02, Robustheit-Fix):** Beide `InvokeFlowAction`-Nodes: `If(IsBlank(...), "nicht angegeben", ...)` für Firmenname, Ansprechpartner, Telefonnummer — verhindert Flow-Fehler bei leeren Feldern. `speak`-Feld: `{Global.TelefonnummerGesprochen}` → `{Global.Telefonnummer}`. Korrektur-Zweige: `PersonNamePrebuiltEntity` → `StringPrebuiltEntity` (Ansprechpartner), `PhoneNumberPrebuiltEntity` → `StringPrebuiltEntity` (Telefonnummer). **(2026-09-02, Sicherheitsnetz):** `SetVariable Global.FlowAufgerufen = true` direkt vor beiden `InvokeFlowAction`-Nodes eingefügt — verhindert Doppel-Mail durch das Sicherheitsnetz in „Ende der Unterhaltung". (YAML: `YAML/Zusammenfassung - slim.md`) |
-| **System-Topics: Sicherheitsnetz bei Gesprächsabbruch** (NEU) | **erledigt (2026-09-02)** — **„Ende der Unterhaltung"** (`OnSystemRedirect`, `CancelOtherTopics`): Vor `EndConversation` neuer ConditionGroup-Node: Bedingung `Not(IsBlank(Global.Telefonnummer)) && Not(Global.FlowAufgerufen)` → `InvokeFlowAction` (flowId `019885f0-e29a-f111-b8db-7ced8d476627`) mit `If(IsBlank(...))` Wrappern für alle 6 Felder (Anliegen-Fallback: „Gespräch vorzeitig beendet – Anliegen nicht erfasst"; Anlage-Fallback: „nicht erfasst"). Feuert bei jedem Gesprächsende — auch bei Caller-Hang-Up via Teams-Phone-Signal. **„Stille-Erkennung"**: `EndDialog` → `BeginDialog → EndofConversation` ersetzt — stellt sicher, dass auch lautlose Abbrüche das Sicherheitsnetz durchlaufen. **Globale Variable `Global.FlowAufgerufen`** (Boolean): verhindert Doppel-Mail wenn Flow bereits regulär aufgerufen wurde. (YAML: `Backup/Ende der Unterhaltung.txt`, `Backup/Stille-Erkennung.txt`) **⚠ Bekannte Lücke (MCP-Review 2026-09-03):** Tritt der Fehler auf, bevor `Global.Telefonnummer` erfasst wurde (z. B. Laufzeitfehler während „Kundendaten erfassen"), greift das Sicherheitsnetz nicht — kein Flow-Aufruf, keine E-Mail, das Anliegen geht komplett verloren. Noch nicht behoben/entschieden. |
+| **System-Topics: Sicherheitsnetz bei Gesprächsabbruch** (NEU) | **erledigt (2026-09-02)** — **„Ende der Unterhaltung"** (`OnSystemRedirect`, `CancelOtherTopics`): Vor `EndConversation` neuer ConditionGroup-Node: Bedingung `Not(IsBlank(Global.Telefonnummer)) && Not(Global.FlowAufgerufen)` → `InvokeFlowAction` (flowId `019885f0-e29a-f111-b8db-7ced8d476627`) mit `If(IsBlank(...))` Wrappern für alle 6 Felder (Anliegen-Fallback: „Gespräch vorzeitig beendet – Anliegen nicht erfasst"; Anlage-Fallback: „nicht erfasst"). Feuert bei jedem Gesprächsende — auch bei Caller-Hang-Up via Teams-Phone-Signal. **„Stille-Erkennung"**: `EndDialog` → `BeginDialog → EndofConversation` ersetzt — stellt sicher, dass auch lautlose Abbrüche das Sicherheitsnetz durchlaufen. **Globale Variable `Global.FlowAufgerufen`** (Boolean): verhindert Doppel-Mail wenn Flow bereits regulär aufgerufen wurde. (YAML: `Archiv/Alte Yamls/Ende der Unterhaltung.txt`, `Archiv/Alte Yamls/Stille-Erkennung.txt`) **⚠ Bekannte Lücke (MCP-Review 2026-09-03):** Tritt der Fehler auf, bevor `Global.Telefonnummer` erfasst wurde (z. B. Laufzeitfehler während „Kundendaten erfassen"), greift das Sicherheitsnetz nicht — kein Flow-Aufruf, keine E-Mail, das Anliegen geht komplett verloren. Noch nicht behoben/entschieden. |
 | **Power Automate Flow „Anliegen weiterleiten – slim"** | **erledigt (2026-08-18)** — 6 Text-Inputs (keine Booleans); Trigger: Firmenname/Ansprechpartner/Telefonnummer/Anliegen/KanalLabel/Anlage. KI-Verarbeitung: JSON-Schema um `anlagenbezeichnung`, `serialnummer`, `baujahr` (optional) erweitert; `kritikalitaet`-Enum auf `"Sonstiges"` (statt `"Other"`) umgestellt; `Anlage` als Kontext-Input im Prompt. E-Mail-Body: Tabellenzeile „Anlage" (`triggerBody()?['text_5']`) hinzugefügt, Inbetriebnahme/Wartungsvertrag entfernt, Rohtext-Duplikat entfernt. `Respond to the agent` direkt nach Trigger (Timeout-Fix). Fallback-E-Mail bereits korrekt (Anlage vorhanden, keine Booleans). Prioritätsformel unverändert korrekt (`Sonstiges` fällt in Low-Fallback). **⚠ Korrektur (2026-09-04):** Das tatsächliche JSON-Schema (`Agent Definition - KI-Verarbeitung.md`) enthält **kein** `anlagenbezeichnung`/`serialnummer`/`baujahr` und das Enum lautet `"Other"`, nicht `"Sonstiges"` — die Felder wurden später zugunsten von `anrufgrund` wieder vereinfacht. **⚠ Abgelöst (2026-09-04):** Flow wegen Microsoft-Designer-Bug nicht mehr bearbeitbar → als Agent-Flow **`Ticketerstellung`** neu aufgebaut (Details + bewusste Abweichungen: `Konzept-Ausfallsichere-Weiterleitung.md`, Abschnitt „Neuaufbau 2026-09-04"). **flowId neu: `834c8025-3da8-f111-b8dd-70a8a52f67fc`**; alle 3 `InvokeFlowAction`-Nodes umgehängt und per Pull verifiziert (2026-09-04). Alter Flow + verwaistes Tool `Anliegenweiterleiten-slim` werden nach grünem End-to-End-Test gelöscht. |
 | Störungs-/Anliegenliste einbinden | **offen** — identisch mit Stufe 1; wartet auf Kundenlieferung |
 | **Sprachfork am Gesprächsanfang** (NEU, 2026-09-08) | **erledigt** — `Start der Unterhaltung` fragt nach der Begrüßung die Sprache ab (Entity `Sprachwahl`, **DTMF 1 = Deutsch / 2 = Englisch**, `readOutOptions: false`). Bei Englisch: `System.User.Language = English` + `Global.Sprache = "Englisch"`, dann `Kundendaten erfassen EN`; sonst `Kundendaten erfassen`. **Blank = Deutsch** ist die Konvention für alle Verzweigungen. Stille/unerkannt führt hier bewusst **nicht** zu `EndofConversation`, sondern nach Deutsch. |
@@ -31,6 +31,7 @@ die Roadmap der Ausbaustufen in [Architektur.md](Architektur.md).
 | **Topic-Merge DE + EN** (2026-09-08) | **erledigt + beide Sprachen getestet** — `Anrufgrund/Anlage/Anliegen erfassen` sind in beiden Sprachen **inline** in `Kundendaten erfassen` gewandert. Die sechs alten Topics wurden am **2026-09-09 gelöscht** (Altstand: Tag `stand-2026-09-09-vor-telefonnummer-umbau`). Details im Struktur-Update-Block unten. |
 | **Telefonnummer-Rückbau + Aufräumen** (NEU, 2026-09-09) | **lokal erledigt, validiert (28 Dateien, 0 Fehler) — ⚠ noch nicht in die Cloud gepusht und nicht publiziert.** Drei Änderungen: (1) Telefonnummer-Frage in beiden Sprachen zurück auf `StringPrebuiltEntity` (`PhoneNumberPrebuiltEntity` beendete am Telefon den Anruf, siehe F8). (2) Zusammenfassung bestätigt nur noch **Firmenname + Ansprechpartner** — Telefonnummer wird nicht mehr vorgelesen; `Global.TelefonGesprochen` und der Korrekturzweig „Telefonnummer" ersatzlos entfernt. (3) Die sechs verwaisten Topics gelöscht; `Fallback` verweist nicht mehr auf sie und sendet nur noch die Entschuldigung (DE/EN). |
 | **Zweisprachigkeit — Rest** | **offen** — Systemtopics (`Fallback`, `Silence`, `UnrecognizedSpeech`, `UnknownDtmfKey`, Safety-Net-Text in `Ende der Unterhaltung`) sind weiterhin **nur deutsch**; `agent.mcs.yml`-Instructions unangepasst; KI-Prompt im Flow `Ticketerstellung` nicht auf englischen Freitext vorbereitet. **Publish steht ebenfalls noch aus** (bisher nur Draft-Push). Siehe Schritt 6–9 weiter unten. |
+| **Fix: `System.User.Language`-Override blieb über Anrufe hinweg hängen** (NEU, 2026-09-09/10) | **erledigt, live verifiziert.** Echter Deutsch-Anruf lieferte phonetisch-englisch verzerrte Transkriptionen an den Flow, obwohl Bot-Text/-Stimme korrekt Deutsch waren — Ursache: `elseActions` in `ConversationStart.mcs.yml` setzte `System.User.Language` nie zurück, ein früherer Englisch-Override (Taste 2) blieb über den Anruf hinweg bestehen. Fix: `elseActions` bekam `SetMultipleVariables` mit `System.User.Language = German` + `Global.Sprache = "Deutsch"`, symmetrisch zum Englisch-Zweig. Push + Publish + Teams-Export/Upload bereits erfolgt (Nutzerangabe). Regressionsanruf (Englisch → auflegen → erneut Deutsch) **positiv**. Details: `Konzept-Englisch.md` §7. |
 
 > ### ⚠ Struktur-Update 2026-09-08 — Topic-Merge in beiden Sprachen
 >
@@ -218,7 +219,7 @@ Transfer) → **C/D/E** (Flow; D/E brauchen den Kunden-Input aus **F**) → **G*
       Text ohne jede Validierung**: Firmenname, Ansprechpartner, Telefonnummer,
       Anlage, Anliegen. Alle landen im Flow `Ticketerstellung` und von dort per
       `@{variables('Var…')}` **unescaped** im HTML-Body der E-Mail (siehe
-      `Email Body.html`, z. B. Zeile 39) sowie im Prompt des KI-Nodes.
+      `Archiv/Email Body.html`, z. B. Zeile 39) sowie im Prompt des KI-Nodes.
       **Einordnung — bewusst nicht sofort gefixt:**
       - Das ist **kein Nebeneffekt des Rückbaus vom 2026-09-09**. Die
         Telefonnummer war schon vor dem 2026-09-08 `StringPrebuiltEntity`; sie
@@ -270,8 +271,8 @@ hatten **keinen Status** und wurden in dieser Session eingeordnet:
   bei Ihnen melden." **Nur im Produktionszweig (`elseActions`)** — der
   `InTestMode = true`-Zweig behält bewusst den alten `speak`-Text (Michael,
   2026-09-03: Testpanel-Ausgabe ist nicht produktionsrelevant, keine Angleichung nötig).
-  Verifiziert per Datei-Review 2026-09-03 (`agent/AIRCO Telefon-Bot/topics/OnError.mcs.yml`,
-  vormals `Backup/Bei Fehler.md` — Datei entfernt, da veraltet gegenüber dem
+  Verifiziert per Datei-Review 2026-09-03 (`Archiv/agent/AIRCO Telefon-Bot/topics/OnError.mcs.yml`,
+  vormals `Archiv/Alte Yamls/Bei Fehler.md` — Datei entfernt, da veraltet gegenüber dem
   synchronisierten Agent-Ordner) — Platzierung und beide Textstände bestätigt.
   **MCP-Review (2026-09-03):** 0 Validierungsfehler, lokal synchron mit dem
   Draft in Dataverse. ✅
@@ -296,7 +297,7 @@ hatten **keinen Status** und wurden in dieser Session eingeordnet:
   statt den Bot in der Luft hängen zu lassen. `speak`-Text in beiden Zweigen
   bereits korrekt: „Es tut uns leid, es ist ein technischer Fehler aufgetreten.
   Bitte versuchen Sie es später erneut. Auf Wiederhören." Telemetrie-Logging
-  (`LogCustomTelemetryEvent`) bleibt erhalten. (YAML: `agent/AIRCO Telefon-Bot/topics/OnError.mcs.yml`) ✅
+  (`LogCustomTelemetryEvent`) bleibt erhalten. (YAML: `Archiv/agent/AIRCO Telefon-Bot/topics/OnError.mcs.yml`) ✅
   **Fallback-Topic gebaut (2026-08-25)**: `ConditionGroup` mit
   `FallbackCount`-Zähler und Escalate-Verweis entfernt; stattdessen
   Nachrichtenknoten („Entschuldigung, das habe ich nicht richtig verstanden.
@@ -548,24 +549,24 @@ Fehler aufgetreten" ab. E-Mail kam trotzdem an (Sicherheitsnetz griff).
     Test → Manuell. Danach zurücksetzen und sauberen Lauf ohne Alarm-Mail.
 
 - [x] **ERLEDIGT (2026-09-08) — Der Ordner `YAML/` war eine zweite, driftende
-  Quelle.** `Backup/Kundendaten_erfassen.md` kannte die Anrufgrund-Frage und den
-  Staging-Aufruf nicht; `Backup/Anrufgrund erfassen.md` enthielt noch die Frage,
+  Quelle.** `Archiv/Alte Yamls/Kundendaten_erfassen.md` kannte die Anrufgrund-Frage und den
+  Staging-Aufruf nicht; `Archiv/Alte Yamls/Anrufgrund erfassen.md` enthielt noch die Frage,
   die längst in `Kundendaten erfassen` sitzt. Seit der Agent per
-  `manage-agent pull` nach `agent/AIRCO Telefon-Bot/` gespiegelt wird, ist das
+  `manage-agent pull` nach `Archiv/agent/AIRCO Telefon-Bot/` gespiegelt wird, ist das
   die verlässliche Kopie — `YAML/` konnte nur noch auseinanderlaufen und hat am
   2026-09-05 bereits zu einer Fehldiagnose auf veraltetem Stand geführt.
   **Umgesetzt:** `YAML/` aufgelöst. Die Topic-Arbeitskopien liegen jetzt in
-  **`Backup/`** und sind ausdrücklich *historischer Arbeitsstand, keine
-  Referenz*. `Agent Definition - KI-Verarbeitung.md` und `Email Body.html`
+  **`Archiv/Alte Yamls/`** und sind ausdrücklich *historischer Arbeitsstand, keine
+  Referenz*. `Agent Definition - KI-Verarbeitung.md` und `Archiv/Email Body.html`
   liegen im Repo-Root, weil sie **kein** Backup, sondern weiterhin aktuelles
   Referenzmaterial für den Flow sind.
-  **Einzige Quelle der Wahrheit für Topics: `agent/AIRCO Telefon-Bot/`.**
+  **Einzige Quelle der Wahrheit für Topics: `Archiv/agent/AIRCO Telefon-Bot/`.**
 
 > ⚠ Die Verweise `YAML/Slim/…` und `YAML/Zusammenfassung - slim.md` in der
 > Statustabelle oben zeigen ins Leere — der Unterordner `YAML/Slim/` wurde
 > bereits in Commit `b5efb64` gelöscht, lange vor dieser Aufräumaktion. Diese
 > Dateien existieren nirgends mehr; maßgeblich sind
-> `agent/AIRCO Telefon-Bot/topics/Kundendatenerfassen.mcs.yml` und
+> `Archiv/agent/AIRCO Telefon-Bot/topics/Kundendatenerfassen.mcs.yml` und
 > `…/Zusammenfassung-Slim.mcs.yml`.
 
 - [ ] **OFFEN (2026-09-05) — `Sweep offene Anrufe` gehört nicht zur Lösung.**
@@ -698,7 +699,7 @@ Zeitpunkt der E-Mail schlicht nicht.
       der Reihenfolge Firmenname, Ansprechpartner, Telefonnummer, Anliegen,
       KanalLabel, Anlage, Anrufgrund, ConversationId, danach
       `invokeFlowAction_s8uOdc` in `Zusammenfassung-Slim` umhängen.)*
-- [x] E-Mail-Template `Email Body.html` aktualisiert und im Flow eingesetzt:
+- [x] E-Mail-Template `Archiv/Email Body.html` aktualisiert und im Flow eingesetzt:
       Kritikalität in Betreff **und** Body-Zelle wiederhergestellt (war in der
       Cloud-Version verschwunden), ConversationId als „Vorgang" in der Fußzeile.
 - **Entscheidung 2026-09-04 (Nutzer):** Die KI-Ausgaben werden **bewusst
@@ -755,7 +756,7 @@ gebunden statt auf `Global.Telefonnummer` (Trigger-Schema von
 `Staging schreiben` bestätigt: `text_3` = Telefonnummer → SharePoint-Spalte
 `item/Telefonnummer`). Dadurch erreichte die Telefonnummer den
 Staging-Datensatz nie. Fix: `text_3: =Global.Telefonnummer` in
-`agent/AIRCO Telefon-Bot/topics/Kundendatenerfassen.mcs.yml`. Die beiden
+`Archiv/agent/AIRCO Telefon-Bot/topics/Kundendatenerfassen.mcs.yml`. Die beiden
 anderen Staging-/Ticketerstellung-Bindings (`Zusammenfassung-Slim.mcs.yml`,
 Zeilen 18–20 bzw. 71–73/244–246) waren bereits korrekt — betraf nur diese eine
 Stelle. **Noch offen: Push ins Draft + Testanruf zur Bestätigung.**
