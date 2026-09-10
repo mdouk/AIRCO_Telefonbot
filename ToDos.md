@@ -29,9 +29,10 @@ die Roadmap der Ausbaustufen in [Architektur.md](Architektur.md).
 | **Kundendaten erfassen EN** (NEU, 2026-09-08) | **erledigt + getestet** (`Tests/Test 14`) — strukturgleich zum deutschen Topic, komplette Erfassung inline in *einem* Topic (Anrufgrund-Verzweigung, Anlage- und Anliegen-Frage). Eigene Entity `AnrufgrundEN` + eigene Variable `Global.AnrufgrundEN`. Staging-Flowaufruf direkt vor der Anliegen-Frage — Position nicht verschieben (Bauregel). |
 | **Zusammenfassung EN** (NEU, 2026-09-08) | **erledigt** — `ZusammenfassungEN.mcs.yml`, strukturgleich zu `Zusammenfassung - Slim`: Staging-Flow, Bestätigung der 3 Kontaktfelder, Korrekturschleife ≤ 3, dann `Ticketerstellung` → `Ende der Unterhaltung`. Alle drei `text_6`-Bindungen lesen `Global.AnrufgrundEN`. |
 | **Topic-Merge DE + EN** (2026-09-08) | **erledigt + beide Sprachen getestet** — `Anrufgrund/Anlage/Anliegen erfassen` sind in beiden Sprachen **inline** in `Kundendaten erfassen` gewandert. Die sechs alten Topics wurden am **2026-09-09 gelöscht** (Altstand: Tag `stand-2026-09-09-vor-telefonnummer-umbau`). Details im Struktur-Update-Block unten. |
-| **Telefonnummer-Rückbau + Aufräumen** (NEU, 2026-09-09) | **lokal erledigt, validiert (28 Dateien, 0 Fehler) — ⚠ noch nicht in die Cloud gepusht und nicht publiziert.** Drei Änderungen: (1) Telefonnummer-Frage in beiden Sprachen zurück auf `StringPrebuiltEntity` (`PhoneNumberPrebuiltEntity` beendete am Telefon den Anruf, siehe F8). (2) Zusammenfassung bestätigt nur noch **Firmenname + Ansprechpartner** — Telefonnummer wird nicht mehr vorgelesen; `Global.TelefonGesprochen` und der Korrekturzweig „Telefonnummer" ersatzlos entfernt. (3) Die sechs verwaisten Topics gelöscht; `Fallback` verweist nicht mehr auf sie und sendet nur noch die Entschuldigung (DE/EN). |
-| **Zweisprachigkeit — Rest** | **offen** — Systemtopics (`Fallback`, `Silence`, `UnrecognizedSpeech`, `UnknownDtmfKey`, Safety-Net-Text in `Ende der Unterhaltung`) sind weiterhin **nur deutsch**; `agent.mcs.yml`-Instructions unangepasst; KI-Prompt im Flow `Ticketerstellung` nicht auf englischen Freitext vorbereitet. **Publish steht ebenfalls noch aus** (bisher nur Draft-Push). Siehe Schritt 6–9 weiter unten. |
+| **Telefonnummer-Rückbau + Aufräumen** (NEU, 2026-09-09) | **erledigt, validiert (28 Dateien, 0 Fehler), gepusht und publiziert (2026-09-10).** Drei Änderungen: (1) Telefonnummer-Frage in beiden Sprachen zurück auf `StringPrebuiltEntity` (`PhoneNumberPrebuiltEntity` beendete am Telefon den Anruf, siehe F8). (2) Zusammenfassung bestätigt nur noch **Firmenname + Ansprechpartner** — Telefonnummer wird nicht mehr vorgelesen; `Global.TelefonGesprochen` und der Korrekturzweig „Telefonnummer" ersatzlos entfernt. (3) Die sechs verwaisten Topics gelöscht; `Fallback` verweist nicht mehr auf sie und sendet nur noch die Entschuldigung (DE/EN). |
+| **Zweisprachigkeit — Rest** | **erledigt (2026-09-10, Nutzerangabe, im lokalen Workspace `Archiv/agent/AIRCO Telefon-Bot` verifiziert).** Systemtopics `Fallback`, `Silence`, `UnrecognizedSpeech`, `UnknownDtmfKey`, Safety-Net-Text in `Ende der Unterhaltung` verzweigen jetzt alle auf `=Global.Sprache = "Englisch"`; `agent.mcs.yml`-Instructions nennen Deutsch/Englisch ohne Transfer-Verweis; KI-Prompt im Flow `Ticketerstellung` erlaubt jetzt „Deutsch oder Englisch" in der Zusammenfassung. Publish erfolgt. Details: `Konzept-Englisch.md` Schritt 6/7. |
 | **Fix: `System.User.Language`-Override blieb über Anrufe hinweg hängen** (NEU, 2026-09-09/10) | **erledigt, live verifiziert.** Echter Deutsch-Anruf lieferte phonetisch-englisch verzerrte Transkriptionen an den Flow, obwohl Bot-Text/-Stimme korrekt Deutsch waren — Ursache: `elseActions` in `ConversationStart.mcs.yml` setzte `System.User.Language` nie zurück, ein früherer Englisch-Override (Taste 2) blieb über den Anruf hinweg bestehen. Fix: `elseActions` bekam `SetMultipleVariables` mit `System.User.Language = German` + `Global.Sprache = "Deutsch"`, symmetrisch zum Englisch-Zweig. Push + Publish + Teams-Export/Upload bereits erfolgt (Nutzerangabe). Regressionsanruf (Englisch → auflegen → erneut Deutsch) **positiv**. Details: `Konzept-Englisch.md` §7. |
+| **Reihenfolge-Anomalie in `Kundendaten erfassen` endgültig behoben** (NEU, 2026-09-10, Portal-Edit) | **erledigt.** `InvokeFlowAction` „Staging" (DE + EN) komplett aus dem Topic entfernt statt nur umpositioniert — damit auch `init:Global.Anliegen` (DE) hinfällig. Reproduziert in `Tests/Test 18`/`19` (Anliegen-Frage doppelt, erste Antwort verworfen), Fix per Pull + Fresh-Clone verifiziert. **Preis:** Fall-3-Sicherheitsnetz deckt jetzt ein kleineres Zeitfenster ab (Staging-Satz entsteht erst beim Eintritt in die Zusammenfassung, nicht mehr vor der Anliegen-Frage) — Details F9 unten und `Konzept-Ausfallsichere-Weiterleitung.md`. |
 
 > ### ⚠ Struktur-Update 2026-09-08 — Topic-Merge in beiden Sprachen
 >
@@ -188,8 +189,23 @@ Transfer) → **C/D/E** (Flow; D/E brauchen den Kunden-Input aus **F**) → **G*
 
 ### D. Power Automate — KI-Schritt + Kritikalitäts-Prompt (Kern)
 - [x] ~~**Zwei-Schritt-KI-Architektur** (Agent-Node + Classify-Node)~~ — **umgestellt (2026-07-20)**: stattdessen **ein Structured-Output-Node** (GPT-4.1) mit JSON-Schema. Ein Modellaufruf statt zwei — schneller, günstiger, Enum erzwingt gültige Werte.
-- [x] **KI-Node „KI-Verarbeitung"** konfiguriert (GPT-4.1, Structured Output): Inputs: `Firmenname` (Rohtext), `Ansprechpartner` (Rohtext), `Telefonnummer` (Rohtext), `Anliegen` (Freitext). Prompt extrahiert 5 Felder: `zusammenfassung`, `kritikalitaet` (Enum), `firmenname`, `ansprechpartner`, `telefonnummer`. Fallback-Text „Anliegen unklar." bei unklarem Anliegen. JSON-Schema-Bug behoben (doppelter `ansprechpartner`-Key → `telefonnummer`). Ausgaben → VarZusammenfassung + VarKritikalitaet + VarFirmenname + VarAnsprechpartner + VarTelefonnummer. **Korrekte Ausdrücke:** `body('KI-Verarbeitung')?['structuredOutput/zusammenfassung']` / `…/kritikalitaet']` / `…/firmenname']` usw. — **nicht** `outputs()` (liefert leer).
+- [x] **KI-Node „KI-Verarbeitung"** konfiguriert (Structured Output): Inputs: `Firmenname` (Rohtext), `Ansprechpartner` (Rohtext), `Telefonnummer` (Rohtext), `Anliegen` (Freitext). Prompt extrahiert 5 Felder: `zusammenfassung`, `kritikalitaet` (Enum), `firmenname`, `ansprechpartner`, `telefonnummer`. Fallback-Text „Anliegen unklar." bei unklarem Anliegen. JSON-Schema-Bug behoben (doppelter `ansprechpartner`-Key → `telefonnummer`). Ausgaben → VarZusammenfassung + VarKritikalitaet + VarFirmenname + VarAnsprechpartner + VarTelefonnummer. **Korrekte Ausdrücke:** `body('KI-Verarbeitung')?['structuredOutput/zusammenfassung']` / `…/kritikalitaet']` / `…/firmenname']` usw. — **nicht** `outputs()` (liefert leer).
+  **Korrektur 2026-09-10:** Rohdaten-Review von `workflow.json` zeigt `"model":"GPT5Chat"`,
+  nicht GPT-4.1 wie hier bisher dokumentiert — vermutlich seit einem Modell-Update in
+  Power Automate/AI Builder unbemerkt gewechselt. **Kein Bauregel-Verstoß:** Die
+  CLAUDE.md-Vorgabe „LLM muss GPT-4.1 sein" gilt für den **Voice-fähigen Copilot-Studio-
+  Agenten** selbst (`agent.mcs.yml`, `modelNameHint: GPT41`) — dieser Flow-interne
+  Structured-Output-Node läuft rein textbasiert außerhalb des Sprachkanals und ist von
+  der Vorgabe nicht betroffen. Nur die Doku hier war falsch; keine Handlung nötig, außer
+  falls Antwortqualität/-format künftig auffällt.
 - [x] **Kritikalitäts-Mapping** (2026-07-15/20): Mittel = Wartung/Ersatzteil/Angebot; Niedrig = Rückruf/allgemeine Anfragen; Other = automatischer Fallback.
+  **Erweitert 2026-09-10 (Portal-Edit, per Pull übernommen):** Prompt bekam eine explizite
+  Kritikalitäts-Heuristik nach `Anrufgrund` (`text_6`): Störung → Kritisch/Hoch,
+  Wartung → Mittel, Ersatzteil/Rückrufbitte → Niedrig. Ergänzt die bestehenden
+  inhaltlichen Kriterien (Produktionsstillstand etc.), ersetzt sie nicht — beide Signale
+  fließen in dieselbe KI-Entscheidung ein. **Zusammenfassung** darf laut Prompt jetzt
+  „Deutsch oder Englisch" sein (vorher nur Deutsch) — passend zum englischen
+  Gesprächszweig, der `Global.Anliegen` auch auf Englisch befüllen kann.
 - [ ] **Störungsliste** (Knowledge im Agent-Node): Als SharePoint-Datei geplant — wartet auf Kundenlieferung (AIRCO). **Entschieden (2026-08-25): kein Blocker mehr für die laufende Stufe** — Michael stuft das Thema als Material für eine spätere Ausbaustufe ein, nicht für den aktuellen Test von Stufe 0/1.
 - [ ] **Prompt feintunen + testen** sobald Störungsliste vorliegt. (siehe oben — ebenfalls auf eine spätere Stufe verschoben)
 - [x] **Telefonnummer-Präfix +49/+41 (2026-09-02):** KI-Node-Prompt um Regel ergänzt: Wenn
@@ -569,12 +585,12 @@ Fehler aufgetreten" ab. E-Mail kam trotzdem an (Sicherheitsnetz griff).
 > `Archiv/agent/AIRCO Telefon-Bot/topics/Kundendatenerfassen.mcs.yml` und
 > `…/Zusammenfassung-Slim.mcs.yml`.
 
-- [ ] **OFFEN (2026-09-05) — `Sweep offene Anrufe` gehört nicht zur Lösung.**
-  Der Pull bringt nur vier Workflows mit (`Anliegen weiterleiten`,
-  `Anliegen weiterleiten – slim`, `Staging schreiben`, `Ticketerstellung`).
-  Der Sweep fehlt. Folge: Bei einem Lösungsimport in eine andere Umgebung wäre
-  Fall 3 **still** kaputt, weil der Wächter nicht mitreist — und er ist nicht
-  per Pull prüfbar. Vor der Hausmesse in die Lösung aufnehmen.
+- [x] **`Sweep offene Anrufe` gehört nicht zur Lösung** — **behoben, 2026-09-10
+  (Nutzerangabe).** Der Flow ist jetzt in die Solution importiert (der CPS-Pull
+  zeigt ihn weiterhin nicht mit, da er kein agent-gebundener Workflow ist —
+  erwartungsgemäß, war schon vor dem Fix so). Bei einem Lösungsimport in eine
+  andere Umgebung reist der Wächter jetzt mit; Fall 3 ist nicht mehr still
+  kaputt.
 
 - [ ] **OFFEN (2026-09-05) — Blinder Fleck beim Sweep-Monitoring.** Ein Alarm
   *im* Flow meldet nur, was während eines Laufs passiert. Läuft der Flow gar
@@ -1115,23 +1131,22 @@ der Messe** (bräche die Bindungen in mehreren `InvokeFlowAction`-Nodes).
       wird angenommen, egal wie sie formuliert ist; Zusammenfassung nennt nur
       Firma + Name; Korrekturschleife funktioniert mit den zwei verbliebenen
       Optionen; E-Mail enthält die Telefonnummer weiterhin.
-- [ ] **Entity `Korrekturfeld` aufräumen — bewusst zurückgestellt, offen.**
-      Die Closed List trägt weiterhin den Wert `swLyyJ` „Telefonnummer",
-      obwohl der zugehörige Korrekturzweig am 2026-09-09 gelöscht wurde.
-      **Auswirkung heute:** Sagt ein Anrufer trotzdem „die Telefonnummer war
+- [x] **Entity `Korrekturfeld` teilweise aufgeräumt (2026-09-10, Portal-Edit,
+      per Pull übernommen).** `gjJ4ZJ` (Inbetriebnahme) und `YvfEJQ`
+      (Wartungsvertrag) sind entfernt — beides Stufe-1-Reste, die nie einen
+      Korrekturzweig in Stufe 0 hatten. **`swLyyJ` (Telefonnummer) ist
+      unverändert stehen geblieben**, obwohl der zugehörige Korrekturzweig
+      bereits am 2026-09-09 gelöscht wurde — vermutlich schlicht nicht
+      mitgeprüft, nicht bewusst behalten.
+      **Auswirkung unverändert:** Sagt ein Anrufer „die Telefonnummer war
       falsch", matcht die Entity, aber keine `ConditionGroup` greift → der
       `elseActions`-Zweig meldet „Das habe ich leider nicht verstanden." und
       die Frage wird wiederholt (max. 3×, dann Ticketerstellung + Ende).
-      Kein Absturz, kein Datenverlust.
-      **Warum zurückgestellt:** Der Bot liest die Nummer nicht mehr vor, der
-      Anrufer hat also keinen Anlass, sie zu beanstanden. Ausserdem trägt die
-      Entity seit Stufe 1 ohnehin zwei weitere unbehandelte Werte
-      (`gjJ4ZJ` Inbetriebnahme, `YvfEJQ` Wartungsvertrag) — „Telefonnummer"
-      ist damit der dritte, kein neuer Sonderfall.
+      Kein Absturz, kein Datenverlust — daher weiterhin nicht dringend.
       **Wenn doch aufgeräumt wird:** `swLyyJ` aus
       `entities/Korrekturfeld.mcs.yml` entfernen und vorher prüfen, dass der
       Key nirgends mehr in einer `condition:` steht (aktuell: nirgends —
-      `grep -rn swLyyJ agent/`). Erst dann pushen; ein referenzierter,
+      `grep -rn swLyyJ "Archiv/agent"`). Erst dann pushen; ein referenzierter,
       gelöschter Entity-Key ist ein Validierungsfehler.
 - **Nicht mehr nötig:** Auswertung des Rohtexts aus `Tests/Test 15` als
       Vorbedingung für eine Nachbearbeitung — die Nachbearbeitung entfällt mit
@@ -1156,6 +1171,56 @@ der Messe** (bräche die Bindungen in mehreren `InvokeFlowAction`-Nodes).
   Formulierungen wie „viermal die sieben hundert drei" semantisch auflösen —
   dafür bräuchte es weiterhin KI, nur nicht zwingend live. Konkreter
   Ausdrucksentwurf hängt an `Tests/Test 15` (siehe oben).
+
+### F9. Anliegen-Frage doppelt gestellt (Reihenfolge-Anomalie) — ✅ GELÖST 2026-09-10 (Portal-Edit)
+
+- [x] **Bug bestätigt, live per Trace (`Tests/Test 18`, `Test 19`).** Ablauf: nach
+      der Anlage-Frage lief `InvokeFlowAction m8Ujcv` (Staging), direkt danach
+      `question_RZHeKB` (Anliegen) — beantwortet (`Anliegen = "asdgag"`) — dann
+      lief `m8Ujcv` **erneut** (Nachholen des zurückgestellten Async-Aufrufs) und
+      landete wieder bei `question_RZHeKB`, die wegen `init:Global.Anliegen` neu
+      gestellt wurde und die erste Antwort verwarf (`Anliegen` am Ende =
+      `"agvawv"`, die zweite Antwort). Klassisches Beispiel der dokumentierten
+      Reihenfolge-Anomalie (siehe CLAUDE.md), diesmal mit sichtbarem Datenverlust
+      statt reiner Fehlreihenfolge.
+      **Nebenbefund:** Der Staging-Satz (SharePoint) wurde mit der **verworfenen**
+      ersten Antwort geschrieben, bevor die zweite Antwort erfasst war — bei
+      einem Abbruch zwischen den beiden Durchläufen hätte die Ausfallsicherung
+      den falschen Anliegen-Text gemeldet.
+      **Vorgeschlagener enger Fix (Sparring, nicht umgesetzt):** nur `init:` vor
+      `Global.Anliegen` entfernen, Positionsregel unverändert lassen.
+      **Tatsächlich umgesetzter Fix (2026-09-10, direkt im Portal, nicht wie
+      vorgeschlagen):** `InvokeFlowAction m8Ujcv`/`bJtc5e` (Staging) **komplett
+      aus `Kundendatenerfassen`/`…EN` entfernt** — nicht nur umpositioniert.
+      `init:` vor `Global.Anliegen` (DE) fiel damit ohnehin weg. Das ist die
+      sauberere Lösung: kein `InvokeFlowAction` mehr in diesem Topic bedeutet
+      kein Ansatzpunkt mehr für die Anomalie, unabhängig von `init:`. Per Pull +
+      Fresh-Clone-Gegenprobe verifiziert (`a4fe9d0`).
+- [ ] **Neue Konsequenz — Fall-3-Sicherheitsnetz-Fenster verkleinert.** Der
+      einzige verbleibende Staging-Aufruf liegt jetzt am **Anfang von
+      `Zusammenfassung - Slim`/`ZusammenfassungEN`**, also **nach** der
+      Anliegen-Frage statt davor. Bricht ein Anruf **während** der Anliegen-Frage
+      hart ab (kein `OnSystemRedirect`, sonst würde `Ende der Unterhaltung`
+      greifen — die deckt diesen Fall unabhängig vom Staging-Flow ab), existiert
+      jetzt **kein** Staging-Datensatz mehr, nicht einmal mit den bereits
+      erfassten Feldern (Firma, Ansprechpartner, Telefon, Anrufgrund, Anlage).
+      Vorher — mit dem jetzt entfernten `m8Ujcv`-Aufruf direkt vor der
+      Anliegen-Frage — wäre dieser Datensatz bereits vorhanden gewesen. Betrifft
+      nur den stündlichen Sweep (Fall 3), nicht das synchrone Safety-Net in
+      `Ende der Unterhaltung` (das braucht keinen Staging-Satz). Näher
+      ausgeführt in `Konzept-Ausfallsichere-Weiterleitung.md`, Abschnitt
+      „Regression 2026-09-10". **Entscheidung noch offen:** hinnehmen (Fenster
+      ist ein einzelner Frage-Turn, geringe Wahrscheinlichkeit) oder einen
+      alternativen, reihenfolge-sicheren Ort für einen erneuten
+      Zwischen-Staging-Aufruf suchen.
+- [ ] **Ungeklärt: `settings.mcs.yml` verlor `supportedLanguages: - 1033`
+      (Englisch).** Beim selben Pull mitgekommen, nicht Teil einer bewussten
+      Nutzeraktion laut Rückfrage. Laut Portal-Screenshot (Einstellungen →
+      Sprachen) ist Englisch als sekundäre Sprache weiterhin aktiv und
+      unterstützt — die YAML-Zeile scheint also nicht die tatsächliche
+      Sprachunterstützung des Kanals abzubilden, sondern etwas anderes (Zweck
+      unbekannt). Keine beobachtete Funktionsstörung. Nicht weiter verfolgt,
+      außer die Zweisprachigkeit zeigt später unerklärliche Aussetzer.
 
 ### G. Test / Go-Live
 - [x] **End-to-End-Test**: `FlowActionBadGateway`-Timeout durch `Respond to the agent` direkt nach dem Trigger behoben (siehe F2, 2026-08-25) — Testanrufe laufen seither zuverlässig durch.
@@ -1349,6 +1414,10 @@ der Messe** (bräche die Bindungen in mehreren `InvokeFlowAction`-Nodes).
 - **KI-Werkzeug + Prompt**: AI Builder „Text mit GPT erstellen" vs. Connector;
   Kritikalitäts-Kriterien reproduzierbar formulieren (Orientierung:
   Prioritätsmatrix in CLAUDE.md); Modell / Kosten / Datenschutz-Region.
+  **Englischer Freitext:** seit 2026-09-10 im Prompt berücksichtigt
+  (`zusammenfassung: Sachlich, Deutsch oder Englisch, max. 3 Sätze"`) —
+  der zuvor als „bewusst zurückgestellt" notierte Punkt in
+  `Konzept-Englisch.md` §7 ist damit erledigt.
 - **Transfer-Nebenwirkungen ohne Eskalation**: Verhalten bei Sicherheitsnotfall,
   Englisch-Sprecher, 2× unerkannter Eingabe, 3 erschöpften Korrekturversuchen.
 - **Duplizierter v2-Flow**: alten `Produktionsstillstand`-Input entfernen;

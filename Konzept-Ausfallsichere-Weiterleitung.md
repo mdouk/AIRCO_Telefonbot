@@ -149,6 +149,61 @@ nicht rechtzeitig persistiert, Topic-Variablen schon. Test: in
 Global.Anrufgrund`, `ConditionGroup` auf `Topic.Grund` umstellen, Staging-Flow
 wieder an den Topic-Anfang.
 
+**Nachtrag — was danach geschah, damit dieser Abschnitt nicht in die Irre
+führt:** Die „Rückkehr" fand tatsächlich statt, aber anders als hier
+spekuliert. Am **2026-09-05** wurde der Staging-Aufruf zurück in
+`Kundendaten erfassen` gezogen (direkt vor die Anliegen-Frage, unmittelbar
+nach der zeitgleich hochgezogenen Anrufgrund-Frage) — ohne die
+Global-vs-Topic-Hypothese oben zu testen; siehe `Topics.md`, Abschnitt
+„Warum die Anrufgrund-Frage hier steht". Dieser Zustand wurde nie in dieses
+Dokument nachgetragen. Am **2026-09-10** wurde der Aufruf im Portal erneut
+entfernt — siehe „Regression 2026-09-10" unten. Die Checkliste unter
+„Umsetzungsstand" ist entsprechend veraltet.
+
+---
+
+## ⚠ Regression 2026-09-10: Staging-Aufruf in `Kundendaten erfassen` erneut entfernt
+
+**Symptom:** Anliegen-Frage wurde doppelt gestellt, erste Antwort verworfen —
+identisches Muster zur Regression 2026-09-04, diesmal mit sichtbarem
+Datenverlust statt reiner Fragenverdrehung. Nachgewiesen per Trace-Export in
+`Tests/Test 18` und `Test 19` (siehe `ToDos.md`, F9, für den vollständigen
+Ablauf).
+
+**Fix (direkt im Portal, 2026-09-10):** Der `InvokeFlowAction`-Knoten „Staging
+schreiben" (`a0a99959-…`, id `m8Ujcv`/`bJtc5e`) wurde aus
+`Kundendaten erfassen`/`…EN` **ersatzlos entfernt** — dieses Mal nicht als
+Zwischenstand, sondern als bewusste Entscheidung gegen eine erneute Rückkehr.
+`init:` vor `Global.Anliegen` (DE) entfiel damit ebenfalls.
+
+**Fall 3 ist damit wieder eingeschränkt — aber anders als 2026-09-04:**
+- Der einzige verbleibende Staging-Aufruf liegt jetzt am **Anfang von
+  `Zusammenfassung - slim`/`ZusammenfassungEN`**, also technisch **nach** der
+  Anliegen-Frage statt davor.
+- **Ungeschützt ist nur ein einzelner Frage-Turn:** Bricht der Anruf **hart**
+  ab (kein `OnSystemRedirect`, siehe unten) **während** die Anliegen-Frage
+  offen ist — also nach der Anlage-Frage, bevor der Anrufer geantwortet hat —
+  existiert kein Staging-Datensatz, nicht einmal mit den bereits vorliegenden
+  Feldern (Firma, Ansprechpartner, Telefon, Anrufgrund, Anlage). Sobald die
+  Anliegen-Frage beantwortet ist, läuft die Ausführung ohne weiteren
+  Nutzer-Turn direkt in `Zusammenfassung`, deren eigener Staging-Aufruf dann
+  sofort feuert — dieses Zeitfenster ist also klein, nicht die ganze restliche
+  Unterhaltung wie 2026-09-04.
+- **Das synchrone Safety-Net in `Ende der Unterhaltung` ist davon nicht
+  betroffen** — es hängt nicht am Staging-Flow, sondern ruft bei
+  `Not(IsBlank(Global.Telefonnummer)) && Not(Global.FlowAufgerufen)` die
+  Ticketerstellung direkt auf. Es greift aber nur bei einem **sauberen**
+  Abbruch (`OnSystemRedirect` — z. B. Stille-Erkennung, reguläres Auflegen über
+  das Teams-Phone-Signal), nicht beim harten Verbindungsabbruch ohne jedes
+  Ereignis, für den der stündliche Sweep gedacht ist.
+
+**Entscheidung noch offen:** Lücke hinnehmen (Fenster ist ein einzelner
+Frage-Turn, geringe Eintrittswahrscheinlichkeit) oder einen erneuten
+Zwischen-Staging-Aufruf an einer nachweislich unschädlichen Stelle suchen.
+Nicht ohne Test wieder an dieselbe Stelle zurückschieben — das ist exakt der
+Kreislauf, der bereits zweimal (2026-09-04 → 2026-09-05 → 2026-09-10)
+durchlaufen wurde.
+
 ---
 
 ## Zusammenspiel / Doppelversand-Schutz
@@ -184,9 +239,13 @@ wieder an den Topic-Anfang.
 - [x] Fall 1 + 2 gelöst (Safety-Net + Reorder „E-Mail vor Verabschiedung")
 - [x] SharePoint-Liste `Telefonbot-Anrufe` angelegt
 - [x] Flow `Staging schreiben` (flowId `a0a99959-80a7-f111-b8de-7ced8d476627`) angelegt
-- [ ] ⚠ **Aufrufpunkte 2026-09-04 von fünf auf einen reduziert** (nur noch
-      `Zusammenfassung - slim`), weil sie den Dialog zerlegten — siehe
-      „Regression 2026-09-04". Fall 3 dadurch offen.
+- [x] ⚠ **Überholt — siehe „Regression 2026-09-10" oben.** Zwischenzeitlich
+      (2026-09-05) auf zwei Aufrufpunkte erweitert (`Kundendaten erfassen` +
+      `Zusammenfassung - slim`), hier nie nachgetragen. Am 2026-09-10 wieder auf
+      **einen** reduziert (nur `Zusammenfassung - slim`/`ZusammenfassungEN`),
+      diesmal als bewusste Entscheidung gegen die Reihenfolge-Anomalie, nicht
+      als Zwischenstand. Fall 3 dadurch **erneut eingeschränkt** — Ausmaß siehe
+      oben, deutlich kleiner als am 2026-09-04.
 - [x] `Anliegen weiterleiten – slim` um `Status = gesendet`/`Abschlussart = vollstaendig` erweitert (beide Äste) + neue Eingabe `text_7 = ConversationId`
 - [x] Flow `Sweep offene Anrufe` (stündlich; Filter `Status eq 'offen' and Modified lt now-10min`; Abbruch-Mail + `Status = gesendet`)
 - [x] Publish + erster End-to-End-Test am Telefon (2026-09-04): Abbruch erkannt,

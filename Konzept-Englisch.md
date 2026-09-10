@@ -14,11 +14,10 @@ Sprachauswahl am Gesprächsanfang, danach alle Fragen, die Bestätigung, die
 Korrekturschleife und die Abschlussmeldung — mit **englischer Spracherkennung
 und englischer Stimme**.
 
-Die Flows (`Staging schreiben`, `Ticketerstellung`) bleiben unverändert und
-erhalten dieselben Feldwerte wie bei deutschen Anrufen.
-
-**Bewusst nicht enthalten:** Anpassung des KI-Prompts im Flow `Ticketerstellung`
-an englischen Freitext (zurückgestellt, siehe Abschnitt 7).
+Die Flows (`Staging schreiben`, `Ticketerstellung`) erhalten dieselben
+Feldwerte wie bei deutschen Anrufen. **Ausnahme (2026-09-10):** Der KI-Prompt
+in `Ticketerstellung` wurde inzwischen doch an englischen Freitext angepasst —
+siehe Abschnitt 7, dort ursprünglich als „bewusst zurückgestellt" vermerkt.
 
 ---
 
@@ -502,11 +501,15 @@ den englischen Fall mit ab — nicht doppelt eintragen (`SynonymsNotUnique`).
 Die englischen Synonyme sind anschließend auch im deutschen Zweig aktiv; das ist
 unschädlich.
 
-### Schritt 6 — Systemtopics zweisprachig machen
+### Schritt 6 — Systemtopics zweisprachig machen ✅ erledigt (Stand 2026-09-10)
 
 Diese Topics existieren nur **einmal** und werden von beiden Zweigen benutzt.
 Jeweils `ConditionGroup` auf `=Global.Sprache = "Englisch"`, deutscher Text als
-`elseActions`.
+`elseActions`. Verifiziert im Workspace (`Fallback`, `Silence`,
+`UnrecognizedSpeech`, `UnknownDtmfKey`, `EndofConversation` tragen alle die
+Verzweigung); die ursprünglich zurückgestellte Zweisprachigkeit von `Fallback`
+(siehe `ToDos.md`, „Struktur-Update 2026-09-08") wurde entgegen der
+damaligen Entscheidung doch umgesetzt.
 
 | Datei | Was zu ändern ist |
 |---|---|
@@ -516,7 +519,12 @@ Jeweils `ConditionGroup` auf `=Global.Sprache = "Englisch"`, deutscher Text als
 | `UnrecognizedSpeech.mcs.yml` | „Sorry, I didn't catch that. Could you repeat it, please?" |
 | `UnknownDtmfKey.mcs.yml` | Durch das neue Tastenmenü relevanter geworden. **Achtung:** hier ist `activity:` ein einfacher String, nicht die `text`/`speak`-Struktur — Form beibehalten. |
 
-### Schritt 7 — `agent.mcs.yml` (Instructions)
+### Schritt 7 — `agent.mcs.yml` (Instructions) ✅ erledigt (Stand 2026-09-10)
+
+Umgesetzt sinngemäß wie unten geplant: „Das Gespräch wird auf Deutsch oder
+Englisch geführt, je nach der Sprachwahl des Anrufers zu Beginn des
+Gesprächs. Bleibe während des gesamten Gesprächs bei der gewählten Sprache."
+— kein Transfer-Verweis mehr.
 
 Zu ersetzender Satz:
 
@@ -583,9 +591,16 @@ Admin Center (siehe CLAUDE.md, Deployment-Weg).
   „1 – Störung oder Problem" das nahelegt. Unabhängig von der Zweisprachigkeit
   einen Test wert; Fix wäre `dtmfKey: Num1` … `Num5` je Item.
 
-- **KI-Prompt im Flow `Ticketerstellung`** ist auf deutschen Freitext ausgelegt.
+- ~~**KI-Prompt im Flow `Ticketerstellung`** ist auf deutschen Freitext ausgelegt.
   Englische Anliegen werden vermutlich verarbeitet, aber ungeprüft.
-  Bewusst zurückgestellt.
+  Bewusst zurückgestellt.~~ — **Erledigt, 2026-09-10.** Die Anweisung für
+  `zusammenfassung` lautet jetzt „Sachlich, Deutsch oder Englisch, max.
+  3 Sätze"; die `kritikalitaet`-Kriterien und die `text_6`-Ableitungsregeln
+  (`stoerung`/`wartung`/`ersatzteil`/`rückrufbitte`) sind sprachneutral
+  formuliert (englische Anrufgrund-Werte sind ohnehin identisch mit den
+  deutschen `id`s, siehe Pflegeregel 3). Ungeprüft bleibt nur die tatsächliche
+  Modellqualität bei englischem Freitext — kein Blocker mehr, sondern
+  regulärer Testfall (Testprotokoll #7/#8).
 
 - ~~**`User.Language` persistiert als Override pro Nutzer** und hebt
   browserbasierte Spracherkennung auf; `/debug clearstate` setzt zurück. Für

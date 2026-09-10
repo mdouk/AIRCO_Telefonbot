@@ -31,7 +31,7 @@ ist verworfen.
 > `manage-agent` gespiegelt). Der frühere Ordner `YAML/Slim/` existiert nicht
 > mehr; die alten Arbeitskopien liegen als historischer Stand in `Archiv/Alte Yamls/`.
 
-### ⚠ Ist-Stand der Kette (2026-09-09)
+### ⚠ Ist-Stand der Kette (2026-09-10)
 
 Die Topic-Beschreibungen weiter unten sind älter und teils überholt.
 **Maßgeblich ist diese Kette:**
@@ -42,7 +42,8 @@ Start der Unterhaltung
       Q Topic.Sprachwahl   (ClosedList, DTMF 1 = deutsch / 2 = englisch)
       englisch → System.User.Language = English, Global.Sprache = "Englisch"
                  → Kundendaten erfassen EN
-      sonst     → Kundendaten erfassen
+      sonst     → System.User.Language = German, Global.Sprache = "Deutsch"
+                 → Kundendaten erfassen        ← Fix 2026-09-10, siehe unten
   → Kundendaten erfassen  /  Kundendaten erfassen EN   ← ALLES in EINEM Topic
         Q1 Global.Firmenname            (StringPrebuilt)
         Q2 init:Global.Ansprechpartner  (nur DE; EN ohne init:)
@@ -51,8 +52,12 @@ Start der Unterhaltung
         SetVariable Global.KanalLabel = "Telefon"
         ConditionGroup: Störung (u9xatS / 8jiEHk) oder Wartung (gShHbV / KXrpcq)
               → Q Global.Anlage                        ← inline, KEIN eigenes Topic
-        InvokeFlowAction "Staging schreiben" (a0a99959-…)
-        Q Global.Anliegen (DE: init:)                  ← inline, KEIN eigenes Topic
+        Q Global.Anliegen (kein init:, DE + EN)         ← inline, KEIN eigenes Topic
+             ⚠ Kein InvokeFlowAction mehr in diesem Topic (seit 2026-09-10,
+             siehe F9 in ToDos.md) — vorher stand hier "Staging schreiben"
+             (a0a99959-…) direkt vor dieser Frage, das löste die
+             Reihenfolge-Anomalie aus (Frage wurde doppelt gestellt, erste
+             Antwort verworfen; `Tests/Test 18`/`19`).
   → Zusammenfassung - Slim  /  Zusammenfassung EN
         SetVariable Topic.Korrekturversuche = 0
         InvokeFlowAction "Staging schreiben"
@@ -83,11 +88,13 @@ Start der Unterhaltung
 `ToDos.md` („Reihenfolge-Anomalie"). Wer hier einen Flow-Knoten einfügt, zerlegt
 die Fragereihenfolge — reproduzierbar, nicht sporadisch.
 
-**Offener Punkt an genau dieser Kette:** Der Staging-Aufruf am Ende von
-`Kundendaten erfassen` steht unmittelbar vor einem `BeginDialog`, hinter dem eine
-`ConditionGroup` auf `Global.Anrufgrund` folgt. Das ist strukturell dasselbe
-Muster, das in `Tests/Test 8` den falschen (else-)Ast nahm. **Anomalie hier
-bestätigt vorhanden (2026-09-08)** — siehe ToDos.md.
+**Erledigt 2026-09-10, war bis dahin offen:** Der Staging-Aufruf am Ende von
+`Kundendaten erfassen` stand unmittelbar vor der Anliegen-Frage — strukturell
+dasselbe Muster, das in `Tests/Test 8` den falschen Ast nahm und in
+`Tests/Test 18`/`19` die Anliegen-Frage doppelt stellte (erste Antwort
+verworfen). **Fix:** Der `InvokeFlowAction`-Knoten wurde komplett aus diesem
+Topic entfernt statt umpositioniert — siehe ToDos.md (F9) für Details und die
+dadurch verkleinerte Fall-3-Sicherheitsnetz-Abdeckung.
 
 > **Umweg bereits probiert und verworfen (2026-09-07 → 2026-09-08):** Der Aufruf
 > war testweise in ein eigenes Redirect-Topic `Staging` ausgelagert
@@ -102,7 +109,7 @@ bestätigt vorhanden (2026-09-08)** — siehe ToDos.md.
 
 | Flow | flowId | aufgerufen aus |
 |------|--------|----------------|
-| Staging schreiben | `a0a99959-80a7-f111-b8de-7ced8d476627` | Kundendaten erfassen, Zusammenfassung - Slim |
+| Staging schreiben | `a0a99959-80a7-f111-b8de-7ced8d476627` | Zusammenfassung - Slim, ZusammenfassungEN — **nicht mehr** aus `Kundendaten erfassen`/`…EN` (dort seit 2026-09-10 entfernt, siehe F9) |
 | Ticketerstellung | `834c8025-3da8-f111-b8dd-70a8a52f67fc` | Zusammenfassung - Slim (2×), Ende der Unterhaltung |
 | ~~Anliegen weiterleiten – slim~~ | ~~`019885f0-…`~~ | **von keinem Topic mehr** — abgelöst |
 
@@ -159,7 +166,7 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
    Zusammenfassung verwendet (siehe unten); `text`-Feld, Flow-Input und E-Mail
    bleiben bei der unformatierten `Global.Telefonnummer`.
 
-**YAML-Stand (2026-09-09):**
+**YAML-Stand (2026-09-10):**
 ```yaml
 - Question → Global.Firmenname (StringPrebuiltEntity, allowBargeIn: false)
 - Question → init:Global.Ansprechpartner (StringPrebuiltEntity, allowBargeIn: false)
@@ -168,10 +175,7 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
 - Question → Global.Anrufgrund (ClosedList Anrufgrund)   # 2026-09-05 aus „Anrufgrund erfassen" hierher verschoben
 - SetVariable: Global.KanalLabel = "Telefon"
 - ConditionGroup: Stoerung/Wartung → Question Global.Anlage   # inline seit 2026-09-08
-- InvokeFlowAction „Staging schreiben" (a0a99959-…)      # id m8Ujcv
-    # alle 8 Bindings mit IsBlank()-Guard (2026-09-08)
-- Question → init:Global.Anliegen (StringPrebuiltEntity)      # inline seit 2026-09-08
-    # ⚠ muss unmittelbar nach dem Flowaufruf stehen
+- Question → Global.Anliegen (StringPrebuiltEntity)      # inline seit 2026-09-08
 - BeginDialog → Zusammenfassung-Slim
 ```
 
@@ -179,13 +183,27 @@ Weitgehend identisch mit Stufe 1, mit folgenden **Abweichungen**:
 > zwischen Telefonnummer- und Anrufgrund-Frage — er diente ausschließlich der
 > Ziffernaussprache in der Zusammenfassung, die es nicht mehr gibt.
 
-**Warum die Anrufgrund-Frage hier steht (2026-09-05):** Fall 3 verlangt, dass ab
-den drei Kontaktfeldern ein SharePoint-Datensatz existiert. Der einzige
-nachweislich unschädliche Ort für einen Flow-Aufruf ist „direkt vor der Frage,
-die ohnehin als nächste kommt, im selben Topic" — deshalb wurde die
-Anrufgrund-Frage hochgezogen und `Anrufgrund erfassen` auf die reine
-Verzweigung reduziert. **Ob die aktuelle Reihenfolge (Frage → SetVariable →
-Flow → BeginDialog) trägt, ist noch nicht getestet.**
+> **Entfallen 2026-09-10 (Portal-Edit):** der `InvokeFlowAction`-Knoten
+> „Staging schreiben" (a0a99959-…, id `m8Ujcv`) zwischen Anlage- und
+> Anliegen-Frage samt der 8 `IsBlank()`-Guard-Bindings — und mit ihm `init:`
+> vor `Global.Anliegen`. Das war der Knoten, der die Reihenfolge-Anomalie in
+> diesem Topic auslöste (`Tests/Test 18`/`19`: Anliegen-Frage doppelt gestellt,
+> erste Antwort verworfen). Statt den Aufruf umzupositionieren, wurde er ganz
+> entfernt — sauberer, aber mit Preis: der einzige verbleibende Staging-Aufruf
+> sitzt jetzt erst am Anfang von `Zusammenfassung - Slim`, also **nach** der
+> Anliegen-Frage statt davor. Siehe ToDos.md F9 und
+> `Konzept-Ausfallsichere-Weiterleitung.md`.
+
+**Warum die Anrufgrund-Frage hier steht (2026-09-05, Begründung inzwischen
+überholt):** Fall 3 verlangte damals, dass ab den drei Kontaktfeldern ein
+SharePoint-Datensatz existiert, und der einzige nachweislich unschädliche Ort
+für einen Flow-Aufruf war „direkt vor der Frage, die ohnehin als nächste kommt,
+im selben Topic" — deshalb wurde die Anrufgrund-Frage hochgezogen. **Seit
+2026-09-10 gibt es in diesem Topic gar keinen Flow-Aufruf mehr** (siehe oben),
+die ursprüngliche Begründung trägt also nicht mehr. Die Position der
+Anrufgrund-Frage selbst ist deshalb nicht falsch — nur der Grund, warum sie
+genau hier steht, ist inzwischen ein anderer (schlicht: hier ergibt sie sich
+aus dem natürlichen Gesprächsablauf).
 **Änderungen 2026-09-02:**
 - `PersonNamePrebuiltEntity` → `StringPrebuiltEntity`: Entity übersetzte Namen ins Englische („Ich bin der Detlef" → „I am Detlef").
 - `PhoneNumberPrebuiltEntity` → `StringPrebuiltEntity`: Entity lehnte ausländische/dialektale Formate ab → Telefonnummer blieb leer → Flow schlug fehl.
@@ -264,16 +282,17 @@ Identisch mit Stufe 1, **einzige Änderung**: letzter Node redirectet zu
    | Firmenname | `KJwQ9x` | ja |
    | Ansprechpartner | `md1vGC` | ja |
    | Telefonnummer | `swLyyJ` | **nein — Zweig `conditionItem_nV5Ax7(_en)` am 2026-09-09 gelöscht** |
-   | Inbetriebnahme | `gjJ4ZJ` | nein (Stufe-1-Rest) |
-   | Wartungsvertrag | `YvfEJQ` | nein (Stufe-1-Rest) |
    
-   **Die Entity selbst bleibt unverändert.** Sie trägt seit jeher nicht
-   behandelte Werte (Inbetriebnahme, Wartungsvertrag) mit; `Telefonnummer` ist
-   jetzt der dritte. Sagt ein Anrufer trotzdem „die Telefonnummer", greift der
-   `elseActions`-Zweig („Das habe ich leider nicht verstanden.") und die Frage
-   wird wiederholt. Das ist bewusst in Kauf genommen: Die Nummer wird nicht
-   mehr vorgelesen, der Anrufer hat also keinen Anlass, sie zu beanstanden.
-   Ein Eingriff in die Entity hätte dagegen alle Condition-Keys berührt.
+   **Entity bereinigt am 2026-09-10 (Portal-Edit):** Die beiden nie behandelten
+   Stufe-1-Reste `Inbetriebnahme` (`gjJ4ZJ`) und `Wartungsvertrag` (`YvfEJQ`)
+   wurden aus `entities/Korrekturfeld.mcs.yml` entfernt. `swLyyJ`
+   (Telefonnummer) blieb dabei unverändert stehen, obwohl ihr Korrekturzweig
+   schon einen Tag vorher gelöscht wurde — vermutlich schlicht nicht mit
+   aufgeräumt (siehe ToDos.md F8). Sagt ein Anrufer trotzdem „die
+   Telefonnummer", greift der `elseActions`-Zweig („Das habe ich leider nicht
+   verstanden.") und die Frage wird wiederholt. Das ist bewusst in Kauf
+   genommen: Die Nummer wird nicht mehr vorgelesen, der Anrufer hat also keinen
+   Anlass, sie zu beanstanden.
 
 3. **Fallback bei unerkannter Angabe**: Vereinfacht gegenüber Stufe 1 —
    

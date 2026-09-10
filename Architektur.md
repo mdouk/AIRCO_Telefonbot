@@ -205,7 +205,7 @@ Copilot Studio auch das akustische Barge-in betrifft oder nur den Themenwechsel.
 
 ---
 
-## 3a. Gesprächsfluss Stufe 0 — Slim-Variante (Stand 2026-09-08, per Fresh-Clone verifiziert)
+## 3a. Gesprächsfluss Stufe 0 — Slim-Variante (Stand 2026-09-10, per Fresh-Clone verifiziert)
 
 > **Änderung 2026-09-08 — Topic-Merge.** `Anrufgrund erfassen`, `Anlage
 > erfassen` und `Anliegen erfassen` sind keine eigenen Topics mehr, sondern
@@ -226,6 +226,21 @@ Copilot Studio auch das akustische Barge-in betrifft oder nur den Themenwechsel.
 > (`Anrufgrund erfassen`, `Anlage erfassen`, `Anliegen erfassen` je DE/EN)
 > sind gelöscht; `Fallback` verweist nicht mehr auf sie.
 
+> **Änderung 2026-09-10 (Portal-Edit, per Pull übernommen) — zwei getrennte
+> Fixes.** (1) `Start der Unterhaltung`: Der Deutsch-Zweig (`elseActions`)
+> setzt jetzt symmetrisch zum Englisch-Zweig `System.User.Language = German`
+> und `Global.Sprache = "Deutsch"` — vorher blieb ein einmal gesetzter
+> Englisch-Override über nachfolgende Anrufe hinweg hängen und verzerrte die
+> Spracherkennung eines danach folgenden deutschen Anrufs (`Konzept-
+> Englisch.md` §7). (2) `Kundendaten erfassen`/`…EN`: Der
+> `InvokeFlowAction`-Knoten „Staging schreiben" zwischen Anlage- und
+> Anliegen-Frage ist **komplett entfernt**, nicht nur umpositioniert — er löste
+> die Reihenfolge-Anomalie aus (`Tests/Test 18`/`19`: Anliegen-Frage doppelt
+> gestellt, erste Antwort verworfen). Der einzige verbleibende Staging-Aufruf
+> sitzt jetzt am Anfang von `Zusammenfassung - Slim`/`ZusammenfassungEN` —
+> **Preis:** kleineres Zeitfenster für das Fall-3-Sicherheitsnetz, siehe
+> `Konzept-Ausfallsichere-Weiterleitung.md` und `ToDos.md` (F9).
+
 ```mermaid
 flowchart TD
     Anruf["Anrufer wählt AIRCO-Festnetznummer"] --> Teams["Microsoft Teams Phone"]
@@ -238,11 +253,10 @@ flowchart TD
 
     Block --> Grund{"ConditionGroup<br/>(im selben Topic)"}
     Grund -->|"Störung oder Wartung"| Anlage["Q Anlage<br/>Bezeichnung + Seriennummer + Baujahr<br/>(Freitext → Global.Anlage)"]
-    Grund -->|"Ersatzteil / Rückruf / Sonstiges"| Staging
-    Anlage --> Staging["InvokeFlowAction 'Staging schreiben'<br/>a0a99959-…"]
-    Staging --> Anliegen["Q Anliegen<br/>(Freitext → Global.Anliegen)<br/><i>muss direkt nach dem Flowaufruf stehen</i>"]
+    Grund -->|"Ersatzteil / Rückruf / Sonstiges"| Anliegen
+    Anlage --> Anliegen["Q Anliegen<br/>(Freitext → Global.Anliegen)<br/><i>kein InvokeFlowAction mehr in diesem Topic (seit 2026-09-10)</i>"]
 
-    Anliegen --> Summe["<b>Zusammenfassung - Slim</b> / <b>Zusammenfassung EN</b><br/>InvokeFlowAction 'Staging schreiben'<br/>Bestätigung nur Firmenname + Ansprechpartner<br/>(Telefonnummer wird nicht vorgelesen)"]
+    Anliegen --> Summe["<b>Zusammenfassung - Slim</b> / <b>Zusammenfassung EN</b><br/>InvokeFlowAction 'Staging schreiben' (a0a99959-…)<br/>— einziger verbleibender Staging-Aufruf<br/>Bestätigung nur Firmenname + Ansprechpartner<br/>(Telefonnummer wird nicht vorgelesen)"]
 
     Summe -->|"widerspricht (≤ 3 Versuche)"| Korrektur["Korrektur-Frage:<br/>Firmenname oder Ansprechpartner?"]
     Korrektur --> Summe

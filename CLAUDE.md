@@ -137,13 +137,20 @@ Korrekturschleife ≤ 3) → Flow `Ticketerstellung` → `Ende der Unterhaltung`
 Ansprechpartner, Telefonnummer (alle drei `StringPrebuiltEntity`),
 **Anrufgrund** als Closed List (`Global.Anrufgrund` bzw. `Global.AnrufgrundEN`),
 `SetVariable KanalLabel`, ConditionGroup (bei Störung/Wartung inline die
-**Anlage**-Frage), dann der Staging-Flowaufruf `a0a99959-…` mit
-`IsBlank()`-Guards auf allen 8 Parametern, dann die **Anliegen**-Frage
-(Freitext), dann der Sprung in die Zusammenfassung.
+**Anlage**-Frage), dann direkt die **Anliegen**-Frage (Freitext), dann der
+Sprung in die Zusammenfassung.
 
-> ⚠ Die Reihenfolge Staging-Aufruf → **Anliegen-Frage im selben Topic** ist
-> die einzige nachweislich funktionierende; sie nicht umstellen. Siehe
-> Bauregel unten.
+> **Seit 2026-09-10 kein `InvokeFlowAction` mehr in diesem Topic.** Der
+> Staging-Flowaufruf (`a0a99959-…`), der hier vor der Anliegen-Frage stand,
+> wurde im Portal entfernt — zusammen mit `init:` vor `Global.Anliegen` (DE;
+> EN hatte nie `init:` an der Stelle). Das ist die endgültige Auflösung der
+> Reihenfolge-Anomalie für dieses Topic: nicht umpositioniert, sondern der
+> auslösende Knoten ganz entfernt. Bestätigt durch `Tests/Test 18`/`19`, wo
+> die Anliegen-Frage vorher doppelt gestellt wurde. **Preis dafür:** Der
+> Staging-Satz für Fall 3 (Ausfallsicherung) entsteht jetzt erst beim Eintritt
+> in `Zusammenfassung - Slim`, nicht mehr schon in `Kundendaten erfassen` —
+> siehe `Konzept-Ausfallsichere-Weiterleitung.md`, Abschnitt „Regression
+> 2026-09-10" für die Sicherheitsnetz-Folgen. Siehe auch Bauregel unten.
 
 Inaktiv: `Inbetriebnahme`, `Vertragsfrage` — beides **Stufe-1-Entwurfsmaterial
 in `Topics.md`, keine Topics im Agenten**. Ein Nicht-Slim-Topic
@@ -248,6 +255,17 @@ Bestätigt durch `Tests/Test 14`: der Trace zeigt durchgehend
 > aber auch nichts: an der bestätigten Position ist `Global.Anlage` bereits
 > erfasst, wenn der Staging-Satz geschrieben wird.
 
+> **Auflösung 2026-09-10 — der Knoten ist weg, nicht mehr umsortiert.** Der
+> Staging-Aufruf in `Kundendaten erfassen` / `…EN` wurde im Portal ersatzlos
+> entfernt, `init:` vor `Global.Anliegen` (DE) gleich mit. Kein
+> `InvokeFlowAction` mehr in diesem Topic, also kein Ansatzpunkt mehr für die
+> Anomalie an dieser Stelle. Die allgemeine Regel oben bleibt unverändert
+> gültig — in `Zusammenfassung - Slim`/`ZusammenfassungEN` steht weiterhin ein
+> `InvokeFlowAction` unmittelbar vor der nächsten Frage, und die Position
+> bleibt dort die einzig unschädliche. **Sicherheitsnetz-Preis:** Fall 3
+> (Ausfallsicherung) deckt jetzt einen kleineren Zeitraum ab, siehe
+> `Konzept-Ausfallsichere-Weiterleitung.md`.
+
 **Diagnose-Werkzeug:** Der Trace-Export des Testpanels (`dialog.json`,
 `valueType: DialogTracingInfo`) liefert je Aktion `topicId`, `actionId`,
 `conditionItemExit` und `variableState.globalState` mit Millisekunden-
@@ -320,7 +338,7 @@ Herleitung in `ToDos.md` (F5).
 
 ### ⚠ Bauregel: `init:`-Präfix ist Pro-Variable, nicht Pro-Topic
 
-Der `init:`-Präfix vor einer globalen Variable (z. B. `init:Global.Anliegen`)
+Der `init:`-Präfix vor einer globalen Variable (z. B. `init:Global.Ansprechpartner`)
 darf für dieselbe Variable **nur an einer einzigen Stelle im gesamten Agenten**
 stehen — nicht einmal pro Topic, das die Variable befüllt. Zwei Topics, die
 dieselbe `Global.`-Variable je mit `init:` deklarieren (typischer Fall bei
@@ -331,6 +349,26 @@ Variable schlicht `variable: Global.…` ohne Präfix setzen — die Bedeutung
 (Variable existiert bereits global) bleibt gleich. Entdeckt 2026-09-08 beim
 Befüllen der englischen Pendants zu `Kundendatenerfassen` und
 `Anliegenerfassen`.
+
+**Zweite Wirkung von `init:` — bei Reentry gefährlich, sonst neutral:**
+`init:` heißt „setze die Variable vor dem Fragen zurück", nicht „das ist die
+erste Deklaration". Ohne `init:` überspringt Copilot Studio eine Frage, deren
+Zielvariable schon gefüllt ist (siehe `reference_cps_question_skip` in der
+Session-Memory); mit `init:` wird immer neu gefragt, auch wenn schon ein Wert
+da ist. Das ist erwünscht bei einer **absichtlichen Schleife** (`Topic.korrekt`
+/ `Topic.Korrekturfeld` in der Korrekturschleife der Zusammenfassung — dort
+muss jede Runde neu gefragt werden) und **unschädlich**, wenn vor der Frage im
+selben Topic-Durchlauf kein `InvokeFlowAction` sitzt (kein Reentry-Trigger
+vorhanden). Gefährlich wird es nur in Kombination mit der Bauregel oben: stand
+ein `InvokeFlowAction` unmittelbar davor, ließ die Reihenfolge-Anomalie die
+Engine ein zweites Mal durch die Frage laufen, und `init:` verwarf dabei die
+bereits gegebene Antwort statt sie zu behalten — genau der Fall bei
+`init:Global.Anliegen` in `Kundendatenerfassen.mcs.yml`, reproduziert in
+`Tests/Test 18`/`19` und am 2026-09-10 zusammen mit dem auslösenden
+`InvokeFlowAction` behoben (siehe Bauregel „kein `InvokeFlowAction` im
+Frageablauf" oben). `init:Global.Ansprechpartner` — strukturell dieselbe
+Variablenart, aber **vor** jedem Flow-Aufruf im Topic — war nie betroffen und
+bleibt unverändert.
 
 ### ⚠ Bauregel: Telefonnummer immer als `StringPrebuiltEntity`
 
