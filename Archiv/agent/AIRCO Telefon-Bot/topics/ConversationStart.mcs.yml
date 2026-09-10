@@ -76,6 +76,21 @@ beginDialog:
               dialog: mosaiic_AIRCOTelefonBot.topic.KundendatenerfassenEN
 
       elseActions:
+        - kind: SetMultipleVariables
+          id: Rleb8T
+          assignments:
+            - variable: System.User.Language
+              value:
+                kind: OptionDataValue
+                type:
+                  kind: SystemOptionSet
+                  name: Locale
+
+                value: German
+
+            - variable: Global.Sprache
+              value: Deutsch
+
         - kind: BeginDialog
           id: heIXod
           dialog: mosaiic_AIRCOTelefonBot.topic.Kundendatenerfassen

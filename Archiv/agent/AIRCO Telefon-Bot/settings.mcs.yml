@@ -44,8 +44,6 @@ configuration:
   memoryParameters:
 
 authenticationConfiguration: {}
-publishedOn: 2026-09-09T17:52:41.0000000Z
+publishedOn: 2026-09-10T05:56:43.0000000Z
 template: default-2.1.0
 language: 1031
-supportedLanguages:
-  - 1033
